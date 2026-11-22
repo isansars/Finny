@@ -14,7 +14,26 @@ await migrate(drizzle(pg), { migrationsFolder: folder });
 const tables = async () => (await pg.query<{ t: string }>("select table_name as t from information_schema.tables where table_schema = 'public' order by 1")).rows.map((r) => r.t);
 const up = await tables();
 console.log("up:", up.join(", "));
-for (const want of ["users", "sessions", "auth_accounts", "verification_tokens"]) assert.ok(up.includes(want), `missing ${want}`);
+for (const want of ["users", "sessions", "auth_accounts", "verification_tokens", "money_accounts", "categories", "entities", "transactions"]) assert.ok(up.includes(want), `missing ${want}`);
+
+// FINNY-26: the database itself refuses a malformed transaction (amounts in sen, transfers between two accounts, no category).
+await pg.exec(`insert into users (id, email) values ('u1', 'owner@finny.test');
+  insert into money_accounts (id, user_id, name, type, opening_on) values ('00000000-0000-0000-0000-00000000000a', 'u1', 'BCA', 'bank', '2026-11-01'), ('00000000-0000-0000-0000-00000000000b', 'u1', 'GoPay', 'ewallet', '2026-11-01');
+  insert into categories (id, user_id, kind, name) values ('00000000-0000-0000-0000-0000000000c1', 'u1', 'expense', 'Beli Kopi');`);
+const A = "'00000000-0000-0000-0000-00000000000a'", B = "'00000000-0000-0000-0000-00000000000b'", K = "'00000000-0000-0000-0000-0000000000c1'";
+const ins = (cols: string, vals: string) => pg.exec(`insert into transactions (user_id, "on", ${cols}) values ('u1', '2026-11-22', ${vals})`);
+await ins("kind, amount_sen, account_id, category_id", `'spend', 4389000, ${A}, ${K}`);
+await ins("kind, amount_sen, account_id, to_account_id", `'transfer', 10000000, ${A}, ${B}`);
+const refused = async (label: string, p: Promise<unknown>) => { await assert.rejects(p, undefined, label); };
+await refused("transfer to the same account", ins("kind, amount_sen, account_id, to_account_id", `'transfer', 100, ${A}, ${A}`));
+await refused("transfer with a category", ins("kind, amount_sen, account_id, to_account_id, category_id", `'transfer', 100, ${A}, ${B}, ${K}`));
+await refused("spend without a category", ins("kind, amount_sen, account_id", `'spend', 100, ${A}`));
+await refused("spend to a second account", ins("kind, amount_sen, account_id, to_account_id, category_id", `'spend', 100, ${A}, ${B}, ${K}`));
+await refused("zero amount", ins("kind, amount_sen, account_id, category_id", `'spend', 0, ${A}, ${K}`));
+const big = (await pg.query<{ s: string }>("select sum(amount_sen)::text as s from transactions")).rows[0].s;
+assert.equal(big, "14389000", "amounts are exact integers");
+console.log("✓ the transactions table refuses malformed rows");
+await pg.exec("delete from transactions; delete from categories; delete from money_accounts; delete from users;");
 for (const { tag } of [...journal.entries].reverse()) {
   const down = path.join(folder, "down", `${tag}.sql`);
   assert.ok(existsSync(down), `no down script for ${tag} (drizzle/down/${tag}.sql)`);
