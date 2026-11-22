@@ -13,6 +13,7 @@ const env = {
   AUTH_SECRET: process.env.AUTH_SECRET || "qa-only-secret-qa-only-secret-qa-only-secret",
   AUTH_URL: `http://localhost:${port}`, FINNY_DEV_LOGIN: "1", FINNY_QA: "1",
   FINNY_ALLOWED_EMAILS: "owner@finny.test",
+  AUTH_GOOGLE_ID: process.env.AUTH_GOOGLE_ID || "qa-google-id", AUTH_GOOGLE_SECRET: process.env.AUTH_GOOGLE_SECRET || "qa-google-secret",
 };
 const run = (cmd) => execSync(cmd, { cwd: root, env, stdio: "inherit" });
 
