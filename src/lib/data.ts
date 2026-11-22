@@ -9,6 +9,7 @@ import { txnProblem } from "@/lib/txn-rule";
 import { suggestCategory } from "@/lib/suggest-rule";
 import { parseRupiah } from "@/lib/money";
 import { monthRange, todayIn } from "@/lib/dates";
+import { STARTER } from "@/lib/starter-categories";
 
 const str = (v: unknown, max = 200) => (typeof v === "string" ? v.trim().slice(0, max) : undefined);
 const bad = (msg: string): never => { throw new HttpError(400, msg); };
@@ -114,6 +115,17 @@ export async function mergeCategory(userId: string, id: string, into: string) {
   if (kids.length) await db.update(categories).set({ parentId: into }).where(and(eq(categories.userId, userId), eq(categories.parentId, id)));
   await db.delete(categories).where(and(eq(categories.id, id), eq(categories.userId, userId)));
   return { moved: moved.length };
+}
+/** Adds the starter tree, only when there are no categories yet. */
+export async function addStarterCategories(userId: string) {
+  if ((await listCategories(userId)).length) bad("You already have categories.");
+  for (const [kind, groups] of Object.entries(STARTER) as [(typeof CATEGORY_KINDS)[number], [string, string[]][]][]) {
+    for (const [i, [group, kids]] of groups.entries()) {
+      const [g] = await db.insert(categories).values({ userId, kind, name: group, position: i }).returning();
+      if (kids.length) await db.insert(categories).values(kids.map((name, j) => ({ userId, kind, name, parentId: g.id, position: j })));
+    }
+  }
+  return listCategories(userId);
 }
 /** Removes a category nobody uses yet (else: merge it or switch it off). */
 export async function deleteCategory(userId: string, id: string) {
