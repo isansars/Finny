@@ -114,7 +114,7 @@ module.exports = async ({ base, shots }) => {
   // Pick a category tile (opening "All categories" when it isn't among the most used) and account chips.
   async function pickCategory(f, name) {
     const r = f.getByRole("radiogroup", { name: "Category" }).getByRole("radio", { name, exact: true });
-    if (!(await r.count())) await f.getByRole("button", { name: "All categories" }).click();
+    if (!(await r.count())) await f.getByRole("button", { name: "All categories", exact: true }).click();
     await r.click();
   }
   const pickAccount = (f, group, name) => f.getByRole("radiogroup", { name: group, exact: true }).getByRole("radio", { name, exact: true }).click();
@@ -211,7 +211,7 @@ module.exports = async ({ base, shots }) => {
     const kopi = (await json("categories")).body.find((c) => c.name === "Beli Kopi");
     await json(`categories/${kopi.id}`, { method: "PATCH", data: { active: false } });
     await page.goto(base + "/"); await page.getByRole("button", { name: "Add a transaction" }).first().click(); const f = page.getByRole("dialog");
-    if (await f.getByRole("button", { name: "All categories" }).count()) await f.getByRole("button", { name: "All categories" }).click();
+    if (await f.getByRole("button", { name: "All categories", exact: true }).count()) await f.getByRole("button", { name: "All categories", exact: true }).click();
     ok(!(await f.getByRole("radiogroup", { name: "Category" }).getByRole("radio", { name: "Beli Kopi", exact: true }).count()), "still offered");
     await f.getByRole("button", { name: "Close" }).click();
     ok((await text('[data-testid="txn-list"]')).includes("Ngopi di Le Tusa"), "history gone");

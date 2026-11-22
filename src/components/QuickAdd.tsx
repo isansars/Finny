@@ -16,11 +16,9 @@ const TOP = 9;
 function CategoryPicker({ cats, value, onPick, suggested }: { cats: Category[]; value: string; onPick: (id: string) => void; suggested: string | null }) {
   const [all, setAll] = useState(false);
   const [q, setQ] = useState("");
-  // Leaves first (a parent with children is a group); most used, then the tree order.
-  const parents = new Set(cats.map((c) => c.parentId).filter(Boolean));
-  const tree = flattenTree(cats, undefined).filter((c) => cats.some((x) => x.id === c.id));
-  const order = new Map(tree.map((c, i) => [c.id, i]));
-  const leaves = cats.filter((c) => !parents.has(c.id)).sort((a, b) => (b.uses ?? 0) - (a.uses ?? 0) || (order.get(a.id) ?? 0) - (order.get(b.id) ?? 0));
+  // Every category can be picked (a parent too, e.g. Beli Kopi with Kopi Susu inside): most used first, then the tree order.
+  const order = new Map(flattenTree(cats, undefined).map((c, i) => [c.id, i]));
+  const leaves = [...cats].sort((a, b) => (b.uses ?? 0) - (a.uses ?? 0) || (order.get(a.id) ?? 0) - (order.get(b.id) ?? 0));
   let shown = all ? leaves : leaves.slice(0, TOP);
   for (const id of [value, suggested]) if (id && !shown.some((c) => c.id === id)) { const c = cats.find((x) => x.id === id); if (c) shown = [c, ...shown.slice(0, TOP - 1)]; }
   if (all && q.trim()) shown = leaves.filter((c) => c.name.toLowerCase().includes(q.trim().toLowerCase()));

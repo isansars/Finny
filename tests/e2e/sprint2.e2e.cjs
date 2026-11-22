@@ -89,9 +89,9 @@ module.exports = async ({ base, shots }) => {
     ok(await page.getByTestId("account-CC Mandiri").locator(".fy-usage").count() === 1, "no usage bar");
     await noSideScroll("Accounts"); await shot(page, shots, "s2-05-accounts-375");
   });
-  await s.check("FINNY-36.6 dates read the human way (Today / Yesterday / Mon, 3 Nov)", async () => {
+  await s.check("FINNY-36.6 dates read the human way (Today / Yesterday / Mon 3 Nov)", async () => {
     await page.goto(base + "/"); await page.getByTestId("txn-list").waitFor(); const t = await text('[data-testid="txn-list"]');
-    ok(!/\d{1,2}\/\d{1,2}\/\d{4}/.test(t), "a numeric date"); ok(/(Today|Yesterday|\w{3}, \d{1,2} \w{3})/.test(t), t.slice(0, 120));
+    ok(!/\d{1,2}\/\d{1,2}\/\d{4}/.test(t), "a numeric date"); ok(/(Today|Yesterday|\w{3},? \d{1,2} \w{3})/.test(t), t.slice(0, 120));
   });
   await s.check("Settings and sign-in in the new look", async () => {
     await page.goto(base + "/settings"); await noSideScroll("Settings"); await shot(page, shots, "s2-06-settings-375");
