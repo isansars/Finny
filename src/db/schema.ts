@@ -64,6 +64,8 @@ export const categories = pgTable("categories", {
   kind: text("kind", { enum: CATEGORY_KINDS }).notNull(),
   name: text("name").notNull(),
   emoji: text("emoji"),
+  icon: text("icon"), // FINNY-38: a Lucide icon key; null = guessed from the name (category-look.ts)
+  color: text("color"), // FINNY-38: a palette key; null = guessed
   parentId: uuid("parent_id"),
   active: boolean("active").notNull().default(true),
   position: integer("position").notNull().default(0),
