@@ -6,6 +6,8 @@ import { isAllowed } from "@/lib/allow-rule";
 
 export type Me = { id: string; email: string; name: string | null; image: string | null };
 
+export async function getMe(): Promise<Me | null> { return current(); }
+
 async function current(): Promise<Me | null> {
   const s = await auth();
   const u = s?.user as { id?: string; email?: string | null; name?: string | null; image?: string | null } | undefined;
