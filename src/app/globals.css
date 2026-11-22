@@ -1,0 +1,13 @@
+:root {
+  --ink: #2b2340; --muted: #6b6280; --faint: #9a8fab; --line: #f1eaf7; --edge: #e6dcf0;
+  --bg: #fbf8fd; --card: #ffffff; --pink: #d9387f; --purple: #9b4fd6; --plum: #4b3a6e;
+  --spend: #c2334d; --income: #2f8a57; --warn-bg: #fff6e0; --warn-edge: #e8c06a; --warn-ink: #7a5410;
+  --grad: linear-gradient(135deg, var(--pink), var(--purple));
+  --radius: 16px;
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--ink); font-family: ui-rounded, "SF Pro Rounded", "Nunito", system-ui, -apple-system, "Segoe UI", sans-serif; -webkit-font-smoothing: antialiased; }
+a { color: inherit; }
+button, input, select { font: inherit; color: inherit; }

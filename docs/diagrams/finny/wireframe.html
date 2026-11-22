@@ -1,0 +1,89 @@
+<!-- title: Finny, a first look -->
+<!-- subtitle: Discovery wireframe · the month at a glance, adding a transaction in 5 seconds, and checking a bank e-statement before it lands -->
+<!-- footer: 🐱 Mochi · Finny · Discovery · 22 Nov 2026 · a sketch to argue with, not a design · numbers are made up -->
+<!-- width: 1800 -->
+<style>
+  .grid3 { display: grid; grid-template-columns: 1.3fr 0.7fr 1.1fr; gap: 22px; align-items: start; }
+  .lbl { font-weight: 900; font-size: 18px; color: #4b3a6e; margin: 0 0 8px; } .lbl span { display: block; font-weight: 700; font-size: 13.5px; color: #6b6280; margin-top: 2px; }
+  .pane { background: #fff; border: 2px solid #e6dcf0; border-radius: 18px; padding: 14px 16px; box-shadow: 0 4px 12px rgba(43,35,64,.08); }
+  .top { display:flex; justify-content: space-between; align-items:center; margin-bottom: 10px; font-weight: 900; color:#4b3a6e; }
+  .mp { padding: 3px 12px; border-radius: 999px; border: 2px solid #e6dcf0; font-size: 13px; }
+  .tiles { display:grid; grid-template-columns: repeat(4,1fr); gap: 8px; margin-bottom: 10px; }
+  .t { border-radius: 14px; padding: 8px 10px; font-weight: 800; font-size: 12px; color:#6b6280; }
+  .t b { display:block; font-size: 17px; color:#2b2340; margin-top: 2px; }
+  .in { background:#e5f7ee; } .out { background:#ffe3ec; } .sav { background:#e3f0ff; } .inv { background:#fff2d6; }
+  .bars .r { display:grid; grid-template-columns: 130px 1fr 92px; gap: 8px; align-items:center; font-size: 12.5px; font-weight: 800; color:#2b2340; margin-bottom: 6px; }
+  .bar { height: 12px; border-radius: 999px; background: #f1eaf7; overflow:hidden; } .bar i { display:block; height:100%; border-radius:999px; background: linear-gradient(90deg,#7bd3a4,#3fae74); }
+  .bar i.hot { background: linear-gradient(90deg,#f7a072,#e0475f); }
+  .sub { font-weight: 900; font-size: 13px; color:#4b3a6e; margin: 10px 0 6px; }
+  .cal { display:grid; grid-template-columns: repeat(7,1fr); gap: 4px; }
+  .d { border:1.5px solid #f1eaf7; border-radius: 8px; height: 34px; font-size: 10.5px; font-weight: 800; color:#6b6280; padding: 2px 4px; }
+  .d.h1 { background:#ffeef2; } .d.h2 { background:#ffd5df; } .d.h3 { background:#ffb3c6; color:#7a1f3d; }
+  .f { margin-bottom: 8px; } .f label { display:block; font-size: 11.5px; font-weight: 800; color:#6b6280; }
+  .f div { border: 2px solid #e6dcf0; border-radius: 10px; padding: 6px 9px; font-weight: 800; font-size: 13.5px; color:#2b2340; }
+  .seg { display:flex; gap: 4px; margin-bottom: 8px; } .seg span { flex:1; text-align:center; padding: 4px 0; border-radius: 999px; font-size: 12px; font-weight: 900; border:2px solid #e6dcf0; color:#6b6280; }
+  .seg span.on { background:#e0475f; border-color:#e0475f; color:#fff; }
+  .sugg { font-size: 11.5px; font-weight: 800; color:#3a7a55; margin-top: 3px; }
+  .btnp { display: inline-block; margin-top: 6px; padding: 7px 14px; border-radius: 999px; font-weight: 900; font-size: 13.5px; color: #fff !important; background: linear-gradient(135deg, #d9387f, #9b4fd6); }
+  table { width:100%; border-collapse: collapse; font-size: 12px; } th { text-align:left; color:#6b6280; font-weight: 900; padding: 4px; border-bottom: 2px solid #f1eaf7; }
+  td { padding: 5px 4px; border-bottom: 1.5px solid #f6f1fa; font-weight: 800; color:#2b2340; }
+  .ok { color:#2f8a57; } .new { background:#eef7ff; } .dup { color:#9a8fab; text-decoration: line-through; } .q { color:#b36b00; }
+  .chip { display:inline-block; padding: 1px 7px; border-radius: 999px; font-size: 11px; font-weight: 800; background:#efe6fb; color:#5b3a8c; }
+  .chip.ai { background:#e5f7ee; color:#1d6b43; } .chip.warn { background:#fff2d6; color:#8a5a00; }
+  .rec { margin-top: 10px; padding: 8px 12px; border-radius: 12px; background:#e5f7ee; border: 1.5px solid #7bd3a4; font-weight: 800; font-size: 13px; color:#1d6b43; }
+  .warn { margin-top: 8px; padding: 8px 12px; border-radius: 12px; background: #fff6e0; border: 1.5px solid #e8c06a; font-weight: 800; font-size: 12.5px; color: #7a5410; }
+</style>
+<div class="grid3">
+  <div>
+    <p class="lbl">1 · This month<span>Replaces the Dashboard sheet and the pivots: one screen, any month, every account</span></p>
+    <div class="pane">
+      <div class="top"><span>📊 November 2026</span><span class="mp">◀ Month ▶ · All accounts ▾</span></div>
+      <div class="tiles">
+        <div class="t in">Income<b>Rp 15.0 jt</b></div><div class="t out">Spent<b>Rp 9.2 jt</b></div>
+        <div class="t sav">Saved<b>Rp 3.0 jt</b></div><div class="t inv">Invested<b>Rp 1.5 jt</b></div>
+      </div>
+      <div class="sub">Budget vs spent</div>
+      <div class="bars">
+        <div class="r">🍜 Makan di Luar<div class="bar"><i class="hot" style="width:96%"></i></div>1.44 / 1.5 jt</div>
+        <div class="r">☕ Beli Kopi<div class="bar"><i class="hot" style="width:112%"></i></div>560 / 500 rb</div>
+        <div class="r">🏠 Bills<div class="bar"><i style="width:70%"></i></div>4.2 / 6 jt</div>
+        <div class="r">🚌 Transport<div class="bar"><i style="width:40%"></i></div>100 / 250 rb</div>
+      </div>
+      <div class="sub">Spending by day</div>
+      <div class="cal">
+        <div class="d">1</div><div class="d h1">2</div><div class="d h2">3</div><div class="d h1">4</div><div class="d">5</div><div class="d h3">6</div><div class="d h1">7</div>
+        <div class="d h1">8</div><div class="d">9</div><div class="d h2">10</div><div class="d h1">11</div><div class="d h1">12</div><div class="d h3">13</div><div class="d">14</div>
+      </div>
+      <div class="sub">Net worth · Rp 62 jt <span class="chip ok">▲ 2.1 jt this month</span> · Top places: Le Tusa, Tokopedia, GoFood</div>
+    </div>
+  </div>
+  <div>
+    <p class="lbl">2 · Add in 5 seconds<span>Replaces typing a row in the right sheet: works on the phone</span></p>
+    <div class="pane">
+      <div class="seg"><span class="on">Spend</span><span>Income</span><span>Transfer</span></div>
+      <div class="f"><label>Amount</label><div>Rp 43.890</div></div>
+      <div class="f"><label>What for</label><div>Ngopi di Le Tusa</div><p class="sugg">✨ Beli Kopi · like your past coffees</p></div>
+      <div class="f"><label>Paid from</label><div>💳 BCA ▾</div></div>
+      <div class="f"><label>Date</label><div>Today ▾</div></div>
+      <span class="btnp">Save</span>
+      <p class="sugg" style="color:#6b6280">Transfer moves money between two of your accounts: no double counting</p>
+    </div>
+  </div>
+  <div>
+    <p class="lbl">3 · Check a bank e-statement<span>Upload the month's PDF; nothing is saved until you confirm</span></p>
+    <div class="pane">
+      <div class="top"><span>📄 BCA · October 2026 · 64 lines</span><span class="chip">PDF · password ✓</span></div>
+      <table>
+        <tr><th>Date</th><th>Description</th><th>Amount</th><th>Category</th><th></th></tr>
+        <tr class="new"><td>03 Oct</td><td>QRIS LE TUSA</td><td>−43.890</td><td><span class="chip ai">Beli Kopi</span></td><td>new</td></tr>
+        <tr class="dup"><td>04 Oct</td><td>Bensin (you added it)</td><td>−25.000</td><td>Biaya Bensin</td><td>already in</td></tr>
+        <tr class="new"><td>05 Oct</td><td>TRSF E-BANKING KE AKHSAL</td><td>−5.000</td><td><span class="chip warn">? pick one</span></td><td class="q">check</td></tr>
+        <tr class="new"><td>06 Oct</td><td>TARIKAN ATM</td><td>−150.000</td><td><span class="chip ai">→ Kas Tunai</span></td><td>transfer</td></tr>
+        <tr class="new"><td>25 Oct</td><td>BUNGA</td><td>+973</td><td><span class="chip ai">Bunga Bank</span></td><td>new</td></tr>
+      </table>
+      <div class="rec">✓ Closing balance matches the statement: Rp 1.250.000 · 61 new · 3 already in · 1 to check</div>
+      <div class="warn">The PDF is read, then deleted. Only the lines you confirm are kept.</div>
+      <span class="btnp">Add 61 transactions</span>
+    </div>
+  </div>
+</div>

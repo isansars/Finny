@@ -1,0 +1,12 @@
+%% title: Bank e-statement, from PDF to the books
+%% subtitle: Nothing lands until the owner confirms
+%% footer: 🐱 Mochi · Finny · Discovery · 22 Nov 2026
+flowchart LR
+  U["📄 Upload the month's PDF or CSV<br/>(choose the account)"]:::person --> P{"🔐 Password?"}
+  P -- yes --> PW["Type it once<br/>(never stored)"]:::person --> R
+  P -- no --> R["📖 Read the lines<br/>bank layout first, AI only if unknown"]:::ai
+  R --> M["🧠 Match: already entered?<br/>transfer between my accounts?<br/>category from my history"]:::ai
+  M --> V["👀 Review screen<br/>new / already in / to check"]:::person
+  V --> K{"Closing balance<br/>matches?"}
+  K -- yes --> S["✅ Add confirmed lines<br/>PDF deleted"]:::live
+  K -- no --> X["⚠️ Show the gap and<br/>the missing lines"]:::gap --> V

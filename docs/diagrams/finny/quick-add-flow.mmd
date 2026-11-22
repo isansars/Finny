@@ -1,0 +1,8 @@
+%% title: Quick add, in five seconds
+%% subtitle: From ＋ to saved, without leaving the screen you're on
+%% footer: 🐱 Mochi · Finny · Sprint 1 design notes · 22 Nov 2026
+flowchart LR
+  A["Tap ＋<br/>(any screen)"]:::person --> K{"Spend, Income<br/>or Transfer?"}
+  K -- "Spend / Income" --> B["Amount, then<br/>'what for'"]:::person --> C["✨ Category suggested<br/>from past transactions"]:::ai --> D["Account = last used<br/>date = today"]:::live
+  K -- Transfer --> T["Amount, from → to<br/>(two of my accounts)"]:::person --> D
+  D --> S["Save"]:::person --> R["Balances and the list<br/>update in place"]:::live
