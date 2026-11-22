@@ -10,6 +10,8 @@ import { suggestCategory } from "@/lib/suggest-rule";
 import { parseRupiah } from "@/lib/money";
 import { monthRange, todayIn } from "@/lib/dates";
 import { STARTER } from "@/lib/starter-categories";
+import { PALETTE } from "@/lib/category-look";
+import { dashboard } from "@/lib/dashboard-rule";
 
 const str = (v: unknown, max = 200) => (typeof v === "string" ? v.trim().slice(0, max) : undefined);
 const bad = (msg: string): never => { throw new HttpError(400, msg); };
@@ -79,6 +81,22 @@ export async function reorderAccounts(userId: string, ids: unknown) {
 export const listCategories = (userId: string) =>
   db.select().from(categories).where(eq(categories.userId, userId)).orderBy(asc(categories.kind), asc(categories.position), asc(categories.name));
 
+/** The owner's chosen icon and colour (null = guess from the name again). */
+function lookFields(body: Record<string, unknown>) {
+  const out: { icon?: string | null; color?: string | null } = {};
+  if (body.icon !== undefined) { const i = str(body.icon, 40) || null; if (i && !/^[a-z0-9-]+$/.test(i)) bad("Unknown icon."); out.icon = i; }
+  if (body.color !== undefined) { const c = str(body.color, 20) || null; if (c && !PALETTE[c]) bad("Unknown colour."); out.color = c; }
+  return out;
+}
+/** Categories with how often each was used in the last 90 days (quick add shows the most used first). */
+export async function listCategoriesWithUse(userId: string) {
+  const since = new Date(Date.now() - 90 * 864e5).toISOString().slice(0, 10);
+  const [cats, uses] = await Promise.all([listCategories(userId),
+    db.select({ id: transactions.categoryId, n: sql<string>`count(*)` }).from(transactions).where(and(eq(transactions.userId, userId), gte(transactions.on, since))).groupBy(transactions.categoryId)]);
+  const n = new Map(uses.map((u) => [u.id, Number(u.n)]));
+  return cats.map((c) => ({ ...c, uses: n.get(c.id) ?? 0 }));
+}
+
 export async function createCategory(userId: string, body: Record<string, unknown>) {
   const all = await listCategories(userId);
   const kind = (CATEGORY_KINDS as readonly string[]).includes(String(body.kind)) ? String(body.kind) as (typeof CATEGORY_KINDS)[number] : bad("Choose Income, Expense, Saving or Investment.");
@@ -86,7 +104,7 @@ export async function createCategory(userId: string, body: Record<string, unknow
   const parentId = str(body.parentId) || null;
   const p = placeProblem("", kind, parentId, all as Cat[]); if (p) bad(p);
   if (all.some((c) => c.kind === kind && c.parentId === parentId && c.name.toLowerCase() === name.toLowerCase())) bad(`There's already a "${name}" there.`);
-  const [row] = await db.insert(categories).values({ userId, kind, name, parentId, emoji: str(body.emoji, 8) || null }).returning();
+  const [row] = await db.insert(categories).values({ userId, kind, name, parentId, emoji: str(body.emoji, 8) || null, ...lookFields(body) }).returning();
   return row;
 }
 export async function updateCategory(userId: string, id: string, body: Record<string, unknown>) {
@@ -97,6 +115,7 @@ export async function updateCategory(userId: string, id: string, body: Record<st
   if (body.emoji !== undefined) set.emoji = str(body.emoji, 8) || null;
   if (body.active !== undefined) set.active = Boolean(body.active);
   if (body.position !== undefined) set.position = Number(body.position) || 0;
+  Object.assign(set, lookFields(body));
   if (body.parentId !== undefined) {
     const parentId = str(body.parentId) || null;
     const p = placeProblem(id, cat.kind, parentId, all as Cat[]); if (p) bad(p);
@@ -224,6 +243,19 @@ export async function monthTotals(userId: string, month: string) {
     else if (r.kind === "spend") { if (r.catKind === "saving") out.savedSen += n; else if (r.catKind === "investment") out.investedSen += n; else out.spendSen += n; }
   }
   return out;
+}
+
+/** The month at a glance (FINNY-42): every transaction of the month, summed by the pure rule. */
+export async function monthDashboard(userId: string, month: string, accountId?: string | null) {
+  const [a, b] = (() => { try { return monthRange(month); } catch { return bad("month must look like 2026-11"); } })();
+  const where = [eq(transactions.userId, userId), gte(transactions.on, a), lt(transactions.on, b)];
+  if (accountId) where.push(or(eq(transactions.accountId, accountId), eq(transactions.toAccountId, accountId))!);
+  const [rows, cats] = await Promise.all([
+    db.select({ t: transactions, entity: entities.name }).from(transactions).leftJoin(entities, eq(entities.id, transactions.entityId)).where(and(...where)),
+    listCategories(userId),
+  ]);
+  const days = new Date(Date.UTC(Number(month.slice(0, 4)), Number(month.slice(5, 7)), 0)).getUTCDate();
+  return { month, days, ...dashboard(rows.map((r) => ({ ...r.t, entity: r.entity })), cats, days) };
 }
 
 export async function suggest(userId: string, q: string) {
