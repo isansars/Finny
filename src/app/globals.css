@@ -11,3 +11,88 @@ html, body { margin: 0; padding: 0; }
 body { background: var(--bg); color: var(--ink); font-family: ui-rounded, "SF Pro Rounded", "Nunito", system-ui, -apple-system, "Segoe UI", sans-serif; -webkit-font-smoothing: antialiased; }
 a { color: inherit; }
 button, input, select { font: inherit; color: inherit; }
+
+/* ---- Finny UI (Sprint 1, after Mochi's design notes) */
+.fy-wrap { max-width: 960px; margin: 0 auto; padding: 12px 16px 96px; }
+.fy-top { position: sticky; top: 0; z-index: 20; background: rgba(251,248,253,.92); backdrop-filter: blur(8px); border-bottom: 1.5px solid var(--line); }
+.fy-top-in { max-width: 960px; margin: 0 auto; padding: 10px 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.fy-logo { font-weight: 900; font-size: 18px; color: var(--pink); text-decoration: none; }
+.fy-nav-top { display: none; gap: 4px; }
+.fy-nav-top a, .fy-nav a { text-decoration: none; font-weight: 800; color: var(--faint); border-radius: 999px; }
+.fy-nav-top a { padding: 6px 12px; } .fy-nav-top a.on { color: var(--pink); background: #fde7f1; }
+.fy-nav { position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; background: #fff; border-top: 1.5px solid var(--line); display: flex; justify-content: space-around; padding: 6px 72px calc(6px + env(safe-area-inset-bottom)) 8px; }
+.fy-nav a { display: flex; flex-direction: column; align-items: center; font-size: 11px; padding: 4px 8px; min-width: 44px; min-height: 44px; justify-content: center; }
+.fy-nav a span { font-size: 19px; line-height: 1.1; } .fy-nav a.on { color: var(--pink); }
+.fy-fab { position: fixed; right: 16px; bottom: calc(14px + env(safe-area-inset-bottom)); z-index: 40; width: 56px; height: 56px; border-radius: 999px; border: 0; background: var(--grad); color: #fff; font-size: 30px; font-weight: 900; box-shadow: 0 8px 18px rgba(155,79,214,.4); cursor: pointer; }
+@media (min-width: 760px) {
+  .fy-nav-top { display: flex; } .fy-nav { display: none; } .fy-fab { bottom: 24px; right: 24px; }
+}
+.fy-h1 { font-size: 22px; font-weight: 900; margin: 8px 0 12px; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.fy-card { background: var(--card); border: 2px solid var(--line); border-radius: var(--radius); padding: 12px 14px; }
+.fy-hero { border-radius: 18px; padding: 14px 16px; background: linear-gradient(135deg,#fde7f1,#efe6fb); margin-bottom: 12px; }
+.fy-hero small { display: block; font-weight: 800; color: var(--muted); font-size: 12.5px; }
+.fy-hero b { display: block; font-size: 26px; font-weight: 900; margin: 2px 0; }
+.fy-tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; }
+.fy-tile { background: rgba(255,255,255,.7); border-radius: 12px; padding: 6px 10px; font-size: 12px; font-weight: 800; color: var(--muted); }
+.fy-tile b { font-size: 15px; display: block; }
+.fy-grp { font-size: 12px; font-weight: 900; color: var(--faint); text-transform: uppercase; letter-spacing: .04em; margin: 16px 2px 6px; display: flex; justify-content: space-between; }
+.fy-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 6px; border-bottom: 1.5px solid #f6f1fa; min-height: 52px; }
+.fy-row.tap { cursor: pointer; } .fy-row.tap:hover { background: #fcf9fe; }
+.fy-row .t { font-weight: 800; font-size: 14.5px; overflow: hidden; text-overflow: ellipsis; }
+.fy-row .s { font-weight: 700; font-size: 12px; color: var(--faint); margin-top: 1px; }
+.fy-row .grow { min-width: 0; flex: 1; }
+.fy-amt { font-weight: 900; font-size: 14.5px; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.fy-amt.spend { color: var(--spend); } .fy-amt.income { color: var(--income); } .fy-amt.transfer { color: var(--faint); }
+.fy-btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; padding: 0 18px; border-radius: 999px; border: 0; font-weight: 900; font-size: 15px; cursor: pointer; background: var(--grad); color: #fff; text-decoration: none; }
+.fy-btn.ghost { background: #fff; color: var(--muted); border: 2px solid var(--edge); }
+.fy-btn.danger { background: #fff; color: var(--spend); border: 2px solid #f3c3cd; }
+.fy-btn.small { min-height: 34px; padding: 0 12px; font-size: 13px; }
+.fy-btn.block { width: 100%; } .fy-btn:disabled { opacity: .5; cursor: default; }
+.fy-chip { display: inline-flex; align-items: center; padding: 2px 9px; border-radius: 999px; font-size: 12px; font-weight: 900; background: #efe6fb; color: #5b3a8c; border: 0; cursor: pointer; min-height: 28px; }
+.fy-field { display: block; margin-bottom: 10px; }
+.fy-field > span { display: block; font-size: 12px; font-weight: 800; color: var(--muted); margin-bottom: 3px; }
+.fy-input { width: 100%; min-height: 44px; border: 2px solid var(--edge); border-radius: 12px; padding: 8px 11px; font-weight: 800; font-size: 15px; background: #fff; }
+.fy-input:focus { outline: none; border-color: var(--purple); }
+.fy-amount { font-size: 30px; text-align: center; font-weight: 900; min-height: 60px; }
+.fy-seg { display: flex; gap: 4px; margin-bottom: 12px; }
+.fy-seg button { flex: 1; min-height: 40px; border-radius: 999px; border: 2px solid var(--edge); background: #fff; font-weight: 900; font-size: 13.5px; color: var(--muted); cursor: pointer; }
+.fy-seg button.on { background: var(--spend); border-color: var(--spend); color: #fff; }
+.fy-seg.income button.on { background: var(--income); border-color: var(--income); }
+.fy-seg.transfer button.on, .fy-seg.neutral button.on { background: var(--plum); border-color: var(--plum); }
+.fy-sugg { display: inline-block; margin-top: 5px; font-size: 12px; font-weight: 800; color: #1d6b43; background: #e5f7ee; border-radius: 999px; padding: 2px 9px; }
+.fy-sheet-bg { position: fixed; inset: 0; z-index: 50; background: rgba(43,35,64,.35); display: flex; align-items: flex-end; justify-content: center; }
+.fy-sheet { background: #fff; width: 100%; max-width: 480px; max-height: 92vh; overflow: auto; border-radius: 22px 22px 0 0; padding: 14px 16px calc(16px + env(safe-area-inset-bottom)); box-shadow: 0 -8px 30px rgba(43,35,64,.2); }
+@media (min-width: 760px) { .fy-sheet-bg { align-items: center; } .fy-sheet { border-radius: 22px; } }
+.fy-sheet-h { display: flex; justify-content: space-between; align-items: center; font-weight: 900; font-size: 17px; margin-bottom: 10px; }
+.fy-x { border: 0; background: none; font-size: 22px; color: var(--faint); cursor: pointer; min-width: 44px; min-height: 44px; }
+.fy-err { background: #ffe9ee; color: #8a1d38; border-radius: 12px; padding: 8px 12px; font-weight: 800; font-size: 13.5px; margin-bottom: 10px; }
+.fy-note { background: var(--warn-bg); border: 1.5px solid var(--warn-edge); color: var(--warn-ink); border-radius: 12px; padding: 8px 12px; font-weight: 800; font-size: 13px; }
+.fy-empty { text-align: center; padding: 28px 12px; color: var(--muted); font-weight: 700; }
+.fy-empty b { display: block; font-size: 17px; color: var(--ink); margin-bottom: 4px; }
+.fy-filters { display: flex; gap: 6px; flex-wrap: wrap; margin: 4px 0 6px; }
+.fy-filters .fy-input { flex: 1 1 140px; min-height: 40px; font-size: 13.5px; padding: 6px 10px; }
+.fy-month { display: flex; align-items: center; gap: 4px; font-weight: 900; }
+.fy-month button { border: 2px solid var(--edge); background: #fff; border-radius: 999px; min-width: 36px; min-height: 36px; font-weight: 900; cursor: pointer; color: var(--muted); }
+.fy-acc { display: flex; justify-content: space-between; align-items: center; gap: 10px; border: 2px solid var(--line); border-radius: 14px; padding: 10px 12px; margin-bottom: 7px; background: #fff; cursor: pointer; min-height: 52px; }
+.fy-meter { height: 8px; border-radius: 999px; background: var(--line); margin-top: 6px; overflow: hidden; }
+.fy-meter i { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg,#f7a072,#e0475f); }
+.fy-tabs { display: flex; gap: 4px; margin-bottom: 8px; overflow-x: auto; }
+.fy-tabs button { flex: 1; min-height: 38px; padding: 0 12px; border-radius: 999px; border: 2px solid var(--edge); background: #fff; font-weight: 900; font-size: 13px; color: var(--muted); cursor: pointer; white-space: nowrap; }
+.fy-tabs button.on { background: var(--plum); border-color: var(--plum); color: #fff; }
+.fy-cat { display: flex; align-items: center; justify-content: space-between; padding: 8px 4px; border-bottom: 1.5px solid #f6f1fa; min-height: 46px; font-weight: 800; font-size: 14.5px; }
+.fy-cat.off .nm { color: #b9b0c6; text-decoration: line-through; }
+.fy-cat .more { border: 0; background: none; font-size: 20px; color: var(--faint); min-width: 44px; min-height: 44px; cursor: pointer; }
+.fy-split { display: grid; gap: 16px; }
+@media (min-width: 900px) { .fy-split.home { grid-template-columns: 1fr 340px; align-items: start; } .fy-split .side { position: sticky; top: 72px; } }
+.fy-side-only { display: none; } @media (min-width: 900px) { .fy-side-only { display: block; } }
+.fy-row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.fy-link { background: none; border: 0; color: var(--purple); font-weight: 800; cursor: pointer; padding: 6px 0; font-size: 13.5px; }
+.fy-center { max-width: 400px; margin: 12vh auto 0; padding: 16px; text-align: center; }
+.fy-center h1 { font-size: 24px; margin: 6px 0; }
+.fy-center p { color: var(--muted); font-weight: 700; }
+.fy-google { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; min-height: 48px; border-radius: 999px; border: 2px solid var(--edge); background: #fff; font-weight: 900; font-size: 15px; cursor: pointer; }
+.fy-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+.fy-grp > span + span { text-transform: none; letter-spacing: 0; }
+.fy-month span { font-size: 16px; min-width: 128px; text-align: center; }
+.fy-acc .fy-chip { min-height: 24px; min-width: 32px; justify-content: center; font-size: 11px; padding: 0 6px; }
+.fy-card-line { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 2px 10px; font-size: 12px; font-weight: 700; color: var(--muted); margin-top: 3px; }
