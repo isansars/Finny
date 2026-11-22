@@ -1,6 +1,6 @@
 {
   "name": "finny",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "private": true,
   "description": "Finny: one personal financial record dashboard, replacing two money workbooks.",
   "scripts": {
@@ -36,5 +36,7 @@
     "playwright": "1.63.0",
     "typescript": "5.9.3"
   },
-  "engines": { "node": ">=22" }
+  "engines": {
+    "node": ">=22"
+  }
 }
