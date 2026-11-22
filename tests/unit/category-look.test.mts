@@ -13,6 +13,6 @@ test("colours are stable and from the palette", () => {
   assert.ok(PALETTE[guessColor("Anything")]);
 });
 test("the owner's choice wins; an unknown colour falls back", () => {
-  assert.deepEqual(lookOf({ name: "Beli Kopi", kind: "expense", icon: "cookie", color: "teal" }), { icon: "cookie", color: "teal", hex: PALETTE.teal });
+  assert.deepEqual(lookOf({ name: "Beli Kopi", kind: "expense", icon: "cookie", color: "mint" }), { icon: "cookie", color: "mint", hex: PALETTE.mint });
   assert.equal(lookOf({ name: "Beli Kopi", kind: "expense", color: "nope" }).color, guessColor("Beli Kopi"));
 });

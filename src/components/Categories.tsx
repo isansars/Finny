@@ -1,48 +1,59 @@
 "use client";
-// Categories (FINNY-30): one tree per kind; each row's ⋯ renames, moves, merges, switches off or deletes.
+// Categories (FINNY-30, restyled in FINNY-40): a segmented control per kind, the tree as a grouped list with icon tiles;
+// a row opens a sheet to rename, pick an icon and a colour, move, merge, switch off or delete.
 import { useState } from "react";
+import { ChevronDown, ChevronRight, Plus } from "lucide-react";
 import { api, useFinny, type Category } from "./store";
 import { CategoryOptions, Sheet } from "./ui";
+import { CatTile, ICON_KEYS, Tile } from "./icons";
 import { flattenTree, descendants } from "@/lib/category-rule";
+import { lookOf, PALETTE_KEYS } from "@/lib/category-look";
 
-const KINDS = [["expense", "Expense"], ["income", "Income"], ["saving", "Saving"], ["investment", "Invest"]] as const;
+const KINDS = [["expense", "Expense"], ["income", "Income"], ["saving", "Saving"], ["investment", "Investment"]] as const;
 
 function CategorySheet({ c, kind, onDone }: { c: Category | null; kind: string; onDone: () => void }) {
   const { categories, reload } = useFinny();
   const [name, setName] = useState(c?.name ?? "");
-  const [emoji, setEmoji] = useState(c?.emoji ?? "");
+  const guess = lookOf({ name: name || "x", kind, icon: null, color: null });
+  const [icon, setIcon] = useState<string | null>(c?.icon ?? null);
+  const [color, setColor] = useState<string | null>(c?.color ?? null);
   const [parentId, setParentId] = useState(c?.parentId ?? "");
   const [into, setInto] = useState("");
   const [err, setErr] = useState(""); const [busy, setBusy] = useState(false);
   const blocked = c ? new Set([c.id, ...descendants(c.id, categories)]) : new Set<string>();
   const parents = categories.filter((x) => x.kind === kind && !blocked.has(x.id));
   const run = async (fn: () => Promise<unknown>) => { setErr(""); setBusy(true); try { await fn(); await reload(); onDone(); } catch (x) { setErr((x as Error).message); setBusy(false); } };
+  const shownIcon = icon ?? guess.icon, shownColor = color ?? guess.color;
   return (
     <div>
       {err && <div className="fy-err" role="alert">{err}</div>}
-      <form onSubmit={(e) => { e.preventDefault(); run(() => api(c ? `categories/${c.id}` : "categories", { method: c ? "PATCH" : "POST", json: { kind, name, emoji, parentId: parentId || null } })); }}>
-        <div className="fy-row2">
-          <label className="fy-field"><span>Name</span><input className="fy-input" value={name} onChange={(e) => setName(e.target.value)} maxLength={80} required autoFocus /></label>
-          <label className="fy-field"><span>Emoji (optional)</span><input className="fy-input" value={emoji} onChange={(e) => setEmoji(e.target.value)} maxLength={8} /></label>
+      <form onSubmit={(e) => { e.preventDefault(); run(() => api(c ? `categories/${c.id}` : "categories", { method: c ? "PATCH" : "POST", json: { kind, name, icon, color, parentId: parentId || null } })); }}>
+        <div style={{ display: "flex", gap: 12, alignItems: "flex-end" }}>
+          <Tile icon={shownIcon} color={shownColor} size={46} />
+          <label className="fy-field" style={{ flex: 1, margin: 0 }}><span className="fy-label">Name</span><input className="fy-input" value={name} onChange={(e) => setName(e.target.value)} maxLength={80} required autoFocus /></label>
         </div>
-        <label className="fy-field"><span>Inside</span>
+        <div className="fy-subhead" style={{ marginTop: 14 }}><span>Colour</span>{color && <button type="button" onClick={() => setColor(null)}>Automatic</button>}</div>
+        <div className="fy-swatches" role="radiogroup" aria-label="Colour">{PALETTE_KEYS.map((k) => <button type="button" key={k} role="radio" aria-checked={shownColor === k} aria-label={k} onClick={() => setColor(k)}><Tile icon={shownIcon} color={k} size={34} /></button>)}</div>
+        <div className="fy-subhead" style={{ marginTop: 12 }}><span>Icon</span>{icon && <button type="button" onClick={() => setIcon(null)}>Automatic</button>}</div>
+        <div className="fy-icons" role="radiogroup" aria-label="Icon">{ICON_KEYS.map((k) => <button type="button" key={k} role="radio" aria-checked={shownIcon === k} aria-label={k} onClick={() => setIcon(k)}><Tile icon={k} color={shownColor} size={34} /></button>)}</div>
+        <label className="fy-field" style={{ marginTop: 12 }}><span className="fy-label">Inside</span>
           <select className="fy-input" aria-label="Parent category" value={parentId} onChange={(e) => setParentId(e.target.value)}>
             <option value="">— top level —</option>
             {flattenTree(parents, kind).filter((x) => x.depth < 2).map((x) => <option key={x.id} value={x.id}>{"  ".repeat(x.depth)}{x.name}</option>)}
           </select>
         </label>
-        <button className="fy-btn block" disabled={busy}>{c ? "Save" : "Add category"}</button>
+        <button className="fy-btn primary block" disabled={busy}>{c ? "Save" : "Add category"}</button>
       </form>
       {c && (<>
-        <div className="fy-grp"><span>More</span></div>
-        <button className="fy-btn ghost block" disabled={busy} onClick={() => run(() => api(`categories/${c.id}`, { method: "PATCH", json: { active: !c.active } }))}>{c.active ? "Switch off (hide from the form, keep history)" : "Switch back on"}</button>
-        <div className="fy-row2" style={{ marginTop: 8, alignItems: "end" }}>
-          <label className="fy-field" style={{ margin: 0 }}><span>Merge into…</span>
+        <div className="fy-section"><span>More</span></div>
+        <button className="fy-btn block" disabled={busy} onClick={() => run(() => api(`categories/${c.id}`, { method: "PATCH", json: { active: !c.active } }))}>{c.active ? "Switch off (hide it, keep its history)" : "Switch back on"}</button>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: 8, marginTop: 8, alignItems: "end" }}>
+          <label className="fy-field" style={{ margin: 0 }}><span className="fy-label">Merge into…</span>
             <select className="fy-input" aria-label="Merge into" value={into} onChange={(e) => setInto(e.target.value)}>
               <option value="">Choose…</option><CategoryOptions cats={categories} kinds={[c.kind]} includeOff exclude={c.id} />
             </select>
           </label>
-          <button className="fy-btn ghost" disabled={busy || !into} onClick={() => { const t = categories.find((x) => x.id === into); if (confirm(`Move every "${c.name}" transaction to "${t?.name}" and remove "${c.name}"?`)) run(() => api(`categories/${c.id}/merge`, { method: "POST", json: { into } })); }}>Merge</button>
+          <button className="fy-btn" disabled={busy || !into} onClick={() => { const t = categories.find((x) => x.id === into); if (confirm(`Move every "${c.name}" transaction to "${t?.name}" and remove "${c.name}"?`)) run(() => api(`categories/${c.id}/merge`, { method: "POST", json: { into } })); }}>Merge</button>
         </div>
         <button className="fy-btn danger block" style={{ marginTop: 8 }} disabled={busy} onClick={() => { if (confirm(`Delete "${c.name}"?`)) run(() => api(`categories/${c.id}`, { method: "DELETE" })); }}>Delete (only if unused)</button>
       </>)}
@@ -60,28 +71,27 @@ export function Categories() {
   const hidden = new Set<string>(); for (const id of folded) for (const d of descendants(id, categories)) hidden.add(d);
   return (
     <>
-      <div className="fy-h1"><span>Categories</span><button className="fy-btn small" onClick={() => setEdit(null)}>＋ Add</button></div>
-      <div className="fy-tabs" role="tablist">{KINDS.map(([k, l]) => <button key={k} role="tab" aria-selected={kind === k} className={kind === k ? "on" : ""} onClick={() => setKind(k)}>{l}</button>)}</div>
+      <div className="fy-large"><div><div className="sub">{categories.length} in all</div><h1>Categories</h1></div><button className="fy-btn primary small" onClick={() => setEdit(null)} aria-label="Add category"><Plus size={16} />Add</button></div>
+      <div className="fy-seg" role="tablist" style={{ marginBottom: 6 }}>{KINDS.map(([k, l]) => <button key={k} role="tab" aria-selected={kind === k} className={kind === k ? "on" : ""} onClick={() => setKind(k)}>{l}</button>)}</div>
       {loaded && !categories.length && (
-        <div className="fy-empty"><b>No categories yet</b>Start with a set in your own words (Makan di Luar, Beli Kopi, Gaji Bulanan…) and change anything after.
-          <div style={{ marginTop: 12 }}><button className="fy-btn" disabled={busy} onClick={async () => { setBusy(true); await api("categories/starter", { method: "POST" }).catch(() => {}); await reload(); setBusy(false); }}>Add starter categories</button></div></div>
+        <div className="fy-card fy-empty" style={{ marginTop: 12 }}><Tile icon="shapes" color="lavender" size={52} /><b>No categories yet</b>Start with a set in your own words (Makan di Luar, Beli Kopi, Gaji Bulanan…) and change anything after.
+          <div style={{ marginTop: 14 }}><button className="fy-btn primary" disabled={busy} onClick={async () => { setBusy(true); await api("categories/starter", { method: "POST" }).catch(() => {}); await reload(); setBusy(false); }}>Add starter categories</button></div></div>
       )}
-      {loaded && categories.length > 0 && !tree.length && <div className="fy-empty">No categories of this kind yet.</div>}
-      <div data-testid="category-tree">
+      {loaded && categories.length > 0 && !tree.length && <div className="fy-card fy-empty" style={{ marginTop: 12 }}>No categories of this kind yet.</div>}
+      {tree.length > 0 && <div className="fy-list" style={{ marginTop: 12 }} data-testid="category-tree">
         {tree.filter((c) => !hidden.has(c.id)).map((c) => {
           const hasKids = categories.some((x) => x.parentId === c.id);
           return (
-            <div key={c.id} className={`fy-cat ${c.active ? "" : "off"}`} style={{ paddingLeft: 4 + c.depth * 18 }} data-testid={`cat-${c.name}`}>
-              <span className="nm">
-                {hasKids ? <button className="fy-link" style={{ padding: "0 6px 0 0", color: "var(--muted)" }} aria-label={`${folded.has(c.id) ? "Open" : "Fold"} ${c.name}`} onClick={() => { const f = new Set(folded); if (f.has(c.id)) f.delete(c.id); else f.add(c.id); setFolded(f); }}>{folded.has(c.id) ? "▸" : "▾"}</button> : null}
-                {c.emoji ? c.emoji + " " : ""}{c.name}{c.active ? "" : " (off)"}
-              </span>
-              <button className="more" aria-label={`Change ${c.name}`} onClick={() => setEdit(c)}>⋯</button>
+            <div key={c.id} className="fy-row" style={{ paddingLeft: 16 + c.depth * 22, opacity: c.active ? 1 : .5 }} data-testid={`cat-${c.name}`}>
+              <CatTile c={c} />
+              <div className="main"><div className="t">{c.name}{c.active ? "" : " (off)"}</div>{hasKids && <div className="s">{categories.filter((x) => x.parentId === c.id).length} inside</div>}</div>
+              {hasKids && <button className="fy-more" style={{ padding: 6 }} aria-label={`${folded.has(c.id) ? "Open" : "Fold"} ${c.name}`} onClick={() => { const f = new Set(folded); if (f.has(c.id)) f.delete(c.id); else f.add(c.id); setFolded(f); }}>{folded.has(c.id) ? <ChevronRight size={18} /> : <ChevronDown size={18} />}</button>}
+              <button className="fy-btn small" aria-label={`Change ${c.name}`} onClick={() => setEdit(c)}>Edit</button>
             </div>
           );
         })}
-      </div>
-      {edit !== undefined && <Sheet title={edit ? edit.name : "Add a category"} onClose={() => setEdit(undefined)}><CategorySheet c={edit} kind={edit?.kind ?? kind} onDone={() => setEdit(undefined)} /></Sheet>}
+      </div>}
+      {edit !== undefined && <Sheet title={edit ? edit.name : "New category"} onClose={() => setEdit(undefined)}><CategorySheet c={edit} kind={edit?.kind ?? kind} onDone={() => setEdit(undefined)} /></Sheet>}
     </>
   );
 }

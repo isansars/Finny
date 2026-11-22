@@ -47,7 +47,7 @@ module.exports = async ({ base, shots }) => {
 
   // ---------- FINNY-8 / 27 / 28: accounts
   async function addAccount({ name, type, opening, limit, day }) {
-    await page.goto(base + "/accounts"); await page.getByRole("button", { name: "＋ Add" }).click();
+    await page.goto(base + "/accounts"); await page.getByRole("button", { name: "Add account" }).click();
     const f = page.getByRole("dialog"); await f.getByLabel("Name").fill(name); await f.getByLabel("Type").selectOption(type);
     if (opening) await f.getByLabel(/Opening balance|Owed on the opening date/).fill(opening);
     if (limit) await f.getByLabel("Limit").fill(limit);
@@ -69,18 +69,17 @@ module.exports = async ({ base, shots }) => {
     await page.goto(base + "/accounts"); await settle();
     ok((await text('[data-testid="account-BCA"]')).includes("1.250.000"), "BCA balance");
     const cc = await text('[data-testid="account-CC Mandiri"]');
-    ok(cc.includes("owe Rp 200.000") && cc.includes("available 35.800.000 of 36.000.000"), cc);
+    ok(cc.includes("owe Rp 200.000") && cc.includes("Available Rp 35.800.000 of 36.000.000"), cc);
   });
   await s.check("FINNY-8.5 all accounts on one page, grouped by type, with a total", async () => {
-    const t = await page.locator(".fy-grp").allInnerTexts();
-    for (const g of ["CASH & BANK", "E-WALLETS", "CREDIT CARDS", "LOANS & PAYLATER"]) ok(t.some((x) => x.toUpperCase().includes(g)), `no ${g} group`);
+    for (const g of ["Cash & bank", "E-wallets", "Credit cards", "Loans & paylater"]) ok(await page.getByTestId(`group-${g}`).isVisible(), `no ${g} group`);
     // 1.250.000 + 450.000 + 0 − 200.000 − 3.000.000
     ok((await text('[data-testid="accounts-total"]')) === "−Rp 1.500.000", await text('[data-testid="accounts-total"]'));
   });
   await s.check("FINNY-8.1 rename and reorder an account", async () => {
     await page.getByRole("button", { name: "Edit Kas Tunai" }).click(); const f = page.getByRole("dialog");
     await f.getByLabel("Name").fill("Dompet"); await f.getByRole("button", { name: "Save changes" }).click(); await f.waitFor({ state: "detached" });
-    await page.getByRole("button", { name: "Move Dompet up" }).click(); await settle();
+    await page.getByRole("button", { name: "Reorder" }).click(); await page.getByRole("button", { name: "Move Dompet up" }).click(); await settle(); await page.getByRole("button", { name: "Done" }).click();
     const names = (await json("accounts")).body.filter((a) => !a.archived).sort((a, b) => a.position - b.position).map((a) => a.name);
     ok(names[0] === "Dompet", names.join(","));
   });
@@ -92,7 +91,7 @@ module.exports = async ({ base, shots }) => {
     await page.getByTestId("cat-Beli Kopi").waitFor(); ok(await page.getByTestId("cat-Kebutuhan Pribadi").isVisible(), "no group");
   });
   await s.check("FINNY-10.1 a tree by kind: add a third-level category; a fourth level is refused", async () => {
-    await page.getByRole("button", { name: "＋ Add" }).click(); let f = page.getByRole("dialog");
+    await page.getByRole("button", { name: "Add category" }).click(); let f = page.getByRole("dialog");
     await f.getByLabel("Name").fill("Kopi Susu"); await f.getByLabel("Parent category").selectOption({ label: "  Beli Kopi" });
     await f.getByRole("button", { name: "Add category" }).click(); await f.waitFor({ state: "detached" });
     const cats = (await json("categories")).body; const ks = cats.find((c) => c.name === "Kopi Susu"), bk = cats.find((c) => c.name === "Beli Kopi");
@@ -112,28 +111,35 @@ module.exports = async ({ base, shots }) => {
   await shot(page, shots, "04-categories-375");
 
   // ---------- FINNY-9 / 31 / 32: transactions
+  // Pick a category tile (opening "All categories" when it isn't among the most used) and account chips.
+  async function pickCategory(f, name) {
+    const r = f.getByRole("radiogroup", { name: "Category" }).getByRole("radio", { name, exact: true });
+    if (!(await r.count())) await f.getByRole("button", { name: "All categories" }).click();
+    await r.click();
+  }
+  const pickAccount = (f, group, name) => f.getByRole("radiogroup", { name: group, exact: true }).getByRole("radio", { name, exact: true }).click();
   async function quickAdd({ kind = "Spend", amount, what, category, account, to, entity, date }) {
     await page.getByRole("button", { name: "Add a transaction" }).first().click();
     const f = page.getByRole("dialog"); await f.getByRole("tab", { name: kind }).click();
-    await f.getByLabel("Amount").fill(amount); if (what) await f.getByLabel(/What for/).fill(what);
-    if (category) await f.getByLabel("Category").selectOption({ label: category });
-    if (account) await f.getByLabel(kind === "Transfer" ? "From account" : "Account").selectOption({ label: account });
-    if (to) await f.getByLabel("To account").selectOption({ label: to });
-    if (entity) await f.getByLabel(/Paid to|From \(optional\)/).fill(entity);
+    await f.getByLabel("Amount").fill(amount); if (what) await f.getByLabel("What for").fill(what);
+    if (category) await pickCategory(f, category);
+    if (account) await pickAccount(f, kind === "Transfer" ? "From account" : "Account", account);
+    if (to) await pickAccount(f, "To account", to);
+    if (entity) { await f.getByRole("button", { name: "Paid to, note" }).click(); await f.getByLabel(/Paid to|From \(optional\)/).fill(entity); }
     if (date) await f.getByLabel("Date").fill(date);
-    await f.getByRole("button", { name: "Save" }).click(); await f.waitFor({ state: "detached" }); await settle();
+    await f.getByRole("button", { name: "Save", exact: true }).click(); await f.waitFor({ state: "detached" }); await settle();
   }
   const bal = async (name) => (await json("accounts")).body.find((a) => a.name === name).balanceSen;
   await s.check("FINNY-9.1 add a spend at 375 px: amount first, today by default", async () => {
     await page.goto(base + "/"); await page.getByRole("button", { name: "Add a transaction" }).first().click();
     const f = page.getByRole("dialog");
     ok(await f.getByLabel("Date").inputValue() === new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Jakarta" }).format(new Date()), "date isn't today");
-    await f.getByLabel("Amount").fill("43890"); await f.getByLabel(/What for/).fill("Ngopi di Le Tusa");
-    await f.getByLabel("Category").selectOption({ label: "  Beli Kopi" }); await f.getByLabel("Account").selectOption({ label: " BCA" });
-    await f.getByLabel(/Paid to/).fill("Le Tusa");
+    await f.getByLabel("Amount").fill("43890"); await f.getByLabel("What for").fill("Ngopi di Le Tusa");
+    await pickCategory(f, "Beli Kopi"); await pickAccount(f, "Account", "BCA");
+    await f.getByRole("button", { name: "Paid to, note" }).click(); await f.getByLabel(/Paid to/).fill("Le Tusa");
     ok(await page.evaluate(() => document.documentElement.scrollWidth <= 375), "the form scrolls sideways");
     await shot(page, shots, "05-quick-add-375");
-    await f.getByRole("button", { name: "Save" }).click(); await f.waitFor({ state: "detached" }); await settle();
+    await f.getByRole("button", { name: "Save", exact: true }).click(); await f.waitFor({ state: "detached" }); await settle();
     ok((await text('[data-testid="txn-list"]')).includes("−43.890"), "not in the list");
   });
   await s.check("FINNY-9.5 balances and totals update at once", async () => {
@@ -142,25 +148,25 @@ module.exports = async ({ base, shots }) => {
   });
   await s.check("FINNY-9.3 the category is suggested from history while typing", async () => {
     await page.getByRole("button", { name: "Add a transaction" }).first().click(); const f = page.getByRole("dialog");
-    await f.getByLabel(/What for/).fill("Ngopi di Janji Jiwa");
+    await f.getByLabel("What for").fill("Ngopi di Janji Jiwa");
     await f.getByTestId("suggestion").waitFor(); ok((await f.getByTestId("suggestion").innerText()).includes("Beli Kopi"), "no suggestion");
-    const v = await f.getByLabel("Category").inputValue(); const kopi = (await json("categories")).body.find((c) => c.name === "Beli Kopi");
-    ok(v === kopi.id, "suggestion didn't fill the category");
-    ok((await f.getByLabel("Account").locator("option:checked").innerText()).includes("BCA"), "last account not remembered");
+    await page.waitForTimeout(200);
+    ok(await f.getByRole("radiogroup", { name: "Category" }).getByRole("radio", { name: "Beli Kopi", exact: true }).getAttribute("aria-checked") === "true", "suggestion didn't pick the category");
+    ok(await f.getByRole("radiogroup", { name: "Account", exact: true }).getByRole("radio", { name: "BCA", exact: true }).getAttribute("aria-checked") === "true", "last account not remembered");
     await shot(page, shots, "06-suggestion-375");
-    await f.getByLabel("Amount").fill("38.000"); await f.getByRole("button", { name: "Save" }).click(); await f.waitFor({ state: "detached" }); await settle();
+    await f.getByLabel("Amount").fill("38.000"); await f.getByRole("button", { name: "Save", exact: true }).click(); await f.waitFor({ state: "detached" }); await settle();
   });
   await s.check("FINNY-9.2 a transfer moves money and counts as neither income nor spending", async () => {
     const before = [await bal("BCA"), await bal("GoPay")];
-    await quickAdd({ kind: "Transfer", amount: "100.000", what: "Top up GoPay", account: " BCA", to: " GoPay" });
+    await quickAdd({ kind: "Transfer", amount: "100.000", what: "Top up GoPay", account: "BCA", to: "GoPay" });
     ok(await bal("BCA") === before[0] - 10000000 && await bal("GoPay") === before[1] + 10000000, "balances didn't move");
     ok((await text('[data-testid="spent"]')) === "Rp 81.890", `spent ${await text('[data-testid="spent"]')}`);
     ok((await text('[data-testid="txn-list"]')).includes("BCA → GoPay"), "transfer row");
   });
   await s.check("FINNY-9.1 income, and paying the card is a transfer", async () => {
-    await quickAdd({ kind: "Income", amount: "15.000.000", what: "Gaji November", category: "  Gaji Bulanan", account: " BCA", entity: "Kantor" });
+    await quickAdd({ kind: "Income", amount: "15.000.000", what: "Gaji November", category: "Gaji Bulanan", account: "BCA", entity: "Kantor" });
     ok((await text('[data-testid="income"]')) === "Rp 15.000.000", await text('[data-testid="income"]'));
-    await quickAdd({ kind: "Transfer", amount: "200.000", what: "Bayar CC", account: " BCA", to: " CC Mandiri" });
+    await quickAdd({ kind: "Transfer", amount: "200.000", what: "Bayar CC", account: "BCA", to: "CC Mandiri" });
     const cc = (await json("accounts")).body.find((a) => a.name === "CC Mandiri"); ok(cc.card.used === 0 && cc.card.available === 3600000000, JSON.stringify(cc.card));
   });
   await s.check("FINNY-9.2 a transfer to the same account is refused", async () => {
@@ -205,7 +211,8 @@ module.exports = async ({ base, shots }) => {
     const kopi = (await json("categories")).body.find((c) => c.name === "Beli Kopi");
     await json(`categories/${kopi.id}`, { method: "PATCH", data: { active: false } });
     await page.goto(base + "/"); await page.getByRole("button", { name: "Add a transaction" }).first().click(); const f = page.getByRole("dialog");
-    const opts = await f.getByLabel("Category").locator("option").allInnerTexts(); ok(!opts.some((o) => o.includes("Beli Kopi")), "still offered");
+    if (await f.getByRole("button", { name: "All categories" }).count()) await f.getByRole("button", { name: "All categories" }).click();
+    ok(!(await f.getByRole("radiogroup", { name: "Category" }).getByRole("radio", { name: "Beli Kopi", exact: true }).count()), "still offered");
     await f.getByRole("button", { name: "Close" }).click();
     ok((await text('[data-testid="txn-list"]')).includes("Ngopi di Le Tusa"), "history gone");
     await json(`categories/${kopi.id}`, { method: "PATCH", data: { active: true } });
@@ -225,8 +232,8 @@ module.exports = async ({ base, shots }) => {
     await page.getByRole("dialog").getByRole("button", { name: /Close account/ }).click(); await settle();
     ok((await text('[data-testid="accounts-total"]')) !== "−Rp 1.500.000", "total unchanged");
     ok(await page.getByRole("button", { name: /Closed \(1\)/ }).isVisible(), "no Closed section");
-    await page.getByRole("button", { name: "Add a transaction" }).click(); const opts = await page.getByRole("dialog").getByLabel("Account").locator("option").allInnerTexts();
-    ok(!opts.some((o) => o.includes("ShopeePinjam")), "closed account offered"); await page.getByRole("dialog").getByRole("button", { name: "Close" }).click();
+    await page.getByRole("button", { name: "Add a transaction" }).first().click();
+    ok(!(await page.getByRole("dialog").getByRole("radio", { name: "ShopeePinjam" }).count()), "closed account offered"); await page.getByRole("dialog").getByRole("button", { name: "Close" }).click();
   });
 
   // ---------- desktop
@@ -235,7 +242,7 @@ module.exports = async ({ base, shots }) => {
   const dp = await desk.newPage();
   await s.check("Desktop: the quick-add form sits beside the list; the nav is on top", async () => {
     await dp.goto(base + "/"); await dp.waitForTimeout(600);
-    ok(await dp.locator("aside form").isVisible(), "no side form"); ok(await dp.locator(".fy-nav-top").isVisible(), "no top nav");
+    ok(await dp.locator("aside form").isVisible(), "no side form"); ok(await dp.locator(".fy-topbar").isVisible(), "no top nav");
     await shot(dp, shots, "08-home-desktop");
     await dp.goto(base + "/accounts"); await dp.waitForTimeout(500); await shot(dp, shots, "09-accounts-desktop");
   });

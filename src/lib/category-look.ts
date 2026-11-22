@@ -1,8 +1,8 @@
 // How a category looks (FINNY-38/39): an icon and a colour, guessed from its name when the owner hasn't chosen one.
 // Pure, shared with the browser; tests/unit/category-look.test.mts.
+// Dango Board's pastel pairs (owner, 23 Nov 2026: "make it look good like Dango Board"): a soft fill and a readable ink.
 export const PALETTE: Record<string, string> = {
-  indigo: "#4F46E5", violet: "#7C3AED", pink: "#DB2777", rose: "#E11D48", orange: "#EA580C", amber: "#D97706",
-  lime: "#65A30D", emerald: "#059669", teal: "#0D9488", sky: "#0284C7", blue: "#2563EB", slate: "#475569",
+  pink: "#EC4899", lavender: "#8B5CF6", mint: "#10B981", peach: "#F97316", sky: "#0EA5E9", lemon: "#EAB308", rose: "#F43F5E", slate: "#64748B",
 };
 export const PALETTE_KEYS = Object.keys(PALETTE);
 
