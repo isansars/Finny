@@ -1,0 +1,172 @@
+// Draws made-up e-statements in the layouts Finny reads (FINNY-74), so tests never need the owner's real files.
+// Every name and amount here is invented; each statement adds up (opening + lines = closing).
+//   node tests/fixtures/statements/make-pdfs.mjs [dir]  →  bca.pdf, mandiri.pdf, krom.pdf, bri-card.pdf (locked), picture.pdf
+// The BRI file is then locked with the test password "finny-test" (pypdf; see lockPdf below).
+import { chromium } from "playwright";
+import { mkdirSync, writeFileSync } from "node:fs";
+import { execFileSync } from "node:child_process";
+import path from "node:path";
+
+export const OWNER = "FINNY TESTER";
+export const PASSWORD = "finny-test";
+const dot = (sen) => (sen / 100).toLocaleString("en-US", { minimumFractionDigits: 2 }); // 1,234.00
+const idr = (sen) => (sen / 100).toLocaleString("de-DE", { minimumFractionDigits: 2 }); // 1.234,00
+const idr0 = (sen) => Math.round(sen / 100).toLocaleString("de-DE"); // 1.234
+
+// ---------------------------------------------------------------- the made-up month (October 2026)
+export const BCA = {
+  account: "0881234567", opening: 1_500_000_00,
+  lines: [ // [day, type, ref lines, amount (signed), ]
+    ["01", "SWITCHING CR", ["DR 014", "FINNY TESTER", "/Mobile Bank"], 750_000_00],
+    ["03", "TRSF E-BANKING DB", ["0310/FTFVA/WS95031", "70001/TOKOPEDIA", "-", "-"], -250_000_00],
+    ["05", "TRSF E-BANKING DB", ["0510/FTSCY/WS95011", "KARTU KREDIT BRI"], -800_000_00],
+    ["12", "TRANSAKSI DEBIT", ["TGL: 12/10", "QR 014", "00000.00KEDAI KOPI SENJA"], -32_000_00],
+    ["20", "BI-FAST CR", ["BIF TRANSFER DR", "014", "PT CONTOH MAKMUR"], 5_000_000_00],
+    ["28", "BIAYA ADM", [], -15_000_00],
+  ],
+};
+export const MANDIRI = {
+  account: "131-00-1234567-8", opening: 2_000_000_00,
+  lines: [ // [dd, description lines, amount]
+    ["02", ["Transfer ke KROM", "-REF0001"], -300_000_00],
+    ["09", ["Pembayaran Listrik PLN", "-REF0002"], -412_500_00],
+    ["15", ["Gaji Oktober", "-REF0003"], 8_000_000_00],
+    ["31", ["Biaya Adm"], -12_500_00],
+  ],
+};
+export const KROM = {
+  account: "100012345678", opening: 400_000_00,
+  lines: [ // [day, time, detail, type id, type en, ref, amount]
+    [2, "09.10", "Finny Tester", "Transfer Masuk", "Incoming Transfer", "Mandiri | 0000000001", 300_000_00],
+    [4, "08.12", "Kedai Kopi Senja", "Pembayaran QRIS", "QRIS Payment", "QRIS000000000000000001", -28_000_00],
+    [4, "08.12", "Cashback Bonus", "Transfer Masuk", "Incoming Transfer", "CB00000001", 280_00],
+    [4, "12.40", "Warung Bakmi", "Pembayaran QRIS", "QRIS Payment", "QRIS000000000000000002", -45_000_00],
+    [4, "12.40", "Cashback Bonus", "Transfer Masuk", "Incoming Transfer", "CB00000002", 450_00],
+    [6, "18.02", "SPBU 34.123", "Pembayaran QRIS", "QRIS Payment", "QRIS000000000000000003", -150_000_00],
+    [10, "07.55", "Finny Tester", "Transfer Keluar", "Outgoing Transfer", "Bca | 0000000002", -100_000_00],
+  ],
+};
+export const BRI = {
+  card: "5221-84XX-XXXX-3456", statementDate: "20-10-2026", dueDate: "05-11-2026", limit: 20_000_000_00, previous: 800_000_00,
+  lines: [ // [date, posting, description, currency, foreign, rate, rupiah sen (positive), credit?]
+    ["06-10-2026", "06-10-2026", "PAYMENT_KKCB_TKP0001_000001", "IDR", "0.00", "0.00", 800_000_00, true],
+    ["08-10-2026", "09-10-2026", "Retail IDN JAKARTA TOKO ONLINE", "IDR", "0.00", "0.00", 275_000_00],
+    ["11-10-2026", "12-10-2026", "Retail USA CLOUD.COM CLOUD SUBSCRIPTI", "USD", "20.00", "16,500.00", 330_000_00],
+    ["14-10-2026", "15-10-2026", "Retail IDN DEPOK SUSHI BAR", "IDR", "0.00", "0.00", 75_000_00],
+    ["15-10-2026", "15-10-2026", "PT. CONTOH ELEKTRONIK : 3/12", "IDR", "0.00", "0.00", 500_000_00],
+    ["20-10-2026", "20-10-2026", "BEA MATERAI LUNAS", "IDR", "0.00", "0.00", 10_000_00],
+  ],
+};
+export const totals = {
+  bca: BCA.opening + BCA.lines.reduce((n, l) => n + l[3], 0),
+  mandiri: MANDIRI.opening + MANDIRI.lines.reduce((n, l) => n + l[2], 0),
+  krom: KROM.opening + KROM.lines.reduce((n, l) => n + l[6], 0),
+  bri: BRI.previous + BRI.lines.reduce((n, l) => n + (l[7] ? -l[6] : l[6]), 0),
+};
+
+// ---------------------------------------------------------------- drawing
+const css = `@page{size:A4;margin:0} body{margin:0;font-family:Arial,Helvetica,sans-serif;font-size:9px;color:#111}
+.pg{position:relative;width:210mm;height:297mm;page-break-after:always;overflow:hidden} .pg:last-child{page-break-after:auto}
+.t{position:absolute;white-space:pre} .b{font-weight:bold} .sp{letter-spacing:2.2px}`;
+/** A page from [x mm, y mm, text, cls] cells. */
+const page = (cells) => `<div class="pg">${cells.map(([x, y, s, c = ""]) => `<div class="t ${c}" style="left:${x}mm;top:${y}mm">${String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;")}</div>`).join("")}</div>`;
+const right = (xEnd, y, s, c = "") => [xEnd - String(s).length * 1.75, y, s, c];
+
+function bcaHtml() {
+  const head = (n, of) => [[70, 10, "REKENING TAHAPAN", "b"], [10, 22, OWNER], [115, 22, "NO. REKENING"], [146, 22, ":"], [152, 22, BCA.account], [115, 27, "HALAMAN"], [146, 27, ":"], [152, 27, `${n} / ${of}`],
+    [115, 32, "PERIODE"], [146, 32, ":"], [152, 32, "OKTOBER 2026"], [115, 37, "MATA UANG"], [146, 37, ":"], [152, 37, "IDR"],
+    [10, 46, "CATATAN:", "sp"], [10, 51, "Apabila nasabah tidak melakukan sanggahan atas Laporan Mutasi Rekening ini.", "sp"],
+    [12, 60, "TANGGAL", "b"], [40, 60, "KETERANGAN", "b"], [108, 60, "CBG", "b"], [130, 60, "MUTASI", "b"], [178, 60, "SALDO", "b"]];
+  const p1 = head(1, 2), p2 = head(2, 2);
+  let y = 66, bal = BCA.opening, target = p1;
+  target.push([12, y, "01/10"], [40, y, "SALDO AWAL"], right(195, y, dot(bal))); y += 5;
+  BCA.lines.forEach(([d, type, refs, amt], i) => {
+    if (i === 4) { target.push([90, y + 4, "Bersambung ke halaman berikut"]); target = p2; y = 66; }
+    bal += amt;
+    target.push([12, y, `${d}/10`], [40, y, type], [70, y, refs[0] ?? ""], right(160, y, dot(Math.abs(amt))));
+    if (amt < 0) target.push([162, y, "DB"]);
+    target.push(right(195, y, dot(bal)));
+    y += 5;
+    for (const r of refs.slice(1)) { target.push([70, y, r]); y += 5; }
+  });
+  const cr = BCA.lines.filter((l) => l[3] > 0), db = BCA.lines.filter((l) => l[3] < 0);
+  y += 6;
+  p2.push([110, y, "SALDO AWAL"], [140, y, ":"], right(175, y, dot(BCA.opening))); y += 5;
+  p2.push([110, y, "MUTASI CR"], [140, y, ":"], right(175, y, dot(cr.reduce((n, l) => n + l[3], 0))), [180, y, String(cr.length)]); y += 5;
+  p2.push([110, y, "MUTASI DB"], [140, y, ":"], right(175, y, dot(-db.reduce((n, l) => n + l[3], 0))), [180, y, String(db.length)]); y += 5;
+  p2.push([110, y, "SALDO AKHIR"], [140, y, ":"], right(175, y, dot(totals.bca)));
+  return page(p1) + page(p2);
+}
+function mandiriHtml() {
+  const c = [[10, 10, "mandiri", "b"], [10, 16, "Periode / Period: 1/10/26 s/d 31/10/26"], [10, 24, OWNER],
+    [10, 40, "No. Rekening"], [45, 40, "Nama Produk"], [80, 40, "Cabang"], [130, 40, "Periode"], [160, 40, "Valuta"], [190, 40, "Saldo"],
+    [10, 45, MANDIRI.account], [45, 45, "MANDIRI TABUNGAN"], [80, 45, "13100 - KCP Contoh"], [130, 45, "1/10/26 s/d"], [160, 45, "Indonesian"], right(205, 45, dot(totals.mandiri)),
+    [10, 56, "Tanggal", "b"], [28, 56, "Tanggal", "b"], [46, 56, "Rincian Transaksi / Nomor Referensi", "b"], [150, 56, "Debit / Kredit", "b"], [190, 56, "Saldo", "b"],
+    [10, 62, "01/10"], [46, 62, "Saldo Awal"], right(205, 62, dot(MANDIRI.opening))];
+  let y = 67, bal = MANDIRI.opening;
+  for (const [d, desc, amt] of MANDIRI.lines) {
+    bal += amt;
+    c.push([10, y, `${d}/10`], [28, y, `${d}/10`], [46, y, desc[0]], right(172, y, dot(Math.abs(amt)) + (amt < 0 ? " D" : "")), right(205, y, dot(bal)));
+    y += 5; for (const r of desc.slice(1)) { c.push([46, y, r]); y += 5; }
+  }
+  y += 4; c.push([90, y, "Saldo Awal / Previous Balance"], [150, y, ":"], right(205, y, dot(MANDIRI.opening))); y += 5;
+  c.push([90, y, "Saldo Akhir / Current Balance"], [150, y, ":"], right(205, y, dot(totals.mandiri)));
+  c.push([10, 280, "PT Bank Mandiri (Persero) Tbk terdaftar dan diawasi oleh OJK."]);
+  return page(c);
+}
+function kromHtml() {
+  const out = KROM.lines.filter((l) => l[6] < 0).reduce((n, l) => n - l[6], 0), inn = KROM.lines.filter((l) => l[6] > 0).reduce((n, l) => n + l[6], 0);
+  const foot = [[10, 284, "PT Krom Bank Indonesia Tbk berizin dan diawasi oleh OJK dan BI serta merupakan peserta penjaminan LPS."]];
+  const p1 = [[10, 8, "E-Statement Oktober 2026"], [150, 8, "Halaman 1 dari 2 / Page 1 of 2"], [10, 20, "Nama Rekening /Account Name"], [10, 25, "Finny Tester"],
+    [10, 40, "Ringkasan Saldo /Balance Summary", "b"], [10, 46, "Tabungan Utama"], right(80, 46, "Rp" + idr(KROM.opening)), right(120, 46, "+Rp" + idr(inn)), right(160, 46, "-Rp" + idr(out)), right(200, 46, "Rp" + idr(totals.krom)),
+    [10, 56, "Ringkasan Kantong /Pocket Summary", "b"], [10, 62, "Kantong Extra"], right(80, 62, "Rp0,00"), right(120, 62, "+Rp5.000,00"), right(160, 62, "-Rp0,00"), right(200, 62, "Rp5.000,00"), ...foot];
+  const p2 = [[10, 8, "E-Statement Oktober 2026"], [150, 8, "Halaman 2 dari 2 / Page 2 of 2"], [10, 18, "Rincian Transaksi /Transaction History", "b"], [10, 25, "Tabungan Utama"],
+    [10, 30, `No. Rek. /Acc. No. ${KROM.account}`],
+    [10, 36, `Saldo Sebelumnya / Previous Balance   Rp${idr(KROM.opening)}`], [110, 36, `Total Pemasukan / Total Incoming   +Rp${idr(inn)}`],
+    [10, 41, `Saldo Akhir / Ending Balance   Rp${idr(totals.krom)}`], [110, 41, `Total Pengeluaran / Total Outgoing   -Rp${idr(out)}`],
+    [10, 50, "Tanggal & Waktu"], [50, 50, "Detail Transaksi"], [120, 50, "Tipe Transaksi"], [180, 50, "Jumlah"], ...foot];
+  let y = 58;
+  for (const [d, t, detail, typ, typEn, ref, amt] of KROM.lines) {
+    p2.push([10, y, `${d} October 2026`], [50, y, detail], [120, y, typ], right(200, y, (amt < 0 ? "-Rp" : "+Rp") + idr(Math.abs(amt))));
+    p2.push([10, y + 4.5, `${t} WIB`], [50, y + 4.5, ref], [120, y + 4.5, typEn]); y += 11;
+  }
+  return page(p1) + page(p2);
+}
+function briHtml() {
+  const charges = BRI.lines.filter((l) => !l[7]).reduce((n, l) => n + l[6], 0), pay = BRI.lines.filter((l) => l[7]).reduce((n, l) => n + l[6], 0);
+  const c = [[150, 8, "BRI Kartu Kredit", "b"], [10, 20, "Yth. Bapak/Ibu"], [10, 25, OWNER], [100, 20, "Daftarkan BRI Kartu Kredit Anda di BRImo untuk"],
+    [10, 40, BRI.card], [55, 40, BRI.statementDate], [85, 40, BRI.dueDate], right(150, 40, idr0(BRI.limit)), right(190, 40, idr0(BRI.limit - totals.bri)),
+    [10, 55, "Tagihan Bulan Lalu"], right(80, 55, idr0(BRI.previous)), [10, 62, BRI.card], [60, 62, "FINNY TESTER"]];
+  let y = 70;
+  for (const [d, p, desc, cur, fx, rate, sen, cr] of BRI.lines) {
+    c.push([10, y, d], [32, y, p], [55, y, desc], [130, y, cur], right(160, y, fx), right(180, y, rate), right(203, y, idr0(sen) + (cr ? "CR" : ""))); y += 5;
+  }
+  y += 4; c.push([10, y, "Tagihan Bulan ini"], right(80, y, idr0(totals.bri)), [100, y, `Pembayaran ${idr0(pay)}  Transaksi ${idr0(charges)}`]);
+  c.push([10, 284, "Nilai Tukar Transaksi Valas sudah memperhitungkan Komponen Biaya Penggunaan Kartu Kredit di Luar Negeri"]);
+  return page(c);
+}
+const pictureHtml = () => `<div class="pg"><canvas id="c" width="700" height="900" style="position:absolute;left:10mm;top:10mm;width:180mm"></canvas></div>
+<script>const x=document.getElementById('c').getContext('2d');x.fillStyle='#1d4ed8';x.fillRect(0,0,700,60);for(let i=0;i<30;i++){x.fillStyle=i%2?'#ddd':'#eee';x.fillRect(0,80+i*26,700,22)}</script>`;
+
+/** Locks a PDF with a user password (pypdf, the way banks lock card statements). */
+function lockPdf(file) {
+  execFileSync("python3", ["-I", "-c", `import sys\nfrom pypdf import PdfReader, PdfWriter\nr=PdfReader(sys.argv[1]);w=PdfWriter()\nfor p in r.pages: w.add_page(p)\nw.encrypt(user_password=sys.argv[2], owner_password=sys.argv[2]+'-owner', algorithm='AES-256')\nw.write(sys.argv[1])`, file, PASSWORD]);
+}
+
+export async function makeStatementPdfs(dir) {
+  mkdirSync(dir, { recursive: true });
+  const browser = await chromium.launch();
+  const pg = await browser.newPage();
+  const out = {};
+  for (const [name, html] of [["bca", bcaHtml()], ["mandiri", mandiriHtml()], ["krom", kromHtml()], ["bri-card", briHtml()], ["picture", pictureHtml()]]) {
+    await pg.setContent(`<!doctype html><html><head><meta charset="utf-8"><style>${css}</style></head><body>${html}</body></html>`);
+    await pg.waitForTimeout(50);
+    const file = path.join(dir, `${name}.pdf`);
+    writeFileSync(file, await pg.pdf({ format: "A4", printBackground: true }));
+    out[name] = file;
+  }
+  await browser.close();
+  lockPdf(out["bri-card"]);
+  return out;
+}
+if (process.argv[1] && import.meta.url.endsWith(path.basename(process.argv[1]))) console.log(await makeStatementPdfs(process.argv[2] ?? "tests/fixtures/statements"));

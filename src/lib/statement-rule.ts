@@ -1,0 +1,298 @@
+// FINNY-70: read a bank e-statement's text (from pdf.js, in the browser) into dated lines in sen.
+// Pure: no DOM, no database. One reader per known layout; anything else is "unknown".
+
+export type TextItem = { s: string; x: number; y: number; w: number; h: number };
+export type PageText = { w: number; h: number; items: TextItem[] };
+/** A printed line: its cells left to right (a cell is text separated from the next by a clear gap). */
+export type Line = { page: number; y: number; cells: { s: string; x: number }[]; text: string };
+
+export type Bank = "bca" | "mandiri" | "krom" | "bri-card";
+export type StatementLine = {
+  on: string; // YYYY-MM-DD
+  description: string;
+  amountSen: number; // signed: money out of the account is negative (a card charge is negative, a payment positive)
+  balanceSen?: number;
+  time?: string;
+  type?: string; // the bank's own type, e.g. "Pembayaran QRIS"
+  ref?: string;
+  currency?: string; // card lines in a foreign currency
+  foreignAmount?: string;
+  rate?: string;
+  instalment?: string; // "3 of 12"
+  cashback?: boolean;
+};
+export type Statement = {
+  bank: Bank;
+  accountDigits: string; // last 4 digits of the account or card
+  periodFrom: string;
+  periodTo: string;
+  openingSen?: number;
+  closingSen?: number; // savings: ending balance; card: the new bill (positive = owed)
+  lines: StatementLine[];
+  warnings: string[];
+};
+export type ReadResult = { ok: true; statement: Statement } | { ok: false; reason: "no-text" | "unknown" | "empty"; message: string };
+
+export const BANK_NAMES: Record<Bank, string> = { bca: "BCA", mandiri: "Mandiri", krom: "Krom", "bri-card": "BRI credit card" };
+
+// ---------------------------------------------------------------- lines
+
+/** Groups text items into printed lines (same baseline within half a text height) and cells (gaps wider than ~1.2 spaces). */
+export function toLines(pages: PageText[]): Line[] {
+  const out: Line[] = [];
+  pages.forEach((pg, pi) => {
+    const items = pg.items.filter((i) => i.s.trim() !== "").sort((a, b) => a.y - b.y || a.x - b.x);
+    const rows: TextItem[][] = [];
+    for (const it of items) {
+      const tol = Math.max(1.5, (it.h || 8) * 0.45);
+      const row = rows.find((r) => Math.abs(r[0].y - it.y) <= tol);
+      if (row) row.push(it); else rows.push([it]);
+    }
+    for (const r of rows) {
+      r.sort((a, b) => a.x - b.x);
+      const cells: { s: string; x: number }[] = [];
+      let end = -Infinity;
+      for (const it of r) {
+        const size = it.h || 8;
+        const gap = it.x - end;
+        const last = cells[cells.length - 1];
+        if (last && gap < size * 0.6) last.s += (gap > size * 0.12 && !last.s.endsWith(" ") && !it.s.startsWith(" ") ? " " : "") + it.s;
+        else cells.push({ s: it.s, x: it.x });
+        end = it.x + it.w;
+      }
+      for (const c of cells) c.s = c.s.replace(/\s+/g, " ").trim();
+      const kept = cells.filter((c) => c.s);
+      if (kept.length) out.push({ page: pi, y: r[0].y, cells: kept, text: kept.map((c) => c.s).join("  ") });
+    }
+  });
+  return out.sort((a, b) => a.page - b.page || a.y - b.y);
+}
+
+// ---------------------------------------------------------------- numbers and dates
+
+/** "1,234,567.89" (BCA, Mandiri, BRI) → sen. */
+export function senDotDecimal(s: string): number | null {
+  const m = s.trim().match(/^(\d{1,3}(?:,\d{3})*|\d+)(?:\.(\d{1,2}))?$/);
+  if (!m) return null;
+  return Number(m[1].replace(/,/g, "")) * 100 + Number((m[2] ?? "0").padEnd(2, "0"));
+}
+/** "1.234.567,89" (Krom, BRI's rupiah totals) → sen. */
+export function senCommaDecimal(s: string): number | null {
+  const m = s.trim().match(/^(\d{1,3}(?:\.\d{3})*|\d+)(?:,(\d{1,2}))?$/);
+  if (!m) return null;
+  return Number(m[1].replace(/\./g, "")) * 100 + Number((m[2] ?? "0").padEnd(2, "0"));
+}
+const MONTHS: Record<string, number> = {
+  jan: 1, january: 1, januari: 1, feb: 2, february: 2, februari: 2, mar: 3, march: 3, maret: 3, apr: 4, april: 4, may: 5, mei: 5,
+  jun: 6, june: 6, juni: 6, jul: 7, july: 7, juli: 7, aug: 8, august: 8, agu: 8, agustus: 8, agt: 8, sep: 9, september: 9,
+  oct: 10, october: 10, okt: 10, oktober: 10, nov: 11, november: 11, dec: 12, december: 12, des: 12, desember: 12,
+};
+export const monthNumber = (name: string) => MONTHS[name.toLowerCase().replace(/[^a-z]/g, "")] ?? 0;
+const iso = (y: number, m: number, d: number) => `${y}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+const lastDay = (y: number, m: number) => new Date(Date.UTC(y, m, 0)).getUTCDate();
+const squash = (s: string) => s.replace(/\s+/g, "").toUpperCase();
+
+// ---------------------------------------------------------------- detect
+
+export function detect(lines: Line[]): Bank | "unknown" {
+  const head = squash(lines.slice(0, 80).map((l) => l.text).join(" "));
+  const all = squash(lines.map((l) => l.text).join(" "));
+  if (all.includes("KROMBANK") && head.includes("E-STATEMENT")) return "krom";
+  if (all.includes("BRIKARTUKREDIT") || (all.includes("KARTUKREDIT") && all.includes("BRIMO"))) return "bri-card";
+  if (head.includes("NO.REKENING") && head.includes("MUTASI") && head.includes("SALDO") && (all.includes("BCA") || head.includes("KETERANGAN"))) return "bca";
+  if (all.includes("MANDIRI") && (all.includes("SALDOAWAL") || all.includes("RINCIANTRANSAKSI"))) return "mandiri";
+  return "unknown";
+}
+
+export function readStatement(pages: PageText[]): ReadResult {
+  const chars = pages.reduce((n, p) => n + p.items.reduce((m, i) => m + i.s.trim().length, 0), 0);
+  if (chars < 40) return { ok: false, reason: "no-text", message: "This PDF is a picture, so there's no text to read. Use the original PDF from your bank's email, not a printed or scanned copy." };
+  const lines = toLines(pages);
+  const bank = detect(lines);
+  if (bank === "unknown") return { ok: false, reason: "unknown", message: "Finny doesn't know this statement's layout yet. It reads BCA, Mandiri, Krom and BRI credit card e-statements." };
+  const st = READERS[bank](lines);
+  if (!st.lines.length) return { ok: false, reason: "empty", message: `This looks like a ${BANK_NAMES[bank]} statement, but Finny found no transactions in it.` };
+  return { ok: true, statement: st };
+}
+
+// ---------------------------------------------------------------- readers
+
+const READERS: Record<Bank, (lines: Line[]) => Statement> = { bca: readBca, mandiri: readMandiri, krom: readKrom, "bri-card": readBri };
+
+function blank(bank: Bank): Statement { return { bank, accountDigits: "", periodFrom: "", periodTo: "", lines: [], warnings: [] }; }
+
+/** BCA: "TANGGAL KETERANGAN CBG MUTASI SALDO"; rows "DD/MM  TRSF E-BANKING DB  …  1,234.00 DB  5,678.00", details on the lines below. */
+function readBca(lines: Line[]): Statement {
+  const st = blank("bca");
+  const all = lines.map((l) => l.text).join("\n");
+  const sq = squash(all);
+  const per = sq.match(/PERIODE:([A-Z]+)(\d{4})/);
+  const year = per ? Number(per[2]) : new Date().getFullYear();
+  const month = per ? monthNumber(per[1]) : 1;
+  st.periodFrom = iso(year, month, 1); st.periodTo = iso(year, month, lastDay(year, month));
+  const acc = sq.match(/NO\.REKENING:(\d+)/); st.accountDigits = acc ? acc[1].slice(-4) : "";
+  const tail = (label: string) => { const m = all.match(new RegExp(label + "\\s*:\\s*([\\d,]+\\.\\d{2})")); return m ? senDotDecimal(m[1]) ?? undefined : undefined; };
+  st.openingSen = tail("SALDO AWAL"); st.closingSen = tail("SALDO AKHIR");
+  // The money columns: MUTASI and SALDO, located from the header row.
+  let cur: StatementLine | null = null;
+  let inTable = false;
+  for (const l of lines) {
+    const t = squash(l.text);
+    if (t.startsWith("TANGGALKETERANGAN")) { inTable = true; continue; }
+    if (!inTable) continue;
+    if (t.startsWith("BERSAMBUNG") || t.startsWith("SALDOAWAL:") || t.includes("NO.REKENING")) { inTable = !t.includes("NO.REKENING") && !t.startsWith("SALDOAWAL:"); cur = null; if (t.startsWith("SALDOAWAL:")) break; continue; }
+    const d = l.cells[0]?.s.match(/^(\d{2})\/(\d{2})$/);
+    if (d) {
+      const rest = l.cells.slice(1).map((c) => c.s);
+      if (/^SALDO AWAL$/i.test(rest[0] ?? "")) { cur = null; continue; }
+      // amount: the cell ending in DB or a money cell; balance: the last money cell after it
+      let amount: number | null = null, debit = false, balance: number | undefined;
+      const words: string[] = [];
+      for (const c of rest) {
+        if (c === "DB" && amount !== null && balance === undefined) { debit = true; continue; }
+        const m = c.match(/^([\d,]+\.\d{2})(\s*DB)?$/);
+        if (m && amount === null) { amount = senDotDecimal(m[1]); debit = !!m[2]; continue; }
+        if (m && amount !== null) { balance = senDotDecimal(m[1]) ?? undefined; continue; }
+        words.push(c);
+      }
+      if (amount === null) { st.warnings.push(`A BCA line on ${d[1]}/${d[2]} has no amount`); cur = null; continue; }
+      const typ = words[0] ?? "";
+      const isDebit = debit || /\bDB$/.test(typ);
+      cur = { on: iso(year, Number(d[2]), Number(d[1])), description: "", type: typ, amountSen: isDebit ? -amount : amount, balanceSen: balance, ref: words.slice(1).join(" ") || undefined };
+      st.lines.push(cur);
+      continue;
+    }
+    if (cur && !/^-$/.test(l.text.trim())) {
+      const s = l.cells.filter((c) => !/^[\d,]+\.\d{2}$/.test(c.s)).map((c) => c.s).join(" ").trim();
+      if (s && !/^\d{8,}$/.test(s)) cur.description = (cur.description + " " + s).trim();
+    }
+  }
+  for (const x of st.lines) x.description = tidy(x.description || x.type || "");
+  return st;
+}
+
+/** Mandiri consolidated: rows "DD/MM  DD/MM  description  9,999.99 D  9,999.99"; continuation lines beneath. */
+function readMandiri(lines: Line[]): Statement {
+  const st = blank("mandiri");
+  const all = lines.map((l) => l.text).join("\n");
+  // "Periode / Period: 1/10/26 s/d 31/10/26"
+  const per = all.match(/Period[^:\n]*:\s*(\d{1,2})\/(\d{1,2})\/(\d{2,4})\s*(?:s\/d|-)\s*(\d{1,2})\/(\d{1,2})\/(\d{2,4})/i);
+  if (per) {
+    const yy = (s: string) => (s.length === 2 ? 2000 + Number(s) : Number(s));
+    st.periodFrom = iso(yy(per[3]), Number(per[2]), Number(per[1])); st.periodTo = iso(yy(per[6]), Number(per[5]), Number(per[4]));
+  }
+  const acc = all.match(/\b\d{3}-\d{2}-\d{6,7}-\d\b/) ?? all.match(/\b\d{13}\b/); st.accountDigits = acc ? acc[0].replace(/\D/g, "").slice(-4) : "";
+  const year = Number(st.periodTo.slice(0, 4)) || new Date().getFullYear();
+  const startMonth = Number(st.periodFrom.slice(5, 7)) || 1;
+  let cur: StatementLine | null = null;
+  for (const l of lines) {
+    const t = l.text;
+    if (/^Saldo Awal\b/i.test(l.cells[0]?.s ?? "") || /Saldo Awal/i.test(t) && !/\d{2}\/\d{2}/.test(l.cells[0]?.s ?? "")) {
+      const m = t.match(/([\d,]+\.\d{2})\s*$/); if (m && st.openingSen === undefined) st.openingSen = senDotDecimal(m[1]) ?? undefined; cur = null; continue;
+    }
+    const d = l.cells[0]?.s.match(/^(\d{2})\/(\d{2})$/);
+    if (d && /^\d{2}\/\d{2}$/.test(l.cells[1]?.s ?? "")) {
+      const money = l.cells.slice(2).filter((c) => /^[\d,]+\.\d{2}(\s*D)?$/.test(c.s));
+      if (money.length < 1) { cur = null; continue; }
+      const amt = money[0].s.match(/^([\d,]+\.\d{2})(\s*D)?$/)!;
+      const bal = money[1] ? senDotDecimal(money[1].s.replace(/\s*D$/, "")) ?? undefined : undefined;
+      const desc = l.cells.slice(2).filter((c) => !money.includes(c)).map((c) => c.s).join(" ");
+      const m = Number(d[2]);
+      cur = { on: iso(m < startMonth ? year : Number(st.periodFrom.slice(0, 4)) || year, m, Number(d[1])), description: desc, amountSen: (amt[2] ? -1 : 1) * (senDotDecimal(amt[1]) ?? 0), balanceSen: bal };
+      st.lines.push(cur);
+      continue;
+    }
+    if (cur) {
+      if (/^(Saldo Akhir|Total|Halaman|Page)\b/i.test(t) || l.cells.length > 3) { cur = null; continue; }
+      const s = t.trim();
+      if (s.startsWith("-")) cur.ref = (cur.ref ? cur.ref + " " : "") + s.replace(/^-\s*/, "");
+      else cur.description = (cur.description + " " + s).trim();
+    }
+  }
+  const close = all.match(/Saldo Akhir[^\n]*?([\d,]+\.\d{2})/i); if (close) st.closingSen = senDotDecimal(close[1]) ?? undefined;
+  const lastBal = [...st.lines].reverse().find((x) => x.balanceSen !== undefined);
+  if (st.closingSen === undefined && lastBal) st.closingSen = lastBal.balanceSen;
+  for (const x of st.lines) x.description = tidy(x.description.replace(/^-\s*/, "").replace(/-\s*$/, ""));
+  return st;
+}
+
+/** Krom: "DD Month YYYY  detail  type  ±RpX.XXX,XX", then "HH.MM WIB  ref  type (English)". Only the main account (Tabungan Utama). */
+function readKrom(lines: Line[]): Statement {
+  const st = blank("krom");
+  const all = lines.map((l) => l.text).join("\n");
+  const per = all.match(/E-Statement\s+([A-Za-z]+)\s+(\d{4})/);
+  if (per) { const y = Number(per[2]), m = monthNumber(per[1]); st.periodFrom = iso(y, m, 1); st.periodTo = iso(y, m, lastDay(y, m)); }
+  const acc = all.match(/Acc\.\s*No\.\s*(\d{6,})/i) ?? all.match(/\b(\d{12})\b/); st.accountDigits = acc ? acc[1].slice(-4) : "";
+  const prev = all.match(/Saldo Sebelumnya\s*\/\s*Previous Balance\s+Rp([\d.,]+)/); if (prev) st.openingSen = senCommaDecimal(prev[1]) ?? undefined;
+  const end = all.match(/Saldo Akhir\s*\/\s*Ending Balance\s+Rp([\d.,]+)/); if (end) st.closingSen = senCommaDecimal(end[1]) ?? undefined;
+  let section = "";
+  let cur: StatementLine | null = null;
+  for (const l of lines) {
+    const t = l.text.trim();
+    if (/^(Tabungan Utama|Kantong|Deposito)/i.test(t) && l.cells.length === 1) { section = t.toLowerCase(); cur = null; continue; }
+    if (section && !section.startsWith("tabungan utama")) continue;
+    const d = l.cells[0]?.s.match(/^(\d{1,2})\s+([A-Za-z]+)\s+(\d{4})$/);
+    const amt = t.match(/([+-])\s*Rp\s?([\d.]+,\d{2})$/);
+    if (d && amt && monthNumber(d[2])) {
+      const mid = l.cells.slice(1, -1).map((c) => c.s);
+      const type = mid.length > 1 ? mid[mid.length - 1] : "";
+      const detail = (mid.length > 1 ? mid.slice(0, -1) : mid).join(" ");
+      const sen = senCommaDecimal(amt[2]) ?? 0;
+      cur = { on: iso(Number(d[3]), monthNumber(d[2]), Number(d[1])), description: tidy(detail), type, amountSen: amt[1] === "-" ? -sen : sen, cashback: /^cashback/i.test(detail) };
+      st.lines.push(cur);
+      continue;
+    }
+    const tm = l.cells[0]?.s.match(/^(\d{2})[.:](\d{2})\s*WIB$/);
+    if (cur && tm) { cur.time = `${tm[1]}:${tm[2]}`; cur.ref = l.cells[1]?.s; cur = null; }
+  }
+  return st;
+}
+
+/** BRI credit card: "DD-MM-YYYY  DD-MM-YYYY  description  CUR  foreign  rate  amount[CR]"; the bill on the summary row. */
+function readBri(lines: Line[]): Statement {
+  const st = blank("bri-card");
+  const all = lines.map((l) => l.text).join("\n");
+  const card = all.match(/\b\d{4}-\d{2}XX-XXXX-(\d{4})\b/); st.accountDigits = card ? card[1] : "";
+  const seen = new Set<string>();
+  for (const l of lines) {
+    const c = l.cells.map((x) => x.s);
+    const d1 = c[0]?.match(/^(\d{2})-(\d{2})-(\d{4})$/);
+    if (!d1 || !/^\d{2}-\d{2}-\d{4}$/.test(c[1] ?? "")) continue;
+    // join the rest and parse from the right: amount, rate, foreign amount, currency
+    const rest = c.slice(2).join("  ");
+    const m = rest.match(/^(.*?)\s+([A-Z]{3})\s+([\d.,]+)\s+([\d.,]+)\s+([\d.]+)(CR)?$/);
+    if (!m) { st.warnings.push(`A BRI line on ${d1[1]}-${d1[2]} couldn't be read`); continue; }
+    const key = l.page + ":" + l.y;
+    if (seen.has(key)) continue; seen.add(key);
+    const idr = senCommaDecimal(m[5]) ?? 0;
+    const desc = m[1].trim();
+    const inst = desc.match(/:\s*(\d{1,2})\/(\d{1,2})\s*$/);
+    st.lines.push({
+      on: iso(Number(d1[3]), Number(d1[2]), Number(d1[1])),
+      description: tidy(desc.replace(/^Retail\s+/i, "").replace(/^[A-Z]{3}\s+/, "")),
+      amountSen: m[6] ? idr : -idr,
+      currency: m[2] !== "IDR" ? m[2] : undefined,
+      foreignAmount: m[2] !== "IDR" ? m[3] : undefined,
+      rate: m[2] !== "IDR" ? m[4] : undefined,
+      instalment: inst ? `${Number(inst[1])} of ${Number(inst[2])}` : undefined,
+    });
+  }
+  // Period: the summary row holds the card number and two dates (the statement date and the due date); the earlier one closes the cycle.
+  const sum = all.match(/\d{4}-\d{2}XX-XXXX-\d{4}\s+(\d{2})-(\d{2})-(\d{4})\s+(\d{2})-(\d{2})-(\d{4})/);
+  if (sum) {
+    const a = iso(Number(sum[3]), Number(sum[2]), Number(sum[1])), b = iso(Number(sum[6]), Number(sum[5]), Number(sum[4]));
+    st.periodTo = a < b ? a : b;
+    const [y, m, d] = st.periodTo.split("-").map(Number);
+    st.periodFrom = new Date(Date.UTC(y, m - 2, d + 1)).toISOString().slice(0, 10);
+  } else if (st.lines.length) {
+    const ds = st.lines.map((x) => x.on).sort(); st.periodFrom = ds[0]; st.periodTo = ds[ds.length - 1];
+  }
+  const bill = all.match(/Tagihan Bulan ini\s+([\d.]+)/i); if (bill) st.closingSen = senCommaDecimal(bill[1]) ?? undefined;
+  const prev = all.match(/Tagihan Bulan Lalu\s+([\d.]+)/); if (prev) st.openingSen = senCommaDecimal(prev[1]) ?? undefined;
+  return st;
+}
+
+/** Shop names in statements are shouted and padded; make them readable. */
+export function tidy(s: string): string {
+  return s.replace(/(\d)([A-Z]{2,})/g, "$1 $2").replace(/\s+/g, " ").trim().replace(/\b([A-Z][A-Z&'.]+)\b/g, (w) => (w.length <= 3 && /^(PT|CV|QR|ATM|BCA|BRI|BNI|DB|CR|XL|IDR|USD)\.?$/.test(w) ? w : w[0] + w.slice(1).toLowerCase()));
+}
