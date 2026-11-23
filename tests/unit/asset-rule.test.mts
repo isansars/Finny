@@ -35,7 +35,7 @@ test("fixed income: interest accrued by the day, less what's been paid; stops at
 test("a thing's worth: depreciation by the year, a value set by hand, sold, a business share", () => {
   const motor: Thing = { id: "m", name: "Motor", kind: "vehicle", boughtOn: "2024-11-12", costSen: 24_000_000_00, yearlyBp: -1200, shareBp: 10000, valueSen: null, valueOn: null, soldOn: null };
   assert.equal(thingAt(motor, "2024-11-12"), 24_000_000_00);
-  const twoYears = thingAt(motor, "2026-11-12"); assert.ok(Math.abs(twoYears - Math.round(24_000_000_00 * 0.88 ** (730 / 365.25))) <= 1, String(twoYears));
+  const twoYears = thingAt(motor, "2026-11-12"); assert.equal(twoYears, Math.round((24_000_000_00 * 0.88 ** (730 / 365.25)) / 100_000) * 100_000, "estimates in whole thousands of rupiah");
   assert.equal(thingAt(motor, "2024-01-01"), 0, "not bought yet");
   const set = { ...motor, valueSen: 20_000_000_00, valueOn: "2026-01-01" };
   assert.equal(thingAt(set, "2026-01-01"), 20_000_000_00, "a price check replaces the estimate");

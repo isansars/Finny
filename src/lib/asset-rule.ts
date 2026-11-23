@@ -37,7 +37,7 @@ export function accruedAt(acc: HAcc, txns: RTxn[], on: string): number {
   const start = startOf(acc, txns), end = acc.maturityOn && acc.maturityOn < on ? acc.maturityOn : on;
   if (end <= start) return 0;
   const principal = investedAt(acc, txns, on) - interestReceivedAt(acc, txns, on);
-  const earned = Math.round((principal * acc.rateBp * days(start, end)) / 10000 / 365);
+  const earned = Math.round((principal * acc.rateBp * days(start, end)) / 10000 / 365 / 100) * 100; // whole rupiah
   return Math.max(0, earned - interestReceivedAt(acc, txns, on));
 }
 
@@ -58,7 +58,9 @@ export function thingAt(t: Thing, on: string): number {
   const useSet = t.valueSen != null && t.valueOn != null && t.valueOn <= on;
   const base = useSet ? t.valueSen! : t.costSen, from = useSet ? t.valueOn! : t.boughtOn;
   const years = days(from, on) / 365.25;
-  return Math.round((base * Math.pow(1 + t.yearlyBp / 10000, years) * t.shareBp) / 10000);
+  // An estimate: whole thousands of rupiah, never false precision (a value set by hand on the day stays exact).
+  const v = (base * Math.pow(1 + t.yearlyBp / 10000, years) * t.shareBp) / 10000;
+  return years === 0 ? Math.round(v) : Math.round(v / 100_000) * 100_000;
 }
 /** What it cost (your share of it). */
 export const thingCost = (t: Thing) => Math.round((t.costSen * t.shareBp) / 10000);
