@@ -3,12 +3,12 @@
 // check → import. The workbook is read on this device (read-excel-file); only the confirmed plan is sent, 500 rows a time.
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { Check, ChevronDown, ChevronRight, CircleAlert, FileSpreadsheet, LoaderCircle, Undo2, Upload } from "lucide-react";
+import { Check, ChevronDown, ChevronRight, CircleAlert, FileSpreadsheet, LoaderCircle, Scale, Undo2, Upload } from "lucide-react";
 import { api, useFinny } from "./store";
 import { Tile } from "./icons";
 import { TYPE_LABEL, TYPE_LOOK } from "./ui";
 import { formatRupiah } from "@/lib/money";
-import { shortDate, todayIn } from "@/lib/dates";
+import { shiftMonth, shortDate, todayIn } from "@/lib/dates";
 import { buildPlan, defaultChoices, logOnly, readBooks, readLog, type AccountType, type Books, type Choices, type LogRow, type Plan, type Sheet } from "@/lib/import-rule";
 import { learnedMatches, monthsOf, readWorkbookBudget, suggestFor, type WorkbookBudget } from "@/lib/budget-import-rule";
 import { CategoryOptions } from "./ui";
@@ -103,6 +103,9 @@ export function ImportWizard() {
             style={{ position: "absolute", inset: 0, opacity: 0, cursor: "pointer" }} onChange={(e) => { const f = e.target.files?.[0]; if (f) choose(f); e.target.value = ""; }} />
         </label>
       </div>
+      <a className="fy-card fy-row" style={{ marginTop: 12, color: "var(--text)", textDecoration: "none" }} href={`/review/${shiftMonth(todayIn().slice(0, 7), -1)}/match`} data-testid="import-match">
+        <span className="fy-tile" data-color="sky" style={{ width: 32, height: 32, borderRadius: 10 }}><Scale size={18} /></span>
+        <div className="main"><div className="t">Check a month against your workbook</div><div className="s">Does Finny say what the workbook says?</div></div><ChevronRight size={18} /></a>
       <div className="fy-section"><span>Works with</span></div>
       <div className="fy-list">
         <div className="fy-row"><span className="fy-tile" data-color="sky" style={{ width: 32, height: 32, borderRadius: 10 }}><FileSpreadsheet size={18} /></span><div className="main"><div className="t">Catatan Keuangan Pribadi</div><div className="s">Your daily books: every account sheet</div></div></div>

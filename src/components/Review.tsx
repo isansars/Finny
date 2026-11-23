@@ -4,7 +4,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Check, ChevronLeft, ChevronRight, CircleAlert, FileText, Flag, Gem, PiggyBank, Shield, Target, CreditCard, TrendingUp } from "lucide-react";
+import { Check, ChevronLeft, ChevronRight, CircleAlert, FileText, Flag, Gem, PiggyBank, Scale, Shield, Target, CreditCard, TrendingUp } from "lucide-react";
 import { api, useFinny } from "./store";
 import { Bar } from "./Budget";
 import { formatCompact, formatRupiah } from "@/lib/money";
@@ -12,9 +12,10 @@ import { monthLabel, shortDate } from "@/lib/dates";
 
 type St = { statements: boolean; budget: boolean; wealth: boolean; closed: boolean; done: number; of: number };
 type BLine = { categoryId: string; name: string; plannedSen: number; spentSen: number; pct: number; state: "ok" | "close" | "over"; overSen?: number; underSen?: number };
-type Summary = { inSen: number; outSen: number; keptSen: number; keptPct: number | null; avgKeptPct: number | null; netSen: number; netChangeSen: number; usedPct: number | null; over: number; under: number; emergencyPct: number | null; emergencyPrevPct: number | null; debtsPaidSen: number; goals?: { name: string; pct: number; change: number }[] };
+type Summary = { inSen: number; outSen: number; keptSen: number; keptPct: number | null; avgKeptPct: number | null; netSen: number; netChangeSen: number; usedPct: number | null; over: number; under: number; emergencyPct: number | null; emergencyPrevPct: number | null; debtsPaidSen: number; match?: Match | null; goals?: { name: string; pct: number; change: number }[] };
+type Match = { accountsOk: number; accountsTotal: number; categoriesOk: number; categoriesTotal: number; withLog: boolean; checkedAt: string; matches: boolean };
 type Rev = {
-  month: string; next: string; today: string; closed: boolean; closedAt: string | null; note: string; steps: St;
+  month: string; next: string; today: string; closed: boolean; closedAt: string | null; note: string; steps: St; match: Match | null;
   statements: { accounts: { accountId: string; name: string; read: boolean; periodFrom: string | null; periodTo: string | null; lines: number }[]; read: number; total: number; done: boolean };
   budget: { over: BLine[]; under: BLine[]; plannedSen: number; spentSen: number; usedPct: number | null; inSen: number; outSen: number; keptSen: number; keptPct: number | null; nextPlanned: number; planNext: { categoryId: string; name: string; amountSen: number; raised: boolean }[] };
   wealth: { netSen: number; changeSen: number; holdings: number; valuesOn: string | null; valuesDays: number | null; emergency: { configured: boolean; pct: number; setAsideSen: number; targetSen: number; prevPct: number | null }; goals: { id: string; name: string; pct: number; change: number }[] };
@@ -98,10 +99,30 @@ export function Review({ month }: { month: string }) {
             <button className="fy-btn" onClick={() => mark({ wealthDone: !r.steps.wealth })}>{r.steps.wealth ? "Not done" : <><Check size={16} />Done</>}</button>
           </div>}
         </Step>
+        <MatchCard r={r} />
         <Step testid="rv-close" icon={<Flag size={18} />} color="mint" title="Close the month" on={r.steps.closed} href={`/review/${month}/close`}
           sub={r.closed ? "Closed: see the summary" : "A summary you can come back to"} />
       </>}
     </>
+  );
+}
+
+/** The workbook match check's result on the review (counts only), or the way in. */
+function MatchCard({ r }: { r: Rev }) {
+  const m = r.match, ended = r.month < r.today.slice(0, 7);
+  if (!m) return ended ? (
+    <Link className="fy-card fy-rv-step" style={{ display: "flex", gap: 10, alignItems: "center", color: "var(--text)", textDecoration: "none" }} href={`/review/${r.month}/match`} data-testid="rv-match">
+      <Tile color="sky"><Scale size={18} /></Tile><div style={{ flex: 1, minWidth: 0 }}><div style={{ fontWeight: 800 }}>Check against your workbook</div><div className="fy-hint" style={{ margin: 0, fontWeight: 700 }}>Does Finny say what the workbook says?</div></div><ChevronRight size={18} /></Link>
+  ) : null;
+  return (
+    <div className="fy-card fy-rv-step" data-testid="rv-match">
+      <div style={{ display: "flex", gap: 10, alignItems: "center" }}><Tile color={m.matches ? "mint" : "lemon"}><Scale size={18} /></Tile>
+        <div style={{ flex: 1, minWidth: 0 }}><div style={{ fontWeight: 800 }}>{m.matches ? "Matches your workbook" : "Differs from your workbook"}</div>
+          <div className="fy-hint" style={{ margin: 0, fontWeight: 700 }}>{m.accountsOk} of {m.accountsTotal} accounts · {m.categoriesOk} of {m.categoriesTotal} categories · checked {shortDate(m.checkedAt.slice(0, 10)).replace(/ \d{4}$/, "")}</div></div>
+        <Tick on={m.matches} label="Workbook check" /></div>
+      {m.matches && <div className="fy-rv-done">✓ A month in Finny only: the numbers match.</div>}
+      <Link className="fy-btn block" style={{ marginTop: 10 }} href={`/review/${r.month}/match`}><Scale size={16} />Check again</Link>
+    </div>
   );
 }
 
@@ -182,6 +203,7 @@ export function ReviewClose({ month }: { month: string }) {
           <div className="fy-row"><Tile color="pink"><Target size={18} /></Tile><div className="main"><div className="t">Budget</div><div className="s">{s.usedPct == null ? "No budget this month" : `${s.over} over, ${s.under} under`}</div></div><span className="fy-amt">{s.usedPct == null ? "–" : `${s.usedPct}%`}</span></div>
           {s.emergencyPct != null && <div className="fy-row"><Tile color="lemon"><Shield size={18} /></Tile><div className="main"><div className="t">Emergency fund</div><div className="s">{s.emergencyPct}% of target{s.emergencyPrevPct != null ? ` · ${s.emergencyPct >= s.emergencyPrevPct ? "up" : "down"} from ${s.emergencyPrevPct}%` : ""}</div></div><span className="fy-amt">{s.emergencyPct}%</span></div>}
           {(s.goals ?? []).map((g) => <div className="fy-row" key={g.name}><Tile color="lavender"><Gem size={18} /></Tile><div className="main"><div className="t">{g.name}</div><div className="s">{g.change >= 0 ? "+" : "−"}{Math.abs(g.change)} pts this month</div></div><span className="fy-amt">{g.pct}%</span></div>)}
+          {(r.match ?? s.match) && <div className="fy-row"><Tile color="sky"><Scale size={18} /></Tile><div className="main"><div className="t">Workbook check</div><div className="s">{(r.match ?? s.match)!.matches ? "All accounts and categories match" : `${(r.match ?? s.match)!.accountsOk} of ${(r.match ?? s.match)!.accountsTotal} accounts, ${(r.match ?? s.match)!.categoriesOk} of ${(r.match ?? s.match)!.categoriesTotal} categories match`}</div></div><span className="fy-amt">{(r.match ?? s.match)!.matches ? "✓" : "✗"}</span></div>}
           <div className="fy-row"><Tile color="peach"><CreditCard size={18} /></Tile><div className="main"><div className="t">Debts</div><div className="s">{s.debtsPaidSen ? "Paid down this month" : "Nothing paid to cards or loans"}</div></div><span className="fy-amt">{plain(s.debtsPaidSen)}</span></div>
         </div>
         {r.closed ? <>

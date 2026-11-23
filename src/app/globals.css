@@ -299,3 +299,8 @@ button.fy-row, .fy-row.tap { cursor: pointer; } button.fy-row:hover, .fy-row.tap
 .fy-rv-goals { padding: 8px 0; border-top: 1px solid var(--border); font-size: 13.5px; }
 .fy-rv-goals > b { display: block; margin-bottom: 4px; }
 .fy-rv-goals a { display: flex; justify-content: space-between; gap: 8px; padding: 3px 0; color: var(--text); text-decoration: none; }
+/* Sprint 12: the workbook match check */
+.fy-mt-mark { width: 22px; height: 22px; border-radius: 99px; display: inline-grid; place-items: center; flex: none; color: #fff; }
+.fy-mt-mark.ok { background: var(--income); } .fy-mt-mark.no { background: var(--spend); }
+.fy-mt-acc + .fy-mt-acc { border-top: 1px solid var(--sep); }
+.fy-rv-done { margin-top: 10px; background: var(--mint-s); color: var(--mint-i); border-radius: 12px; padding: 8px 10px; font-weight: 800; font-size: 13px; }
