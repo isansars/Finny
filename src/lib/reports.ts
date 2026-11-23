@@ -6,6 +6,7 @@ import { categories, moneyAccounts, transactions } from "@/db/schema";
 import { HttpError } from "@/lib/session";
 import { toCsv, senToPlain } from "@/lib/csv";
 import { todayIn } from "@/lib/dates";
+import { loadWealth } from "@/lib/assets";
 import { accountMonths, balanceSheet, cashflow, categoryTree, monthEnd, monthsBetween, shift, spendingPace, type RTxn } from "@/lib/report-rule";
 
 const bad = (m: string): never => { throw new HttpError(400, m); };
@@ -50,8 +51,9 @@ export async function cashflowReport(userId: string, q: URLSearchParams) {
 
 export async function balanceReport(userId: string, q: URLSearchParams) {
   const month = monthOr(q.get("month"));
-  const { txns, accs } = await load(userId, monthEnd(month));
-  const b = balanceSheet(accs, txns, month, 12);
+  const w = await loadWealth(userId);
+  const end = monthEnd(month);
+  const b = balanceSheet(w.accs, w.txns.filter((t) => t.on <= end), month, 12, { vals: w.vals, things: w.things });
   if (q.get("format") === "csv") {
     const rows = [
       ...b.have.map((a) => ({ group: "have", account: a.name, type: a.type, rupiah: senToPlain(a.sen), change_rupiah: senToPlain(a.changeSen) })),

@@ -69,3 +69,16 @@ test("one account month by month: transfers in and out count", () => {
   assert.deepEqual(m[1], { month: "2026-11", inSen: 300_000, outSen: 30_000, netSen: 270_000, endSen: -30_000 });
   assert.equal(m[0].endSen, -300_000);
 });
+
+test("FINNY-95: the balance sheet counts market values and things at each month's end", () => {
+  const accs2 = [...accs, { id: "fund", name: "Reksadana", type: "investment", openingSen: 0, openingOn: "2026-01-01", holdingKind: "fund" } as never];
+  const tx2: RTxn[] = [...txns, T("2026-10-05", "transfer", 500_000, "bca", null, "fund")];
+  const vals = [{ accountId: "fund", on: "2026-11-15", valueSen: 560_000 }];
+  const things = [{ id: "m", name: "Motor", kind: "vehicle", boughtOn: "2026-10-01", costSen: 2_000_000, yearlyBp: 0, shareBp: 10000, valueSen: null, valueOn: null, soldOn: null }];
+  const plain = balanceSheet(accs2, tx2, "2026-11", 3), full = balanceSheet(accs2, tx2, "2026-11", 3, { vals, things });
+  assert.equal(full.netSen - plain.netSen, 60_000 + 2_000_000, "the fund's gain and the motorbike");
+  assert.equal(full.series[1].netSen - plain.series[1].netSen, 2_000_000, "October: the fund at what was put in, plus the motorbike");
+  assert.equal(full.series[0].netSen, plain.series[0].netSen, "September: no motorbike yet");
+  assert.equal(full.have.find((r) => r.name === "Motor")?.type, "thing:vehicle");
+  assert.equal(full.have.find((r) => r.id === "fund")?.sen, 560_000);
+});

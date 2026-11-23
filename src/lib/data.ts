@@ -272,14 +272,16 @@ export async function suggest(userId: string, q: string) {
 
 // ---------- export and delete (FINNY-24)
 export async function exportRows(userId: string) {
-  const [accs, cats, ents, txns, buds, plans] = await Promise.all([
+  const [accs, cats, ents, txns, buds, plans, vals, thingRows] = await Promise.all([
     db.select().from(moneyAccounts).where(eq(moneyAccounts.userId, userId)),
     listCategories(userId), listEntities(userId),
     db.select().from(transactions).where(eq(transactions.userId, userId)).orderBy(asc(transactions.on)),
     db.select().from(budgets).where(eq(budgets.userId, userId)).orderBy(asc(budgets.month)),
     db.select().from(incomePlans).where(eq(incomePlans.userId, userId)).orderBy(asc(incomePlans.month)),
+    db.select().from(accountValues).where(eq(accountValues.userId, userId)).orderBy(asc(accountValues.on)),
+    db.select().from(things).where(eq(things.userId, userId)).orderBy(asc(things.boughtOn)),
   ]);
-  return { accs, cats, ents, txns, buds, plans };
+  return { accs, cats, ents, txns, buds, plans, vals, thingRows };
 }
 export async function deleteEverything(userId: string) {
   await db.delete(transactions).where(eq(transactions.userId, userId));

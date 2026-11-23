@@ -1,4 +1,5 @@
 // FINNY-78: the reports, worked out from transactions and accounts. Pure; tests/unit/report-rule.test.mts.
+import { holdingAt, thingAt, type HAcc, type Thing, type Val } from "./asset-rule.ts";
 // Money in = income; money out = spending of any kind (expense, saving, investment); transfers between the owner's
 // own accounts are neither. Everything stays in integer sen.
 
@@ -87,21 +88,41 @@ export function balancesAt(accounts: RAcc[], txns: RTxn[], months: string[]) {
   return out;
 }
 
-/** Net worth per month, and the accounts at the last month: what you have and what you owe (cards and loans, as owed). */
-export function balanceSheet(accounts: RAcc[], txns: RTxn[], month: string, history = 12) {
+/**
+ * Net worth per month, and the accounts at the last month: what you have and what you owe (cards and loans, as owed).
+ * FINNY-95: with `extra`, an investment account counts at its market value (asset-rule.ts) and things count at their
+ * worth on each month's last day.
+ */
+export function balanceSheet(accounts: RAcc[], txns: RTxn[], month: string, history = 12, extra?: { vals: Val[]; things: Thing[] }) {
   const months = monthsBetween(shift(month, -(history - 1)), month);
-  const at = balancesAt(accounts, txns, [shift(months[0], -1), ...months]);
+  const all = [shift(months[0], -1), ...months];
+  const raw = balancesAt(accounts, txns, all);
+  const at = raw.map((x) => {
+    if (!extra) return x;
+    const b = new Map(x.balances), end = monthEnd(x.month);
+    for (const a of accounts) if (a.type === "investment" && b.has(a.id)) b.set(a.id, holdingAt(a as HAcc, txns, extra.vals, end).valueSen);
+    for (const t of extra.things) { const v = thingAt(t, end); if (v || (end >= t.boughtOn && !(t.soldOn && end >= t.soldOn))) b.set(`thing:${t.id}`, v); }
+    return { month: x.month, balances: b };
+  });
+  const things = extra?.things ?? [];
+  const kindOf = (id: string) => accounts.find((a) => a.id === id)?.type ?? "";
   const worth = (b: Map<string, number>) => {
     let have = 0, owe = 0;
-    for (const a of accounts) { const v = b.get(a.id); if (v === undefined) continue; if (OWED.has(a.type)) owe -= v; else have += v; }
+    for (const [id, v] of b) { if (OWED.has(kindOf(id))) owe -= v; else have += v; }
     return { haveSen: have, oweSen: owe, netSen: have - owe };
   };
   const series = at.slice(1).map((x) => ({ month: x.month, ...worth(x.balances) }));
   const last = at[at.length - 1].balances, before = at[at.length - 2].balances;
-  const row = (a: RAcc) => ({ id: a.id, name: a.name, type: a.type, archived: !!a.archived, sen: OWED.has(a.type) ? -(last.get(a.id) ?? 0) : last.get(a.id) ?? 0, changeSen: OWED.has(a.type) ? -((last.get(a.id) ?? 0) - (before.get(a.id) ?? 0)) : (last.get(a.id) ?? 0) - (before.get(a.id) ?? 0) });
+  const row = (id: string, name: string, type: string, archived: boolean) => {
+    const sign = OWED.has(type) ? -1 : 1;
+    return { id, name, type, archived, sen: sign * (last.get(id) ?? 0), changeSen: sign * ((last.get(id) ?? 0) - (before.get(id) ?? 0)) };
+  };
   const shown = accounts.filter((a) => last.has(a.id) && (!a.archived || last.get(a.id) !== 0));
-  const have = shown.filter((a) => !OWED.has(a.type)).map(row).sort((x, y) => y.sen - x.sen);
-  const owe = shown.filter((a) => OWED.has(a.type)).map(row).sort((x, y) => y.sen - x.sen);
+  const have = [
+    ...shown.filter((a) => !OWED.has(a.type)).map((a) => row(a.id, a.name, a.type, !!a.archived)),
+    ...things.filter((t) => last.has(`thing:${t.id}`)).map((t) => ({ ...row(`thing:${t.id}`, t.name, `thing:${t.kind}`, false), id: t.id })),
+  ].sort((x, y) => y.sen - x.sen);
+  const owe = shown.filter((a) => OWED.has(a.type)).map((a) => row(a.id, a.name, a.type, !!a.archived)).sort((x, y) => y.sen - x.sen);
   const now = series[series.length - 1], prev = series.length > 1 ? series[series.length - 2] : worth(before);
   const yearAgo = series.length >= 12 ? series[0] : null;
   return { series, have, owe, ...now, month, changeSen: now.netSen - prev.netSen, yearChangeSen: yearAgo ? now.netSen - yearAgo.netSen : null };
