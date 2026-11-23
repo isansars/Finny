@@ -268,3 +268,7 @@ button.fy-row, .fy-row.tap { cursor: pointer; } button.fy-row:hover, .fy-row.tap
 .fy-billnote svg { flex: none; margin-top: 2px; }
 .fy-billnote .h { font-weight: 800; }
 .fy-billnote .b { font-size: 13px; font-weight: 600; margin-top: 2px; }
+/* FINNY-96: assets */
+.fy-alloc { display: flex; height: 12px; border-radius: 99px; overflow: hidden; margin: 6px 0 8px; background: var(--surface-3); }
+.fy-alloc i { display: block; height: 100%; }
+.fy-key span { display: inline-flex; align-items: center; gap: 4px; }
