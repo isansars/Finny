@@ -40,8 +40,9 @@ test("categories from the chart of accounts, kept to 3 levels; refunds and lendi
   assert.ok(cat("expense|Kebutuhan Rumah Tangga › Sarana Pelengkap Properti › Biaya Listrik"), "6 levels compressed to 3");
   assert.ok(cat("income|Pendapatan Tetap › Gaji › Gaji Bulanan"));
   assert.ok(cat("income|Pengembalian Dana"), "a refund on a spending category is income");
-  assert.ok(cat("expense|Aset Lancar › Piutang › Piutang Lain-Lain") && cat("income|Aset Lancar › Piutang › Piutang Lain-Lain"), "lending out and paid back");
-  assert.ok(cat("expense|Liabilitas Lancar › Utang › Utang Konsumtif"), "a loan drawdown spent on living costs");
+  assert.ok(cat("expense|Piutang Lain-Lain") && cat("income|Piutang Lain-Lain"), "lending out and paid back, by its own name");
+  assert.ok(cat("expense|Utang Konsumtif"), "a loan drawdown spent on living costs, by its own name");
+  assert.ok(!plan.categories.some((c) => /Lancar/.test(c.key)), "no accounting group names");
 });
 test("entities: the other party, not the owner, not 'Lainnya', not an account", () => {
   const ents = new Set(plan.txns.map((t) => t.entity).filter(Boolean));

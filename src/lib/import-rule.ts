@@ -149,10 +149,14 @@ export function buildPlan(b: Books, c: Choices): Plan {
       if (!r.akun) { unplaced.push({ ref: ref(r), sheet: s.sheet, on: r.on, description: r.description, sen: r.sen, dir: r.dir, akun: r.akun, reason: "No \"Akun Terkait\"" }); continue; }
       if (!node) { unplaced.push({ ref: ref(r), sheet: s.sheet, on: r.on, description: r.description, sen: r.sen, dir: r.dir, akun: r.akun, reason: `"${r.akun}" isn't an account or a category in the workbook` }); continue; }
       let kind: "income" | "expense", path: string[];
-      if (r.dir === "out") { kind = "expense"; path = compress(node.path); }
+      // The tree only where the chart of accounts agrees with the direction (spending out, income in). Anything that
+      // crosses (lending to a friend, a loan spent on living costs, an asset cashed in) is its own top-level category,
+      // named by the owner's own word for it, not by an accounting group such as "Liabilitas Lancar".
+      const leaf = [node.path[node.path.length - 1]];
+      if (r.dir === "out") { kind = "expense"; path = /^pengeluaran$/i.test(node.kind1) ? compress(node.path) : leaf; }
       else if (/^pengeluaran$/i.test(node.kind1)) { kind = "income"; path = ["Pengembalian Dana"]; }
       else if (key === "modal awal") { kind = "income"; path = ["Modal Awal"]; firstModal.add(ref(r)); }
-      else { kind = "income"; path = compress(node.path); }
+      else { kind = "income"; path = /^pendapatan$/i.test(node.kind1) ? compress(node.path) : leaf; }
       txns.push({ ref: ref(r), on: r.on, kind: kind === "expense" ? "spend" : "income", sen: r.sen, account: a, category: cat(kind, path), description: r.description, entity: entityOf(r) });
     }
   }
