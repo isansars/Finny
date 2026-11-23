@@ -1,7 +1,7 @@
 {
   "type": "board",
   "title": "Finny · Roadmap",
-  "subtitle": "Replace the two workbooks: record every day, read the bank each month, then plan, report and grow. Current as of the v0.8.0 release, 23 Nov 2026.",
+  "subtitle": "Replace the two workbooks: record every day, read the bank each month, then plan, report and grow. Current as of Sprint 9 planning, 23 Nov 2026.",
   "footer": "🐰 Poppy · Finny · Product · 23 Nov 2026 · planned on the FINNY board",
   "badge": "💸 The owner's own product · FINNY board · isansars/Finny",
   "width": 1700,
@@ -31,20 +31,20 @@
     },
     {
       "name": "Now · Sprint 9",
-      "icon": "🗓️",
+      "icon": "🏃",
       "tone": "orange",
-      "sub": "to plan with the owner · v0.9.0",
+      "sub": "23 Nov – 6 Dec · v0.9.0",
       "focus": true,
       "items": [
         [
-          "Budget alerts and a monthly review",
-          "gap",
-          "Poppy · candidate"
+          "Emergency fund: a target from income, dependents, spending",
+          "dev",
+          "FINNY-19"
         ],
         [
-          "Emergency fund",
-          "planned",
-          "the last wealth sheet · candidate"
+          "Where it sits, how far along, when it's reached",
+          "dev",
+          "FINNY-19"
         ]
       ]
     },
@@ -54,6 +54,11 @@
       "tone": "blue",
       "sub": "",
       "items": [
+        [
+          "Budget alerts and a monthly review",
+          "gap",
+          "Poppy · after the owner uses Budget"
+        ],
         [
           "Net worth goals over time",
           "planned",
