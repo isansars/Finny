@@ -79,13 +79,16 @@ export async function addImportRows(userId: string, batchId: string, body: Recor
       if (!k || (r.kind === "income") !== (k === "income")) bad("A row names an unknown or wrong-kind category.");
     } else bad("A row has an unknown kind.");
   }
-  // What's already in Finny for these days.
+  // What was already in Finny before this import, matched one for one: two identical rows in the workbook (two top-ups
+  // of the same amount on the same day) are two transactions; importing the same workbook again adds nothing.
   const days = rows.map((r) => r.on).sort();
   const have = await db.select({ accountId: transactions.accountId, on: transactions.on, amountSen: transactions.amountSen, description: transactions.description }).from(transactions)
-    .where(and(eq(transactions.userId, userId), gte(transactions.on, days[0]), lte(transactions.on, days[days.length - 1])));
+    .where(and(eq(transactions.userId, userId), gte(transactions.on, days[0]), lte(transactions.on, days[days.length - 1]),
+      sql`(${transactions.importBatchId} is null or ${transactions.importBatchId} <> ${batchId})`));
   const key = (a: string, on: string, sen: number, d: string) => `${a}|${on}|${sen}|${d.trim().toLowerCase()}`;
-  const seen = new Set(have.map((h) => key(h.accountId, h.on, h.amountSen, h.description)));
-  const fresh = rows.filter((r) => { const k = key(r.accountId, r.on, r.sen, s(r.description, 300)); if (seen.has(k)) return false; seen.add(k); return true; });
+  const left = new Map<string, number>();
+  for (const h of have) { const k = key(h.accountId, h.on, h.amountSen, h.description); left.set(k, (left.get(k) ?? 0) + 1); }
+  const fresh = rows.filter((r) => { const k = key(r.accountId, r.on, r.sen, s(r.description, 300)); const n = left.get(k) ?? 0; if (n > 0) { left.set(k, n - 1); return false; } return true; });
   // People and places.
   const names = [...new Set(fresh.map((r) => s(r.entity, 80)).filter(Boolean))];
   const ents = new Map<string, string>();
