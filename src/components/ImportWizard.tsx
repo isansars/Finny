@@ -8,11 +8,13 @@ import { api, useFinny } from "./store";
 import { Tile } from "./icons";
 import { TYPE_LABEL, TYPE_LOOK } from "./ui";
 import { formatRupiah } from "@/lib/money";
-import { shortDate } from "@/lib/dates";
+import { shortDate, todayIn } from "@/lib/dates";
 import { buildPlan, defaultChoices, logOnly, readBooks, readLog, type AccountType, type Books, type Choices, type LogRow, type Plan, type Sheet } from "@/lib/import-rule";
+import { learnedMatches, monthsOf, readWorkbookBudget, suggestFor, type WorkbookBudget } from "@/lib/budget-import-rule";
+import { CategoryOptions } from "./ui";
 
 type Batch = { id: string; source: string; createdAt: string; finishedAt: string | null; txns: number; skipped: number; accounts: number; categories: number };
-type Step = "choose" | "reading" | "accounts" | "categories" | "check" | "log" | "importing" | "done";
+type Step = "choose" | "reading" | "accounts" | "categories" | "check" | "log" | "budget" | "importing" | "done";
 const monthYear = (d: string | null) => (d ? new Intl.DateTimeFormat("en-GB", { month: "short", year: "numeric", timeZone: "UTC" }).format(new Date(d + "T00:00:00Z")) : "");
 
 function Switch({ on, onChange, label }: { on: boolean; onChange: (v: boolean) => void; label: string }) {
@@ -32,6 +34,13 @@ export function ImportWizard() {
   const [progress, setProgress] = useState({ done: 0, total: 0 });
   const [result, setResult] = useState<{ added: number; skipped: number; batchId: string; month: string } | null>(null);
   const [open, setOpen] = useState<string | null>(null);
+  // FINNY-65: the wealth workbook's annual budget, matched to the owner's categories.
+  const [wb, setWb] = useState<WorkbookBudget | null>(null);
+  const [learned, setLearned] = useState<Map<string, string>>(new Map());
+  const [budgetPick, setBudgetPick] = useState<Record<string, string>>({});
+  const [withIncome, setWithIncome] = useState(true);
+  const [copyNext, setCopyNext] = useState<boolean | null>(null);
+  const [budgetDone, setBudgetDone] = useState<{ budgets: number; year: number; month: string } | null>(null);
 
   const loadBatches = () => api<(Batch & { kind?: string })[]>("imports").then((b) => setBatches(b.filter((x) => x.kind !== "statement"))).catch(() => {});
   useEffect(() => { loadBatches(); }, []);
@@ -48,8 +57,9 @@ export function ImportWizard() {
       const l = readLog(sheets);
       if (l) {
         const days = l.map((r) => r.on).sort();
-        const have = await api<{ on: string; sen: number }[]>(`imports/keys?from=${days[0]}&to=${days[days.length - 1]}`);
+        const have = await api<{ on: string; sen: number; categoryId: string | null }[]>(`imports/keys?from=${days[0]}&to=${days[days.length - 1]}`);
         const only = logOnly(l, null, have);
+        setWb(readWorkbookBudget(sheets)); setLearned(learnedMatches(l, have)); setBudgetPick({}); setBudgetDone(null);
         setLog(only); setLogPick({}); setStep("log"); return; // defaults are decided when shown (the accounts may still be loading)
       }
       setErr("This doesn't look like either workbook: no account sheets (Tanggal, Keterangan, …) and no Transaction Log."); setStep("choose");
@@ -245,8 +255,62 @@ export function ImportWizard() {
               <Switch on={picked(r)} label={`Add ${r.description || r.category}`} onChange={(v) => ok && setLogPick({ ...logPick, [r.ref]: v })} />
             </div>); })}
         </div>}
-        <button className="fy-btn primary block" style={{ marginTop: 14 }} disabled={!pick.length} onClick={go}>Add {pick.length} transaction{pick.length === 1 ? "" : "s"}</button>
+        {pick.length > 0 && <button className="fy-btn primary block" style={{ marginTop: 14 }} onClick={go}>Add {pick.length} transaction{pick.length === 1 ? "" : "s"}</button>}
+        {wb && (wb.lines.length > 0 || wb.income.length > 0) && <button className={`fy-btn block ${pick.length ? "" : "primary"}`} style={{ marginTop: pick.length ? 8 : 14 }} onClick={() => setStep("budget")}>Next: your {wb.year ?? ""} budget</button>}
         <button className="fy-btn block" style={{ marginTop: 8 }} onClick={() => { setLog(null); setStep("choose"); }}>Back</button>
+      </>
+    );
+  }
+
+  if (step === "budget" && wb) {
+    const year = wb.year ?? Number(todayIn().slice(0, 4));
+    const copy = copyNext ?? year < Number(todayIn().slice(0, 4)) + 1;
+    const chosen = (name: string, section: string) => budgetPick[name] ?? suggestFor(wb.lines.find((l) => l.name === name && l.section === section)!, categories, learned) ?? "";
+    const lines = wb.lines.map((l) => ({ ...l, categoryId: chosen(l.name, l.section) }));
+    const using = lines.filter((l) => l.categoryId);
+    const incomeMonths = wb.income.reduce((m, l) => m.map((v, i) => v + l.months[i]), Array(12).fill(0) as number[]);
+    const send = async () => {
+      setErr("");
+      try {
+        const r = await api<{ budgets: number }>("budgets/import", { method: "POST", json: {
+          lines: using.map((l) => ({ categoryId: l.categoryId, months: monthsOf(year, l.months, copy ? year + 1 : null) })),
+          income: withIncome ? monthsOf(year, incomeMonths, copy ? year + 1 : null) : {} } });
+        const now = todayIn().slice(0, 7);
+        setBudgetDone({ budgets: r.budgets, year, month: now.startsWith(String(year)) || (copy && now.startsWith(String(year + 1))) ? now : `${year}-01` });
+      } catch (e) { setErr((e as Error).message); }
+    };
+    if (budgetDone) return (
+      <>{head(file, `Your ${year} budget`)}
+        <div className="fy-card fy-pad" style={{ textAlign: "center" }} role="status">
+          <Tile icon="pie-chart" color="pink" size={56} />
+          <div style={{ fontWeight: 800, fontSize: 18, margin: "12px 0 4px" }} data-testid="budget-done">Budget brought in</div>
+          <div className="fy-hint" style={{ fontSize: 14 }}>{budgetDone.budgets} monthly budgets set for {year}{copy ? ` and ${year + 1}` : ""}. Change any of them on the Budget tab.</div>
+          <div style={{ display: "grid", gap: 8, marginTop: 16 }}><Link className="fy-btn primary" href={`/budget?month=${budgetDone.month}`}>See your budget</Link></div>
+        </div></>
+    );
+    return (
+      <>
+        {head(file, `Your ${year} budget`)}{errBox}
+        <div className="fy-note" style={{ marginBottom: 10 }}>Your workbook plans {wb.lines.length} line{wb.lines.length === 1 ? "" : "s"} in its own words. Match each to one of your categories; we suggested the closest from what you actually spent. It fills {year}{copy ? `, and a copy goes into ${year + 1}` : ""}.</div>
+        {wb.income.length > 0 && <>
+          <div className="fy-section"><span>Expected income</span></div>
+          <div className="fy-list"><div className="fy-row"><div className="main"><div className="t">{wb.income.map((l) => l.name).join(" + ")}</div><div className="s">{formatRupiah(Math.max(...incomeMonths))} a month · {incomeMonths.filter(Boolean).length} months</div></div>
+            <Switch on={withIncome} label="Bring in expected income" onChange={setWithIncome} /></div></div>
+        </>}
+        <div className="fy-section"><span>Budget lines</span><span>{using.length} of {lines.length} matched</span></div>
+        <div className="fy-list" data-testid="budget-map">
+          {lines.map((l) => (
+            <div className="fy-row" key={l.section + l.name} data-testid={`map-${l.name}`}>
+              <div className="main" style={{ flex: "0 1 42%" }}><div className="t">{l.name}</div><div className="s">{l.months.filter(Boolean).length} months set{l.section !== "expense" ? ` · ${l.section}` : ""}</div></div>
+              <select className="fy-input" aria-label={`Category for ${l.name}`} style={{ flex: 1, minWidth: 0 }} value={l.categoryId} onChange={(e) => setBudgetPick({ ...budgetPick, [l.name]: e.target.value })}>
+                <option value="">Leave out</option><CategoryOptions cats={categories} kinds={l.section === "expense" ? ["expense"] : [l.section]} />
+              </select>
+            </div>
+          ))}
+        </div>
+        <div className="fy-list" style={{ marginTop: 12 }}><div className="fy-row"><div className="main"><div className="t">Also copy into {year + 1}</div><div className="s">The same amounts for every month of {year + 1}</div></div><Switch on={copy} label={`Also copy into ${year + 1}`} onChange={setCopyNext} /></div></div>
+        <button className="fy-btn primary block" style={{ marginTop: 16 }} disabled={!using.length && !withIncome} onClick={send}>Bring in the {year} budget</button>
+        <button className="fy-btn block" style={{ marginTop: 8 }} onClick={() => setStep("log")}>Back</button>
       </>
     );
   }
@@ -263,7 +327,7 @@ export function ImportWizard() {
         <Tile icon="shield-check" color="mint" size={56} />
         <div style={{ fontWeight: 800, fontSize: 18, margin: "12px 0 4px" }} data-testid="import-done">Imported {result.added.toLocaleString("id-ID")} transactions</div>
         <div className="fy-hint" style={{ fontSize: 14 }}>{result.skipped ? `${result.skipped} were already in Finny and were skipped. ` : ""}You can undo this import from Settings › Import.</div>
-        <div style={{ display: "grid", gap: 8, marginTop: 16 }}><Link className="fy-btn primary" href={result.month ? `/?month=${result.month}` : "/"}>{result.month ? "See your latest month" : "See your month"}</Link><button className="fy-btn" onClick={() => { setBooks(null); setLog(null); setResult(null); setStep("choose"); }}>Import another workbook</button></div>
+        <div style={{ display: "grid", gap: 8, marginTop: 16 }}><Link className="fy-btn primary" href={result.month ? `/?month=${result.month}` : "/"}>{result.month ? "See your latest month" : "See your month"}</Link>{wb && !books && <button className="fy-btn" onClick={() => setStep("budget")}>Next: your {wb.year ?? ""} budget</button>}<button className="fy-btn" onClick={() => { setBooks(null); setLog(null); setResult(null); setStep("choose"); }}>Import another workbook</button></div>
       </div></>
   );
   return null;
