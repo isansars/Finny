@@ -12,12 +12,12 @@ import { monthLabel, shortDate } from "@/lib/dates";
 
 type St = { statements: boolean; budget: boolean; wealth: boolean; closed: boolean; done: number; of: number };
 type BLine = { categoryId: string; name: string; plannedSen: number; spentSen: number; pct: number; state: "ok" | "close" | "over"; overSen?: number; underSen?: number };
-type Summary = { inSen: number; outSen: number; keptSen: number; keptPct: number | null; avgKeptPct: number | null; netSen: number; netChangeSen: number; usedPct: number | null; over: number; under: number; emergencyPct: number | null; emergencyPrevPct: number | null; debtsPaidSen: number };
+type Summary = { inSen: number; outSen: number; keptSen: number; keptPct: number | null; avgKeptPct: number | null; netSen: number; netChangeSen: number; usedPct: number | null; over: number; under: number; emergencyPct: number | null; emergencyPrevPct: number | null; debtsPaidSen: number; goals?: { name: string; pct: number; change: number }[] };
 type Rev = {
   month: string; next: string; today: string; closed: boolean; closedAt: string | null; note: string; steps: St;
   statements: { accounts: { accountId: string; name: string; read: boolean; periodFrom: string | null; periodTo: string | null; lines: number }[]; read: number; total: number; done: boolean };
   budget: { over: BLine[]; under: BLine[]; plannedSen: number; spentSen: number; usedPct: number | null; inSen: number; outSen: number; keptSen: number; keptPct: number | null; nextPlanned: number; planNext: { categoryId: string; name: string; amountSen: number; raised: boolean }[] };
-  wealth: { netSen: number; changeSen: number; holdings: number; valuesOn: string | null; valuesDays: number | null; emergency: { configured: boolean; pct: number; setAsideSen: number; targetSen: number; prevPct: number | null } };
+  wealth: { netSen: number; changeSen: number; holdings: number; valuesOn: string | null; valuesDays: number | null; emergency: { configured: boolean; pct: number; setAsideSen: number; targetSen: number; prevPct: number | null }; goals: { id: string; name: string; pct: number; change: number }[] };
   summary: Summary;
 };
 type Overview = { today: string; due: { month: string; steps: St; missingStatements: string[] } | null; warnings: { categoryId: string; name: string; pct: number; over: boolean; daysLeft: number; spentSen: number; plannedSen: number }[]; past: { month: string; closedAt: string; keptPct: number | null; netChangeSen: number | null; note: string }[] };
@@ -91,6 +91,8 @@ export function Review({ month }: { month: string }) {
           sub={r.wealth.holdings ? (r.wealth.valuesDays == null ? "Investments not valued yet" : `Values last updated ${r.wealth.valuesDays === 0 ? "today" : `${r.wealth.valuesDays} day${r.wealth.valuesDays === 1 ? "" : "s"} ago`}`) : "Net worth at the month end"}>
           <div className="fy-rv-line"><span><b>Net worth</b><small>at the end of {monthName(month)}</small></span><span className="num"><b>Rp {plain(r.wealth.netSen)}</b><small style={{ color: r.wealth.changeSen >= 0 ? "var(--income)" : "var(--spend)" }}>{signed(r.wealth.changeSen)}</small></span></div>
           {r.wealth.emergency.configured && <div className="fy-rv-line"><span><b>Emergency fund</b><small>{r.wealth.emergency.pct}% of target{r.wealth.emergency.prevPct != null ? ` · was ${r.wealth.emergency.prevPct}%` : ""}</small></span><Link href="/assets/emergency" style={{ color: "var(--primary-text)", fontWeight: 800 }}>Open ›</Link></div>}
+          {r.wealth.goals.length > 0 && <div className="fy-rv-goals" data-testid="rv-goals"><b>Goals this month</b>{r.wealth.goals.map((g) => (
+            <Link key={g.id} href={`/assets/goals/${g.id}`}><span>{g.name}</span><b style={{ color: g.change >= 0 ? "var(--income)" : "var(--spend)" }}>{g.pct}% · {g.change >= 0 ? "+" : "−"}{Math.abs(g.change)} pts</b></Link>))}</div>}
           {!r.closed && <div style={{ display: "grid", gridTemplateColumns: r.wealth.holdings ? "1fr 1fr" : "1fr", gap: 8, marginTop: 10 }}>
             {r.wealth.holdings > 0 && <Link className="fy-btn" href="/assets/investments"><TrendingUp size={16} />Update values</Link>}
             <button className="fy-btn" onClick={() => mark({ wealthDone: !r.steps.wealth })}>{r.steps.wealth ? "Not done" : <><Check size={16} />Done</>}</button>
@@ -179,6 +181,7 @@ export function ReviewClose({ month }: { month: string }) {
           <div className="fy-row"><Tile color="mint"><PiggyBank size={18} /></Tile><div className="main"><div className="t">Kept</div><div className="s" style={{ whiteSpace: "normal" }}>{s.keptPct != null ? `${s.keptPct}% of income` : "No income this month"}{s.avgKeptPct != null ? ` · 6-month average ${s.avgKeptPct}%` : ""}</div></div><span className="fy-amt">{s.keptSen < 0 ? "−" : ""}{plain(Math.abs(s.keptSen))}</span></div>
           <div className="fy-row"><Tile color="pink"><Target size={18} /></Tile><div className="main"><div className="t">Budget</div><div className="s">{s.usedPct == null ? "No budget this month" : `${s.over} over, ${s.under} under`}</div></div><span className="fy-amt">{s.usedPct == null ? "–" : `${s.usedPct}%`}</span></div>
           {s.emergencyPct != null && <div className="fy-row"><Tile color="lemon"><Shield size={18} /></Tile><div className="main"><div className="t">Emergency fund</div><div className="s">{s.emergencyPct}% of target{s.emergencyPrevPct != null ? ` · ${s.emergencyPct >= s.emergencyPrevPct ? "up" : "down"} from ${s.emergencyPrevPct}%` : ""}</div></div><span className="fy-amt">{s.emergencyPct}%</span></div>}
+          {(s.goals ?? []).map((g) => <div className="fy-row" key={g.name}><Tile color="lavender"><Gem size={18} /></Tile><div className="main"><div className="t">{g.name}</div><div className="s">{g.change >= 0 ? "+" : "−"}{Math.abs(g.change)} pts this month</div></div><span className="fy-amt">{g.pct}%</span></div>)}
           <div className="fy-row"><Tile color="peach"><CreditCard size={18} /></Tile><div className="main"><div className="t">Debts</div><div className="s">{s.debtsPaidSen ? "Paid down this month" : "Nothing paid to cards or loans"}</div></div><span className="fy-amt">{plain(s.debtsPaidSen)}</span></div>
         </div>
         {r.closed ? <>

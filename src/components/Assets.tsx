@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Bike, Briefcase, ChevronLeft, ChevronRight, Coins, Gem, House, Landmark, Laptop, Package, Pencil, PiggyBank, Plus, TrendingUp, CreditCard, Settings2, ShieldCheck } from "lucide-react";
 import { api, useFinny } from "./store";
+import { GoalsRow } from "./Goals";
 import { DateField, Sheet } from "./ui";
 import { formatRupiah, parseRupiah } from "@/lib/money";
 import { shortDate, todayIn } from "@/lib/dates";
@@ -82,8 +83,8 @@ export function Assets() {
       </div>
       <div className="fy-section"><span>What you owe</span><span className="num">{data ? formatRupiah(data.oweSen) : ""}</span></div>
       <div className="fy-list"><Link className="fy-row" href="/debts">{tile("peach", <CreditCard size={18} />)}<div className="main"><div className="t">Debts</div><div className="s">Cards and loans</div></div><span className="fy-amt">{data ? plain(data.oweSen) : ""}</span><ChevronRight className="chev" size={18} /></Link></div>
-      <div className="fy-section"><span>Safety net</span></div>
-      <div className="fy-list"><Link className="fy-row" href="/assets/emergency" data-testid="ef-row">{tile("mint", <ShieldCheck size={18} />)}<div className="main"><div className="t">Emergency fund</div><div className="s">{ef ? (ef.configured ? `${ef.pct}% of ${formatRupiah(ef.targetSen)}` : "Set your target") : ""}</div></div><span className="fy-amt">{ef?.configured ? plain(ef.setAsideSen) : ""}</span><ChevronRight className="chev" size={18} /></Link></div>
+      <div className="fy-section"><span>Safety net and goals</span></div>
+      <div className="fy-list"><GoalsRow /><Link className="fy-row" href="/assets/emergency" data-testid="ef-row">{tile("mint", <ShieldCheck size={18} />)}<div className="main"><div className="t">Emergency fund</div><div className="s">{ef ? (ef.configured ? `${ef.pct}% of ${formatRupiah(ef.targetSen)}` : "Set your target") : ""}</div></div><span className="fy-amt">{ef?.configured ? plain(ef.setAsideSen) : ""}</span><ChevronRight className="chev" size={18} /></Link></div>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginTop: 12 }}>
         <Link className="fy-btn" href="/assets/investments"><TrendingUp size={16} />Investments</Link>
         <Link className="fy-btn" href="/assets/things"><Bike size={16} />Property &amp; vehicles</Link>

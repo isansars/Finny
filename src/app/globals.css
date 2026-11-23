@@ -289,3 +289,13 @@ button.fy-row, .fy-row.tap { cursor: pointer; } button.fy-row:hover, .fy-row.tap
 .fy-rv-line .num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .fy-rv-nudge { display: flex; gap: 10px; align-items: center; padding: 14px 16px; margin-bottom: 12px; border: 2px solid var(--primary-2); background: var(--primary-soft); color: var(--text); text-decoration: none; }
 .fy-rv-warn { display: flex; gap: 8px; align-items: center; background: var(--rose-s); color: var(--rose-i); border-radius: 12px; padding: 8px 10px; font-weight: 700; font-size: 13px; margin-bottom: 10px; }
+/* Sprint 11: goals */
+.fy-goal { display: block; padding: 12px 14px; margin-bottom: 10px; color: var(--text); text-decoration: none; }
+.fy-goal-foot { display: flex; justify-content: space-between; gap: 8px; font-size: 12.5px; font-weight: 700; color: var(--text-2); }
+.fy-goal-legend { display: flex; gap: 12px; flex-wrap: wrap; font-size: 12px; font-weight: 700; color: var(--text-2); margin-top: 4px; }
+.fy-goal-legend i { display: inline-block; width: 14px; height: 3px; vertical-align: middle; margin-right: 4px; border-radius: 2px; }
+.fy-goal-legend i.dash { height: 0; border-top: 2.5px dashed; background: none; }
+.fy-goal-legend i.dot { height: 0; border-top: 2.5px dotted; background: none; }
+.fy-rv-goals { padding: 8px 0; border-top: 1px solid var(--border); font-size: 13.5px; }
+.fy-rv-goals > b { display: block; margin-bottom: 4px; }
+.fy-rv-goals a { display: flex; justify-content: space-between; gap: 8px; padding: 3px 0; color: var(--text); text-decoration: none; }
