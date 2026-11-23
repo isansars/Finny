@@ -6,6 +6,7 @@ export const metadata: Metadata = {
   title: "Finny",
   description: "Your money, in one place.",
   robots: { index: false, follow: false }, // personal data: never indexed
+  appleWebApp: { capable: true, title: "Finny", statusBarStyle: "default" },
 };
 export const viewport: Viewport = { width: "device-width", initialScale: 1, themeColor: [{ media: "(prefers-color-scheme: light)", color: "#fdf8fb" }, { media: "(prefers-color-scheme: dark)", color: "#1b1622" }] };
 

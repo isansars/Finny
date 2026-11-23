@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { Wallet } from "lucide-react";
+import { Mark } from "@/components/Logo";
 import { signIn, googleEnabled } from "@/auth";
 import { getMe } from "@/lib/session";
 import { devLoginEnabled } from "@/lib/allow-rule";
@@ -12,7 +12,7 @@ export default async function Login({ searchParams }: { searchParams: Promise<{ 
   const dev = devLoginEnabled(process.env);
   return (
     <main className="fy-center">
-      <span className="fy-logo"><Wallet size={32} /></span>
+      <span style={{ display: "inline-block", filter: "drop-shadow(0 10px 24px rgba(236,72,153,.35))" }}><Mark size={72} title="Finny" /></span>
       <h1>Finny</h1>
       <p>Your money, in one place. Private: only you can sign in.</p>
       {googleEnabled ? (

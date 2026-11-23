@@ -2,7 +2,8 @@
 // The frame (Apple-style): a translucent tab bar on phones (Home · Accounts · ＋ · Categories · Settings), a top bar on desktop.
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { House, Landmark, Plus, Settings, Shapes, Wallet } from "lucide-react";
+import { House, Landmark, Plus, Settings, Shapes } from "lucide-react";
+import { Lockup } from "./Logo";
 import { FinnyProvider, useFinny } from "./store";
 import { QuickAddForm } from "./QuickAdd";
 import { Sheet } from "./ui";
@@ -22,7 +23,7 @@ function Frame({ children }: { children: React.ReactNode }) {
   return (
     <>
       <header className="fy-topbar"><div className="in">
-        <Link href="/" className="brand"><span className="fy-logo" style={{ width: 30, height: 30, borderRadius: 10 }}><Wallet size={17} /></span>Finny</Link>
+        <Link href="/" className="brand" aria-label="Finny, home"><Lockup size={30} /></Link>
         {NAV.map((n) => <Link key={n.href} href={n.href} className={`nav ${on(n.href) ? "on" : ""}`} aria-current={on(n.href) ? "page" : undefined}><n.Icon size={18} />{n.label}</Link>)}
         <span className="grow" />
         <button className="fy-btn primary small" aria-label="Add a transaction" onClick={() => openAdd()}><Plus size={17} />Add</button>

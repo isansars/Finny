@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <!-- Finny's mark (option B1, chosen by the owner 23 Nov 2026): a white F whose middle stroke is a fin, and a gold coin,
+       on Dango pink to lavender. The source for every icon size (scripts/make-icons.mjs). -->
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f472b6"/><stop offset="1" stop-color="#a78bfa"/></linearGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fef3c7"/><stop offset="1" stop-color="#fcd34d"/></linearGradient>
+  </defs>
+  <rect width="100" height="100" rx="22.5" fill="url(#bg)"/>
+  <g id="f">
+    <rect x="31" y="22" width="13" height="56" rx="6.5" fill="#fff"/>
+    <rect x="31" y="22" width="38" height="13" rx="6.5" fill="#fff"/>
+    <path d="M38 45 C48 39 58 40 66 47 C58 49 50 52 44 57 Z" fill="#fff" stroke="#fff" stroke-width="5" stroke-linejoin="round"/>
+    <circle cx="66" cy="68" r="9" fill="url(#gold)" stroke="#fff" stroke-width="2.5"/>
+  </g>
+</svg>

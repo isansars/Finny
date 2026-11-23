@@ -192,3 +192,6 @@ button.fy-row, .fy-row.tap { cursor: pointer; } button.fy-row:hover, .fy-row.tap
 .fy-switch i { position: absolute; top: 3px; left: 3px; width: 22px; height: 22px; border-radius: 99px; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.2); transition: left .15s; }
 .fy-switch[aria-checked="true"] { background: linear-gradient(135deg, var(--primary-2), var(--primary)); } .fy-switch[aria-checked="true"] i { left: 21px; }
 .fy-spin { animation: fy-spin 1s linear infinite; } @keyframes fy-spin { to { transform: rotate(360deg); } }
+/* the logo (chosen 23 Nov 2026: the F monogram, Nunito logotype) */
+.fy-lockup { display: inline-flex; align-items: center; gap: .45em; font-weight: 800; letter-spacing: -.02em; color: var(--text); }
+.fy-lockup svg { filter: drop-shadow(0 3px 8px color-mix(in srgb, var(--primary) 25%, transparent)); border-radius: 22.5%; }
