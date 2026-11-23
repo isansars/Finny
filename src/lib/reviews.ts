@@ -8,6 +8,7 @@ import { monthRange, todayIn } from "@/lib/dates";
 import { getBudget } from "@/lib/budgets";
 import { loadWealth } from "@/lib/assets";
 import { emergencyOverview } from "@/lib/emergency";
+import { goalsForMonth } from "@/lib/goals";
 import { OWED, holdingAt } from "@/lib/asset-rule";
 import { balanceSheet, cashflow, monthEnd, monthsBetween } from "@/lib/report-rule";
 import { averageKeptPct, budgetCheck, budgetWarnings, daysSince, debtsPaid, dueMonth, planNext, shiftMonth, statementStep, steps } from "@/lib/review-rule";
@@ -23,6 +24,7 @@ export type Summary = {
   inSen: number; outSen: number; keptSen: number; keptPct: number | null; avgKeptPct: number | null;
   netSen: number; netChangeSen: number; usedPct: number | null; over: number; under: number;
   emergencyPct: number | null; emergencyPrevPct: number | null; debtsPaidSen: number;
+  goals?: { name: string; pct: number; change: number }[];
 };
 
 async function reviewRow(userId: string, month: string) {
@@ -42,10 +44,11 @@ async function lastClosedBefore(userId: string, month: string) {
 /** Everything the review shows for one month. A closed month shows the summary saved at close. */
 export async function getReview(userId: string, monthIn: unknown) {
   const today = todayIn(), month = monthOf(monthIn, today), next = shiftMonth(month, 1);
-  const [row, w, bud, ef, prev, nextRows, cats] = await Promise.all([
+  const [row, w, bud, ef, prev, nextRows, cats, goalRows] = await Promise.all([
     reviewRow(userId, month), loadWealth(userId), getBudget(userId, month), emergencyOverview(userId), lastClosedBefore(userId, month),
     db.select({ categoryId: budgets.categoryId }).from(budgets).where(and(eq(budgets.userId, userId), eq(budgets.month, next))),
     db.select({ id: categories.id, name: categories.name }).from(categories).where(eq(categories.userId, userId)),
+    goalsForMonth(userId, month),
   ]);
   const statements = await statementsFor(userId, month, w.accs);
   const name = new Map(cats.map((c) => [c.id, c.name]));
@@ -61,6 +64,7 @@ export async function getReview(userId: string, monthIn: unknown) {
     inSen: check.inSen, outSen: check.outSen, keptSen: check.keptSen, keptPct: check.keptPct, avgKeptPct: averageKeptPct(flow.months),
     netSen: sheet.netSen, netChangeSen: sheet.changeSen, usedPct: check.usedPct, over: check.over.length, under: check.under.length,
     emergencyPct: ef.configured ? ef.pct : null, emergencyPrevPct: (prev?.summary as Summary | null)?.emergencyPct ?? null, debtsPaidSen: debtsPaid(w.txns, owed, month),
+    goals: goalRows.map((g) => ({ name: g.name, pct: g.pct, change: g.change })),
   };
   const named = <T extends { categoryId: string }>(l: T) => ({ ...l, name: name.get(l.categoryId) ?? "" });
   return {
@@ -68,7 +72,7 @@ export async function getReview(userId: string, monthIn: unknown) {
     steps: steps(statements.done, row), statements,
     budget: { ...check, over: check.over.map(named), under: check.under.map(named), nextPlanned: nextRows.length, planNext: planNext(bud.lines, new Set(nextRows.map((r) => r.categoryId))).map(named) },
     wealth: { netSen: sheet.netSen, changeSen: sheet.changeSen, holdings: holdings.length, valuesOn, valuesDays: daysSince(valuesOn, today),
-      emergency: { configured: ef.configured, pct: ef.pct, setAsideSen: ef.setAsideSen, targetSen: ef.targetSen, prevPct: live.emergencyPrevPct } },
+      emergency: { configured: ef.configured, pct: ef.pct, setAsideSen: ef.setAsideSen, targetSen: ef.targetSen, prevPct: live.emergencyPrevPct }, goals: goalRows },
     summary: row?.closedAt && row.summary ? (row.summary as Summary) : live,
   };
 }
