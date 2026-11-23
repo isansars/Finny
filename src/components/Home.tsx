@@ -89,7 +89,7 @@ export function Home() {
         </div>
 
         <div className="fy-hero">
-          <div className="lbl">Net across accounts</div>
+          <div className="lbl" style={{ display: "flex", justifyContent: "space-between" }}><span>Net across accounts</span><a className="fy-more" style={{ padding: 0, fontSize: 13 }} href="/reports?view=balance">Reports ›</a></div>
           <div className="big" data-testid="net">{loaded ? formatRupiah(net) : <span className="fy-skel" style={{ width: "7em" }} />}</div>
           <div className="stats">
             <div className="fy-stat"><small>Income</small><b className="fy-amt income" data-testid="income">{dash ? formatRupiah(dash.totals.incomeSen) : <span className="fy-skel" />}</b></div>

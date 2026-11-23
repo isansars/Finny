@@ -19,7 +19,7 @@ const NAV = [
 function Frame({ children }: { children: React.ReactNode }) {
   const path = usePathname();
   const { editing, openAdd, closeAdd } = useFinny();
-  const on = (h: string) => (h === "/" ? path === "/" : path.startsWith(h) || (h === "/settings" && (path.startsWith("/categories") || path.startsWith("/import"))));
+  const on = (h: string) => (h === "/" ? path === "/" || path.startsWith("/reports") : path.startsWith(h) || (h === "/settings" && (path.startsWith("/categories") || path.startsWith("/import"))));
   const tab = (n: (typeof NAV)[number]) => <Link key={n.href} href={n.href} className={on(n.href) ? "on" : ""} aria-current={on(n.href) ? "page" : undefined}><n.Icon size={22} strokeWidth={on(n.href) ? 2.3 : 1.9} />{n.label}</Link>;
   return (
     <>
