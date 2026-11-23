@@ -76,8 +76,20 @@ export const moneyAccounts = pgTable("money_accounts", {
   archived: boolean("archived").notNull().default(false),
   position: integer("position").notNull().default(0),
   importBatchId: uuid("import_batch_id"), // FINNY-46: created by this import (undo removes it if nothing else uses it)
+  // FINNY-85: a card's or loan's terms. Interest in basis points (1,75% = 175) per month or per year; the minimum is a
+  // fixed amount, or a % of the balance with a floor.
+  interestBp: integer("interest_bp"),
+  interestPer: text("interest_per", { enum: ["month", "year"] }),
+  minFixedSen: bigint("min_fixed_sen", { mode: "number" }),
+  minPctBp: integer("min_pct_bp"),
+  minFloorSen: bigint("min_floor_sen", { mode: "number" }),
+  dueDay: integer("due_day"),
+  purpose: text("purpose", { enum: ["productive", "consumptive"] }),
   createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
-}, (t) => [index("money_accounts_user").on(t.userId)]);
+}, (t) => [index("money_accounts_user").on(t.userId), check("money_accounts_terms", sql`(${t.interestBp} is null or ${t.interestBp} between 0 and 100000)
+    and (${t.minFixedSen} is null or ${t.minFixedSen} >= 0) and (${t.minPctBp} is null or ${t.minPctBp} between 0 and 10000)
+    and (${t.minFloorSen} is null or ${t.minFloorSen} >= 0) and (${t.dueDay} is null or ${t.dueDay} between 1 and 31)
+    and (${t.statementDay} is null or ${t.statementDay} between 1 and 31)`)]);
 
 export const categories = pgTable("categories", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -139,3 +151,10 @@ export const incomePlans = pgTable("income_plans", {
   month: text("month").notNull(),
   amountSen: bigint("amount_sen", { mode: "number" }).notNull(),
 }, (t) => [primaryKey({ columns: [t.userId, t.month] }), check("income_plans_shape", sql`${t.amountSen} >= 0 and (${t.month} = '*' or ${t.month} ~ '^[0-9]{4}-(0[1-9]|1[0-2])$')`)]);
+
+// FINNY-85: the owner's payoff plan: the method and the extra paid each month on top of the minimums.
+export const debtPlans = pgTable("debt_plans", {
+  userId: text("user_id").primaryKey().references(() => users.id, { onDelete: "cascade" }),
+  method: text("method", { enum: ["minimums", "snowball", "avalanche"] }).notNull().default("snowball"),
+  extraSen: bigint("extra_sen", { mode: "number" }).notNull().default(0),
+}, (t) => [check("debt_plans_extra", sql`${t.extraSen} >= 0`)]);

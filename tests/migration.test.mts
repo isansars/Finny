@@ -14,7 +14,7 @@ await migrate(drizzle(pg), { migrationsFolder: folder });
 const tables = async () => (await pg.query<{ t: string }>("select table_name as t from information_schema.tables where table_schema = 'public' order by 1")).rows.map((r) => r.t);
 const up = await tables();
 console.log("up:", up.join(", "));
-for (const want of ["users", "sessions", "auth_accounts", "verification_tokens", "money_accounts", "categories", "entities", "transactions", "import_batches", "budgets", "income_plans"]) assert.ok(up.includes(want), `missing ${want}`);
+for (const want of ["users", "sessions", "auth_accounts", "verification_tokens", "money_accounts", "categories", "entities", "transactions", "import_batches", "budgets", "income_plans", "debt_plans"]) assert.ok(up.includes(want), `missing ${want}`);
 
 // FINNY-26: the database itself refuses a malformed transaction (amounts in sen, transfers between two accounts, no category).
 await pg.exec(`insert into users (id, email) values ('u1', 'owner@finny.test');
@@ -48,6 +48,16 @@ await refused("a negative budget", pg.exec(`insert into budgets (user_id, catego
 await pg.exec(`insert into income_plans (user_id, month, amount_sen) values ('u1', '2026-11', 1500000000)`);
 await refused("two income plans for one month", pg.exec(`insert into income_plans (user_id, month, amount_sen) values ('u1', '2026-11', 1)`));
 console.log("✓ budgets and income plans keep their shape");
+// FINNY-85: a card's terms stay in range; one payoff plan per owner, never a negative extra.
+await pg.exec(`update money_accounts set interest_bp = 175, interest_per = 'month', min_pct_bp = 1000, min_floor_sen = 5000000, due_day = 5, statement_day = 20, purpose = 'consumptive' where id = ${A}`);
+await refused("a due day of 32", pg.exec(`update money_accounts set due_day = 32 where id = ${A}`));
+await refused("a negative minimum", pg.exec(`update money_accounts set min_fixed_sen = -1 where id = ${A}`));
+await refused("a minimum over 100%", pg.exec(`update money_accounts set min_pct_bp = 10001 where id = ${A}`));
+await pg.exec(`insert into debt_plans (user_id, method, extra_sen) values ('u1', 'avalanche', 50000000)`);
+await refused("two plans for one owner", pg.exec(`insert into debt_plans (user_id) values ('u1')`));
+await refused("a negative extra", pg.exec(`update debt_plans set extra_sen = -1`));
+console.log("✓ debt terms and the payoff plan keep their shape");
+await pg.exec("delete from debt_plans;");
 await pg.exec("delete from budgets; delete from income_plans;");
 await pg.exec("delete from import_batches;");
 await pg.exec("delete from transactions; delete from categories; delete from money_accounts; delete from users;");
