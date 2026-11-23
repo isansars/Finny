@@ -1,7 +1,7 @@
 "use client";
 // Accounts (FINNY-28, restyled in FINNY-40): grouped lists by type, balances computed, cards with a usage bar; Reorder mode.
 import { useEffect, useState } from "react";
-import { ArrowDown, ArrowUp, ChevronRight, Plus } from "lucide-react";
+import { ArrowDown, ArrowUp, ChevronRight, Plus, FileText } from "lucide-react";
 import { api, useFinny, type Account } from "./store";
 import { AmountInput, DateField, Money, Sheet, TYPE_LABEL, TYPE_LOOK } from "./ui";
 import { Tile } from "./icons";
@@ -104,7 +104,9 @@ export function Accounts() {
         <div className="fy-section"><button className="fy-more" style={{ padding: 0, fontSize: 13 }} aria-expanded={showClosed} onClick={() => setShowClosed(!showClosed)}>Closed ({closed.length})</button></div>
         {showClosed && <div className="fy-list">{closed.map(row)}</div>}
       </>)}
-      {edit !== undefined && <Sheet title={edit ? edit.name : "New account"} label={edit ? `Edit ${edit.name}` : "Add an account"} onClose={() => setEdit(undefined)}><AccountForm a={edit} onDone={() => setEdit(undefined)} /></Sheet>}
+      {edit !== undefined && <Sheet title={edit ? edit.name : "New account"} label={edit ? `Edit ${edit.name}` : "Add an account"} onClose={() => setEdit(undefined)}>
+        {edit && (edit.type === "bank" || edit.type === "card") && <a className="fy-btn block" style={{ marginBottom: 12 }} href={`/import/statements?account=${edit.id}`}><FileText size={17} />Read a statement</a>}
+        <AccountForm a={edit} onDone={() => setEdit(undefined)} /></Sheet>}
     </>
   );
 }

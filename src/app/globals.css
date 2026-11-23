@@ -230,3 +230,15 @@ button.fy-row, .fy-row.tap { cursor: pointer; } button.fy-row:hover, .fy-row.tap
 /* 14. a date field that reads "23 Nov 2026" */
 .fy-datefield { position: relative; display: flex; align-items: center; justify-content: space-between; cursor: pointer; }
 .fy-datefield input { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; }
+/* FINNY-73: bank statements */
+.fy-back { display: inline-flex; align-items: center; gap: 2px; margin: 4px 0 4px -6px; padding: 4px 6px; border: 0; background: none; color: var(--primary-text); font-weight: 700; font-size: 15px; text-decoration: none; cursor: pointer; }
+.fy-drop { text-align: center; display: flex; flex-direction: column; align-items: center; border: 2px dashed color-mix(in srgb, var(--primary) 35%, transparent); }
+.fy-iconnote { display: flex; gap: 8px; align-items: flex-start; margin-top: 12px; }
+.fy-iconnote svg { flex: none; margin-top: 1px; }
+.fy-eye { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); width: 36px; height: 36px; display: grid; place-items: center; border: 0; background: none; color: var(--text-3); cursor: pointer; border-radius: 10px; }
+.fy-gap { background: var(--lemon-s); color: var(--lemon-i); margin-bottom: 4px; }
+.fy-gap .h { display: flex; gap: 8px; align-items: center; font-weight: 800; }
+.fy-gap .b { font-size: 13.5px; font-weight: 600; margin-top: 4px; line-height: 1.45; }
+.fy-savebar { position: sticky; bottom: calc(76px + env(safe-area-inset-bottom)); margin-top: 16px; padding: 22px 0 6px; z-index: 5; background: linear-gradient(color-mix(in srgb, var(--bg) 0%, transparent), var(--bg) 20px); }
+@media (min-width: 760px) { .fy-savebar { bottom: 12px; } }
+.fy-ok { display: flex; gap: 8px; align-items: center; }

@@ -33,7 +33,7 @@ export function ImportWizard() {
   const [result, setResult] = useState<{ added: number; skipped: number; batchId: string; month: string } | null>(null);
   const [open, setOpen] = useState<string | null>(null);
 
-  const loadBatches = () => api<Batch[]>("imports").then(setBatches).catch(() => {});
+  const loadBatches = () => api<(Batch & { kind?: string })[]>("imports").then((b) => setBatches(b.filter((x) => x.kind !== "statement"))).catch(() => {});
   useEffect(() => { loadBatches(); }, []);
   const plan: Plan | null = useMemo(() => (books && choices ? buildPlan(books, choices) : null), [books, choices]);
 
