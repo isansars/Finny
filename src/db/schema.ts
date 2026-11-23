@@ -1,5 +1,5 @@
 // Finny's tables. Money is always integer sen (rupiah × 100) in bigint columns, never a float.
-import { pgTable, text, timestamp, integer, primaryKey, bigint, boolean, date, index, check, uuid } from "drizzle-orm/pg-core";
+import { pgTable, text, timestamp, integer, primaryKey, bigint, boolean, date, index, check, uuid, uniqueIndex } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
 
 // ---- Auth.js (Drizzle adapter): who may be signed in.
@@ -54,7 +54,14 @@ export const importBatches = pgTable("import_batches", {
   skipped: integer("skipped").notNull().default(0),
   accounts: integer("accounts").notNull().default(0),
   categories: integer("categories").notNull().default(0),
-}, (t) => [index("import_batches_user").on(t.userId)]);
+  // FINNY-69: a bank statement batch knows its account, period and file, so the same statement is never saved twice.
+  kind: text("kind", { enum: ["workbook", "statement"] }).notNull().default("workbook"),
+  accountId: uuid("account_id"),
+  bank: text("bank"),
+  periodFrom: date("period_from", { mode: "string" }),
+  periodTo: date("period_to", { mode: "string" }),
+  fileHash: text("file_hash"),
+}, (t) => [index("import_batches_user").on(t.userId), uniqueIndex("import_batches_file").on(t.userId, t.fileHash).where(sql`${t.fileHash} is not null`)]);
 
 export const moneyAccounts = pgTable("money_accounts", {
   id: uuid("id").primaryKey().defaultRandom(),

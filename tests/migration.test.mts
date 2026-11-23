@@ -33,6 +33,14 @@ await refused("zero amount", ins("kind, amount_sen, account_id, category_id", `'
 const big = (await pg.query<{ s: string }>("select sum(amount_sen)::text as s from transactions")).rows[0].s;
 assert.equal(big, "14389000", "amounts are exact integers");
 console.log("✓ the transactions table refuses malformed rows");
+// FINNY-69: one statement file is saved once per owner; workbook batches have no file hash and never clash.
+await pg.exec(`insert into import_batches (user_id, source) values ('u1', 'workbook'), ('u1', 'workbook')`);
+await pg.exec(`insert into import_batches (user_id, source, kind, bank, file_hash) values ('u1', 'statement', 'statement', 'bca', 'h1')`);
+await refused("the same statement twice", pg.exec(`insert into import_batches (user_id, source, kind, bank, file_hash) values ('u1', 'statement', 'statement', 'bca', 'h1')`));
+const kinds = (await pg.query<{ k: string }>("select kind as k from import_batches order by created_at, kind")).rows.map((r) => r.k).sort();
+assert.deepEqual(kinds, ["statement", "workbook", "workbook"], "existing batches default to workbook");
+console.log("✓ a statement file is saved once");
+await pg.exec("delete from import_batches;");
 await pg.exec("delete from transactions; delete from categories; delete from money_accounts; delete from users;");
 for (const { tag } of [...journal.entries].reverse()) {
   const down = path.join(folder, "down", `${tag}.sql`);
