@@ -187,3 +187,8 @@ button.fy-row, .fy-row.tap { cursor: pointer; } button.fy-row:hover, .fy-row.tap
 .fy-grid2 { grid-template-columns: minmax(0, 1fr); } .fy-grid2 > *, .fy-home > * { min-width: 0; }
 @media (min-width: 900px) { .fy-grid2 { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } .fy-home { grid-template-columns: minmax(0, 1fr) 380px; } }
 .fy-donut > svg { flex: none; } .fy-what input { min-width: 0; }
+/* import (Sprint 3) */
+.fy-switch { width: 46px; height: 28px; border-radius: 99px; border: 0; background: var(--border-strong); position: relative; flex: none; cursor: pointer; transition: background .15s; }
+.fy-switch i { position: absolute; top: 3px; left: 3px; width: 22px; height: 22px; border-radius: 99px; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.2); transition: left .15s; }
+.fy-switch[aria-checked="true"] { background: linear-gradient(135deg, var(--primary-2), var(--primary)); } .fy-switch[aria-checked="true"] i { left: 21px; }
+.fy-spin { animation: fy-spin 1s linear infinite; } @keyframes fy-spin { to { transform: rotate(360deg); } }
