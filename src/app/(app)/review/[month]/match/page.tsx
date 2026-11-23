@@ -6,5 +6,5 @@ export default async function Page({ params }: { params: Promise<{ month: string
   const { month } = await params;
   if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(month)) notFound();
   await requireMe(`/review/${month}/match`);
-  return <MatchCheck month={month} />;
+  return <div className="fy-narrow"><MatchCheck month={month} /></div>;
 }

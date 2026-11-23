@@ -207,9 +207,10 @@ export function EmergencyPlan() {
         <div style={{ marginTop: 8 }}>{line()}</div>
       </div>}
       {picks.length > 0 && data && data.toGoSen > 0 && <div className="fy-chips wrap" style={{ marginTop: 12 }}>{picks.map((p) => <button key={p} type="button" className={`fy-chip ${sen === p ? "on" : ""}`} onClick={() => { setMonthly(plain(p)); save(plain(p)); }}>Rp {formatCompact(p)} · {mon(reachedMonth(data.setAsideSen, data.targetSen, p, data.thisMonth))}</button>)}</div>}
-      <div className="fy-note" style={{ marginTop: 12 }}>Tip: make it a budget line (&quot;Dana Darurat&quot;, a saving category) so Budget reminds you each month.</div>
+      {data && data.toGoSen === 0 ? <div className="fy-note" style={{ marginTop: 12 }} data-testid="ef-topped">Reached. Keep it topped up: if it drops below the target, the fund page and the month-end review show what&apos;s still to go.</div>
+        : <div className="fy-note" style={{ marginTop: 12 }}>Tip: make it a budget line (&quot;Dana Darurat&quot;, a saving category) so Budget reminds you each month.</div>}
       {msg && <div className="fy-ok" role="status" style={{ marginTop: 10 }}><Check size={16} /> {msg}</div>}
-      <button className="fy-btn block" style={{ marginTop: 12 }} disabled={!sen} onClick={toBudget}><PiggyBank size={16} />Add it to this month&apos;s budget</button>
+      {!(data && data.toGoSen === 0) && <button className="fy-btn block" style={{ marginTop: 12 }} disabled={!sen} onClick={toBudget}><PiggyBank size={16} />Add it to this month&apos;s budget</button>}
     </>
   );
 }

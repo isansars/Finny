@@ -105,7 +105,7 @@ export function ImportWizard() {
       </div>
       <a className="fy-card fy-row" style={{ marginTop: 12, color: "var(--text)", textDecoration: "none" }} href={`/review/${shiftMonth(todayIn().slice(0, 7), -1)}/match`} data-testid="import-match">
         <span className="fy-tile" data-color="sky" style={{ width: 32, height: 32, borderRadius: 10 }}><Scale size={18} /></span>
-        <div className="main"><div className="t">Check a month against your workbook</div><div className="s">Does Finny say what the workbook says?</div></div><ChevronRight size={18} /></a>
+        <div className="main"><div className="t">Check against your workbook</div><div className="s">Does Finny say what the workbook says?</div></div><ChevronRight size={18} /></a>
       <div className="fy-section"><span>Works with</span></div>
       <div className="fy-list">
         <div className="fy-row"><span className="fy-tile" data-color="sky" style={{ width: 32, height: 32, borderRadius: 10 }}><FileSpreadsheet size={18} /></span><div className="main"><div className="t">Catatan Keuangan Pribadi</div><div className="s">Your daily books: every account sheet</div></div></div>
