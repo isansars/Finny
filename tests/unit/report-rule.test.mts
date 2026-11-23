@@ -53,6 +53,23 @@ test("balance sheet: month-end balances, what's owed, net worth, change, an acco
   assert.equal(b.yearChangeSen, null, "less than a year of history asked");
 });
 
+test("balance sheet: a card in credit is something you have, not a negative debt (FINNY-133)", () => {
+  // By hand: the card owes 30.000 at the end of October; in November 300.000 is paid in, so it's 270.000 in credit.
+  const a = [{ id: "bca", name: "BCA", type: "bank", openingSen: 1_000_000_00, openingOn: "2026-01-01" }, { id: "cc", name: "CC", type: "card", openingSen: 0, openingOn: "2026-01-01" }];
+  const t: RTxn[] = [
+    { on: "2026-10-05", kind: "spend", amountSen: 30_000_00, accountId: "cc", toAccountId: null, categoryId: null },
+    { on: "2026-11-05", kind: "transfer", amountSen: 300_000_00, accountId: "bca", toAccountId: "cc", categoryId: null },
+  ];
+  const b = balanceSheet(a, t, "2026-11", 2);
+  const cc = b.have.find((x) => x.id === "cc")!;
+  assert.deepEqual([cc.sen, cc.inCredit, cc.changeSen], [270_000_00, true, 300_000_00]);
+  assert.equal(b.owe.length, 0, "nothing owed");
+  assert.deepEqual([b.haveSen, b.oweSen], [1_000_000_00 - 300_000_00 + 270_000_00, 0]);
+  assert.equal(b.netSen, 1_000_000_00 - 30_000_00, "net worth unchanged: the opening less the one spend");
+  assert.equal(b.series[0].oweSen, 30_000_00, "October still shows the 30.000 owed");
+  assert.equal(b.changeSen, 0, "paying a card moves money, it doesn't change net worth");
+});
+
 test("spending pace: running totals, the projection, a past month", () => {
   const p = spendingPace(txns, cats, "2026-11", "2026-11-10");
   assert.equal(p.daysGone, 10); assert.equal(p.thisMonth.length, 10);

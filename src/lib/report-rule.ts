@@ -108,21 +108,23 @@ export function balanceSheet(accounts: RAcc[], txns: RTxn[], month: string, hist
   const kindOf = (id: string) => accounts.find((a) => a.id === id)?.type ?? "";
   const worth = (b: Map<string, number>) => {
     let have = 0, owe = 0;
-    for (const [id, v] of b) { if (OWED.has(kindOf(id))) owe -= v; else have += v; }
+    // FINNY-133: a card or loan in credit (paid more than owed, balance above 0) is something you have, not a debt.
+    for (const [id, v] of b) { if (OWED.has(kindOf(id)) && v <= 0) owe -= v; else have += v; }
     return { haveSen: have, oweSen: owe, netSen: have - owe };
   };
   const series = at.slice(1).map((x) => ({ month: x.month, ...worth(x.balances) }));
   const last = at[at.length - 1].balances, before = at[at.length - 2].balances;
-  const row = (id: string, name: string, type: string, archived: boolean) => {
-    const sign = OWED.has(type) ? -1 : 1;
-    return { id, name, type, archived, sen: sign * (last.get(id) ?? 0), changeSen: sign * ((last.get(id) ?? 0) - (before.get(id) ?? 0)) };
+  const inCredit = (a: RAcc) => OWED.has(a.type) && (last.get(a.id) ?? 0) > 0;
+  const row = (id: string, name: string, type: string, archived: boolean, credit = false) => {
+    const sign = OWED.has(type) && !credit ? -1 : 1;
+    return { id, name, type, archived, inCredit: credit, sen: sign * (last.get(id) ?? 0), changeSen: sign * ((last.get(id) ?? 0) - (before.get(id) ?? 0)) };
   };
   const shown = accounts.filter((a) => last.has(a.id) && (!a.archived || last.get(a.id) !== 0));
   const have = [
-    ...shown.filter((a) => !OWED.has(a.type)).map((a) => row(a.id, a.name, a.type, !!a.archived)),
+    ...shown.filter((a) => !OWED.has(a.type) || inCredit(a)).map((a) => row(a.id, a.name, a.type, !!a.archived, inCredit(a))),
     ...things.filter((t) => last.has(`thing:${t.id}`)).map((t) => ({ ...row(`thing:${t.id}`, t.name, `thing:${t.kind}`, false), id: t.id })),
   ].sort((x, y) => y.sen - x.sen);
-  const owe = shown.filter((a) => OWED.has(a.type)).map((a) => row(a.id, a.name, a.type, !!a.archived)).sort((x, y) => y.sen - x.sen);
+  const owe = shown.filter((a) => OWED.has(a.type) && !inCredit(a)).map((a) => row(a.id, a.name, a.type, !!a.archived)).sort((x, y) => y.sen - x.sen);
   const now = series[series.length - 1], prev = series.length > 1 ? series[series.length - 2] : worth(before);
   const yearAgo = series.length >= 12 ? series[0] : null;
   return { series, have, owe, ...now, month, changeSen: now.netSen - prev.netSen, yearChangeSen: yearAgo ? now.netSen - yearAgo.netSen : null };

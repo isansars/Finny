@@ -56,7 +56,7 @@ export async function balanceReport(userId: string, q: URLSearchParams) {
   const b = balanceSheet(w.accs, w.txns.filter((t) => t.on <= end), month, 12, { vals: w.vals, things: w.things });
   if (q.get("format") === "csv") {
     const rows = [
-      ...b.have.map((a) => ({ group: "have", account: a.name, type: a.type, rupiah: senToPlain(a.sen), change_rupiah: senToPlain(a.changeSen) })),
+      ...b.have.map((a) => ({ group: "have", account: a.name, type: "inCredit" in a && a.inCredit ? `${a.type} (in credit)` : a.type, rupiah: senToPlain(a.sen), change_rupiah: senToPlain(a.changeSen) })),
       ...b.owe.map((a) => ({ group: "owe", account: a.name, type: a.type, rupiah: senToPlain(a.sen), change_rupiah: senToPlain(a.changeSen) })),
       ...b.series.map((s) => ({ group: "net worth", account: s.month, type: "", rupiah: senToPlain(s.netSen), change_rupiah: "" })),
     ];
