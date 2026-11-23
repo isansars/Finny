@@ -2,7 +2,7 @@
 // Categories (FINNY-30, restyled in FINNY-40): a segmented control per kind, the tree as a grouped list with icon tiles;
 // a row opens a sheet to rename, pick an icon and a colour, move, merge, switch off or delete.
 import { useState } from "react";
-import { ChevronDown, ChevronRight, Plus } from "lucide-react";
+import { ChevronDown, ChevronRight, Plus, ChevronLeft } from "lucide-react";
 import { api, useFinny, type Category } from "./store";
 import { CategoryOptions, Sheet } from "./ui";
 import { CatTile, ICON_KEYS, Tile } from "./icons";
@@ -71,6 +71,7 @@ export function Categories() {
   const hidden = new Set<string>(); for (const id of folded) for (const d of descendants(id, categories)) hidden.add(d);
   return (
     <>
+      <a className="fy-back" href="/settings"><ChevronLeft size={20} />Settings</a>
       <div className="fy-large"><div><div className="sub">{categories.length} in all</div><h1>Categories</h1></div><button className="fy-btn primary small" onClick={() => setEdit(null)} aria-label="Add category"><Plus size={16} />Add</button></div>
       <div className="fy-seg" role="tablist" style={{ marginBottom: 6 }}>{KINDS.map(([k, l]) => <button key={k} role="tab" aria-selected={kind === k} className={kind === k ? "on" : ""} onClick={() => setKind(k)}>{l}</button>)}</div>
       {loaded && !categories.length && (

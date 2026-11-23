@@ -9,6 +9,7 @@ import { CatTile, Tile } from "./icons";
 import { QuickAddForm } from "./QuickAdd";
 import { formatCompact, formatRupiah } from "@/lib/money";
 import { Mark } from "./Logo";
+import { BudgetCard } from "./Budget";
 import { dayLabel, monthLabel, shiftMonth, todayIn } from "@/lib/dates";
 
 type Dash = { month: string; days: number; totals: { incomeSen: number; spendSen: number; savedSen: number; investedSen: number };
@@ -100,6 +101,7 @@ export function Home() {
           </div>}
         </div>
 
+        <BudgetCard month={month} />
 
         {spent > 0 && (<div className="fy-grid2" style={{ marginTop: 12 }}>
           <div className="fy-card fy-pad" data-testid="by-category">

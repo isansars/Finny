@@ -1,8 +1,9 @@
 "use client";
-// The frame (Apple-style): a translucent tab bar on phones (Home · Accounts · ＋ · Categories · Settings), a top bar on desktop.
+// The frame (Apple-style): a tab bar on phones (Home · Budget · ＋ · Accounts · Settings; owner, 23 Nov 2026: Categories
+// moved into Settings), a top bar on desktop.
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { House, Landmark, Plus, Settings, Shapes } from "lucide-react";
+import { ChartPie, House, Landmark, Plus, Settings } from "lucide-react";
 import { Lockup } from "./Logo";
 import { FinnyProvider, useFinny } from "./store";
 import { QuickAddForm } from "./QuickAdd";
@@ -10,15 +11,15 @@ import { Sheet } from "./ui";
 
 const NAV = [
   { href: "/", label: "Home", Icon: House },
+  { href: "/budget", label: "Budget", Icon: ChartPie },
   { href: "/accounts", label: "Accounts", Icon: Landmark },
-  { href: "/categories", label: "Categories", Icon: Shapes },
   { href: "/settings", label: "Settings", Icon: Settings },
 ];
 
 function Frame({ children }: { children: React.ReactNode }) {
   const path = usePathname();
   const { editing, openAdd, closeAdd } = useFinny();
-  const on = (h: string) => (h === "/" ? path === "/" : path.startsWith(h));
+  const on = (h: string) => (h === "/" ? path === "/" : path.startsWith(h) || (h === "/settings" && (path.startsWith("/categories") || path.startsWith("/import"))));
   const tab = (n: (typeof NAV)[number]) => <Link key={n.href} href={n.href} className={on(n.href) ? "on" : ""} aria-current={on(n.href) ? "page" : undefined}><n.Icon size={22} strokeWidth={on(n.href) ? 2.3 : 1.9} />{n.label}</Link>;
   return (
     <>
