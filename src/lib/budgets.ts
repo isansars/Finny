@@ -50,14 +50,15 @@ export async function budgetQuick(userId: string, q: URLSearchParams) {
   const month = monthOf(q.get("month")); const cat = await ownExpenseCategory(userId, q.get("categoryId"));
   const all = await db.select({ id: categories.id, parentId: categories.parentId }).from(categories).where(eq(categories.userId, userId));
   const ids = new Set([cat.id]); for (let n = 0; n < 4; n++) for (const c of all) if (c.parentId && ids.has(c.parentId)) ids.add(c.id);
-  const from = monthRange(shiftMonth(month, -3))[0], to = monthRange(month)[0];
+  const from = monthRange(shiftMonth(month, -3))[0], to = monthRange(month)[1];
   const rows = await db.select({ m: sql<string>`to_char(${transactions.on}::date, 'YYYY-MM')`, total: sql<string>`sum(${transactions.amountSen})` }).from(transactions)
     .where(and(eq(transactions.userId, userId), eq(transactions.kind, "spend"), inArray(transactions.categoryId, [...ids]), gte(transactions.on, from), lt(transactions.on, to)))
     .groupBy(sql`to_char(${transactions.on}::date, 'YYYY-MM')`);
-  const fill = quickFill(new Map(rows.map((r) => [r.m, Number(r.total)])), month);
+  const byMonth = new Map(rows.map((r) => [r.m, Number(r.total)]));
+  const fill = quickFill(byMonth, month);
   const lastYear = shiftMonth(month, -12);
   const [ly] = await db.select({ amountSen: budgets.amountSen }).from(budgets).where(and(eq(budgets.userId, userId), eq(budgets.categoryId, cat.id), eq(budgets.month, lastYear)));
-  return { ...fill, lastYear: lastYear.slice(0, 4), lastYearSen: ly?.amountSen ?? null };
+  return { ...fill, thisMonthSen: byMonth.get(month) ?? 0, lastYear: lastYear.slice(0, 4), lastYearSen: ly?.amountSen ?? null };
 }
 
 /** Sets (or, with 0, removes) a budget for this month, the rest of the year, or every month from now on. */
