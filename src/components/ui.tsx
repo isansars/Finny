@@ -54,3 +54,13 @@ export const TYPE_LOOK: Record<string, { icon: string; color: string }> = {
   cash: { icon: "banknote", color: "mint" }, bank: { icon: "landmark", color: "sky" }, ewallet: { icon: "smartphone", color: "lavender" },
   card: { icon: "credit-card", color: "peach" }, loan: { icon: "hand-coins", color: "rose" }, investment: { icon: "trending-up", color: "lemon" },
 };
+
+/** A date that reads "23 Nov 2026" (not the browser's 11/23/2026); tapping it opens the phone's own date picker. */
+export function DateField({ value, onChange, label }: { value: string; onChange: (v: string) => void; label: string }) {
+  const shown = value ? new Intl.DateTimeFormat("en-GB", { timeZone: "UTC", day: "numeric", month: "short", year: "numeric" }).format(new Date(value + "T00:00:00Z")) : "Pick a date";
+  return (
+    <span className="fy-input fy-datefield"><span>{shown}</span><span aria-hidden style={{ color: "var(--text-3)" }}>▾</span>
+      <input type="date" aria-label={label} value={value} required onChange={(e) => e.target.value && onChange(e.target.value)} />
+    </span>
+  );
+}

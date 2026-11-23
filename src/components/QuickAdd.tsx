@@ -2,7 +2,7 @@
 // Quick add (FINNY-41): the amount large, Spend / Income / Transfer, categories as a grid of tiles (most used first, the
 // suggestion from history highlighted), accounts as chips (the last one remembered), Today / Yesterday / a date.
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ChevronDown, Sparkles, LayoutGrid, Search, PenLine } from "lucide-react";
+import { ChevronDown, Sparkles, Search, PenLine } from "lucide-react";
 import { api, remember, useFinny, type Category, type Txn } from "./store";
 import { CatTile, Tile } from "./icons";
 import { TYPE_LOOK } from "./ui";
@@ -40,7 +40,7 @@ function CategoryPicker({ cats, value, onPick, suggested }: { cats: Category[]; 
 
 function AccountChips({ label, accounts, value, onPick }: { label: string; accounts: { id: string; name: string; type: string }[]; value: string; onPick: (id: string) => void }) {
   return (
-    <div className="fy-chips" role="radiogroup" aria-label={label} style={{ marginBottom: 4 }}>
+    <div className="fy-chips wrap" role="radiogroup" aria-label={label} style={{ marginBottom: 4 }}>
       {accounts.map((a) => (
         <button type="button" key={a.id} role="radio" aria-checked={value === a.id} aria-label={a.name} className="fy-chip" onClick={() => onPick(a.id)}>
           <Tile icon={TYPE_LOOK[a.type]?.icon ?? "wallet"} color={TYPE_LOOK[a.type]?.color ?? "slate"} size={22} />{a.name}
@@ -128,6 +128,7 @@ export function QuickAddForm({ existing, onDone, inline }: { existing?: Txn | nu
       </div>
       <div className="fy-amount"><small>Rp</small>
         <input ref={amountRef} inputMode="decimal" autoComplete="off" aria-label="Amount" placeholder="0" value={amount} autoFocus={!inline && !existing}
+          style={{ width: `${Math.max(1, amount.length) * 0.62 + 0.4}em` }}
           onChange={(e) => setAmount(e.target.value)} onBlur={() => { const s = parseRupiah(amount); if (s !== null && amount.trim()) setAmount(formatRupiah(s, { prefix: false })); }} />
       </div>
       <label className="fy-what"><PenLine size={17} color="var(--text-3)" />
@@ -166,7 +167,6 @@ export function QuickAddForm({ existing, onDone, inline }: { existing?: Txn | nu
       {kind === "transfer" && <p className="fy-note" style={{ margin: "8px 0 0" }}>A transfer moves money between your own accounts. It isn&apos;t spending or income.</p>}
       <button className="fy-btn primary block" style={{ marginTop: 14 }} disabled={busy}>{busy ? "Saving…" : existing ? "Save changes" : "Save"}</button>
       {existing && <button type="button" className="fy-btn danger block" style={{ marginTop: 8 }} onClick={remove} disabled={busy}>Delete</button>}
-      {!inline && !existing && <p className="fy-hint" style={{ textAlign: "center" }}><LayoutGrid size={12} style={{ verticalAlign: -1 }} /> Your most-used categories come first</p>}
     </form>
   );
 }

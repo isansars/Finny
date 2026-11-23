@@ -3,9 +3,9 @@
 import { useEffect, useState } from "react";
 import { ArrowDown, ArrowUp, ChevronRight, Plus } from "lucide-react";
 import { api, useFinny, type Account } from "./store";
-import { AmountInput, Money, Sheet, TYPE_LABEL, TYPE_LOOK } from "./ui";
+import { AmountInput, DateField, Money, Sheet, TYPE_LABEL, TYPE_LOOK } from "./ui";
 import { Tile } from "./icons";
-import { formatRupiah, parseRupiah } from "@/lib/money";
+import { formatCompact, formatRupiah, parseRupiah } from "@/lib/money";
 import { todayIn } from "@/lib/dates";
 
 const GROUPS: { title: string; types: string[] }[] = [
@@ -45,7 +45,7 @@ function AccountForm({ a, onDone }: { a: Account | null; onDone: () => void }) {
       </label>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
         <label className="fy-field"><span className="fy-label">{owes ? "Owed on the opening date" : "Opening balance"}</span><AmountInput label={owes ? "Owed on the opening date" : "Opening balance"} value={opening} onChange={setOpening} /></label>
-        <label className="fy-field"><span className="fy-label">Opening date</span><input className="fy-input" type="date" value={openingOn} onChange={(e) => setOpeningOn(e.target.value)} required /></label>
+        <div className="fy-field"><span className="fy-label">Opening date</span><DateField label="Opening date" value={openingOn} onChange={setOpeningOn} /></div>
       </div>
       {owes && (
         <div style={{ display: "grid", gridTemplateColumns: type === "card" ? "1fr 1fr" : "1fr", gap: 10 }}>
@@ -76,12 +76,12 @@ export function Accounts() {
   }
   const row = (a: Account) => {
     const look = TYPE_LOOK[a.type] ?? { icon: "wallet", color: "slate" };
-    const sub = a.card ? (a.card.limit != null ? `Available ${formatRupiah(a.card.available ?? 0)} of ${formatRupiah(a.card.limit, { prefix: false })}` : TYPE_LABEL[a.type]) : TYPE_LABEL[a.type];
+    const sub = a.card ? (a.card.limit != null ? `Rp ${formatCompact(a.card.available ?? 0)} left of ${formatCompact(a.card.limit)}` : TYPE_LABEL[a.type]) : TYPE_LABEL[a.type];
     const inner = (<>
       <Tile icon={look.icon} color={look.color} />
       <div className="main"><div className="t">{a.name}</div><div className="s">{sub}</div>
         {a.card && a.card.limit ? <div className="fy-usage"><i style={{ width: `${Math.min(100, (a.card.used / a.card.limit) * 100)}%` }} /></div> : null}</div>
-      {a.card ? <span className="fy-amt" data-testid="balance">{a.card.used ? `owe ${formatRupiah(a.card.used)}` : formatRupiah(a.balanceSen)}</span> : <Money sen={a.balanceSen} />}
+      {a.card ? <span className="fy-amt fy-owed" data-testid="balance">{formatRupiah(a.card.used)}<small>{a.card.used ? "owed" : "nothing owed"}</small></span> : <Money sen={a.balanceSen} />}
     </>);
     if (reorder && !a.archived) return (
       <div key={a.id} className="fy-row" data-testid={`account-${a.name}`}>{inner}

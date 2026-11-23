@@ -33,3 +33,13 @@ export function formatRupiah(sen: number, opts: { sign?: "auto" | "always" | "ne
   if (neg) return "−" + body;
   return sign === "always" && sen > 0 ? "+" + body : body;
 }
+
+/** Short rupiah for tight spots: 34.800.000 → "34,8 jt", 1.250.000.000 → "1,25 M", 85.000 → "85 rb", 950 → "950". */
+export function formatCompact(sen: number): string {
+  const r = Math.abs(sen) / 100, sign = sen < 0 ? "−" : "";
+  const fmt = (n: number, d: number) => { const t = n.toFixed(d); return (t.includes(".") ? t.replace(/\.?0+$/, "") : t).replace(".", ","); };
+  if (r >= 1e9) return `${sign}${fmt(r / 1e9, 2)} M`;
+  if (r >= 1e6) return `${sign}${fmt(r / 1e6, r >= 1e8 ? 0 : 1)} jt`;
+  if (r >= 1e3) return `${sign}${fmt(r / 1e3, 0)} rb`;
+  return `${sign}${Math.round(r)}`;
+}

@@ -69,7 +69,7 @@ module.exports = async ({ base, shots }) => {
     await page.goto(base + "/accounts"); await settle();
     ok((await text('[data-testid="account-BCA"]')).includes("1.250.000"), "BCA balance");
     const cc = await text('[data-testid="account-CC Mandiri"]');
-    ok(cc.includes("owe Rp 200.000") && cc.includes("Available Rp 35.800.000 of 36.000.000"), cc);
+    ok(cc.includes("Rp 200.000") && cc.includes("owed") && cc.includes("Rp 35,8 jt left of 36 jt"), cc);
   });
   await s.check("FINNY-8.5 all accounts on one page, grouped by type, with a total", async () => {
     for (const g of ["Cash & bank", "E-wallets", "Credit cards", "Loans & paylater"]) ok(await page.getByTestId(`group-${g}`).isVisible(), `no ${g} group`);

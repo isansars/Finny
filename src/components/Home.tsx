@@ -7,7 +7,8 @@ import { api, useFinny, type Txn } from "./store";
 import { Money, CategoryOptions } from "./ui";
 import { CatTile, Tile } from "./icons";
 import { QuickAddForm } from "./QuickAdd";
-import { formatRupiah } from "@/lib/money";
+import { formatCompact, formatRupiah } from "@/lib/money";
+import { Mark } from "./Logo";
 import { dayLabel, monthLabel, shiftMonth, todayIn } from "@/lib/dates";
 
 type Dash = { month: string; days: number; totals: { incomeSen: number; spendSen: number; savedSen: number; investedSen: number };
@@ -63,6 +64,18 @@ export function Home() {
   const spent = dash?.totals.spendSen ?? 0, maxDay = Math.max(1, ...(dash?.byDay ?? [0]));
   const pick = (d: number) => { const s = `${month}-${String(d).padStart(2, "0")}`; setDay(day === s ? null : s); };
 
+  const pickDay = (e: React.PointerEvent<HTMLDivElement>) => { // 2. the whole chart is the tap area
+    const r = e.currentTarget.getBoundingClientRect(), n = dash?.byDay.length ?? 30;
+    pick(Math.min(n, Math.max(1, Math.floor(((e.clientX - r.left) / r.width) * n) + 1)));
+  };
+  if (loaded && !accounts.length) return (
+    <div className="fy-card fy-empty" style={{ maxWidth: 480, margin: "8vh auto 0", padding: "32px 20px" }} data-testid="welcome">
+      <span style={{ display: "inline-block", filter: "drop-shadow(0 8px 20px rgba(236,72,153,.3))" }}><Mark size={64} /></span>
+      <b style={{ fontSize: 22, marginTop: 14 }}>Welcome to Finny</b>
+      Start with your accounts (cash, banks, e-wallets, cards), or bring in your Excel workbooks.
+      <div style={{ display: "grid", gap: 8, marginTop: 18 }}><a className="fy-btn primary" href="/accounts?add=1">Add an account</a><a className="fy-btn" href="/import">Import a workbook</a></div>
+    </div>
+  );
   return (
     <div className="fy-home">
       <section>
@@ -76,29 +89,29 @@ export function Home() {
 
         <div className="fy-hero">
           <div className="lbl">Net across accounts</div>
-          <div className="big" data-testid="net">{formatRupiah(net)}</div>
+          <div className="big" data-testid="net">{loaded ? formatRupiah(net) : <span className="fy-skel" style={{ width: "7em" }} />}</div>
           <div className="stats">
-            <div className="fy-stat"><small>Income</small><b className="fy-amt income" data-testid="income">{formatRupiah(dash?.totals.incomeSen ?? 0)}</b></div>
-            <div className="fy-stat"><small>Spent</small><b data-testid="spent">{formatRupiah(spent)}</b></div>
-            {(dash?.totals.savedSen ?? 0) > 0 && <div className="fy-stat"><small>Saved</small><b data-testid="saved">{formatRupiah(dash!.totals.savedSen)}</b></div>}
-            {(dash?.totals.investedSen ?? 0) > 0 && <div className="fy-stat"><small>Invested</small><b data-testid="invested">{formatRupiah(dash!.totals.investedSen)}</b></div>}
+            <div className="fy-stat"><small>Income</small><b className="fy-amt income" data-testid="income">{dash ? formatRupiah(dash.totals.incomeSen) : <span className="fy-skel" />}</b></div>
+            <div className="fy-stat"><small>Spent</small><b data-testid="spent">{dash ? formatRupiah(spent) : <span className="fy-skel" />}</b></div>
           </div>
+          {((dash?.totals.savedSen ?? 0) > 0 || (dash?.totals.investedSen ?? 0) > 0) && <div className="extra">
+            {(dash?.totals.savedSen ?? 0) > 0 && <span>Saved <b data-testid="saved">{formatRupiah(dash!.totals.savedSen)}</b></span>}
+            {(dash?.totals.investedSen ?? 0) > 0 && <span>Invested <b data-testid="invested">{formatRupiah(dash!.totals.investedSen)}</b></span>}
+          </div>}
         </div>
 
-        {loaded && !accounts.length && (
-          <div className="fy-card fy-empty" style={{ marginTop: 14 }}><Tile icon="landmark" color="sky" size={52} /><b>Welcome to Finny</b>Start with your accounts: cash, banks, e-wallets and cards.<div style={{ marginTop: 14 }}><a className="fy-btn primary" href="/accounts?add=1">Add an account</a></div></div>
-        )}
 
         {spent > 0 && (<div className="fy-grid2" style={{ marginTop: 12 }}>
           <div className="fy-card fy-pad" data-testid="by-category">
             <div className="fy-section" style={{ margin: "0 0 10px" }}><span>Spending by category</span></div>
             <div className="fy-donut"><Donut parts={slices} />
-              <div className="fy-legend">{slices.map((s) => <div className="r" key={s.categoryId}><i style={{ background: s.color }} /><span>{s.name}</span><b>{Math.round((s.sen / spent) * 100)}%</b></div>)}</div>
+              <div className="fy-legend">{slices.map((s) => <div className="r" key={s.categoryId}><i style={{ background: s.color }} /><span>{s.name}<small>Rp {formatCompact(s.sen)}</small></span><b>{Math.round((s.sen / spent) * 100)}%</b></div>)}</div>
             </div>
           </div>
           <div className="fy-card fy-pad" data-testid="by-day">
             <div className="fy-section" style={{ margin: "0 0 10px" }}><span>Spending by day</span><span>{day ? <button className="fy-more" style={{ padding: 0 }} onClick={() => setDay(null)}>Show all days</button> : "Tap a day"}</span></div>
-            <div className="fy-bars">{(dash?.byDay ?? []).map((v, i) => { const d = `${month}-${String(i + 1).padStart(2, "0")}`; return <button key={i} className={day === d ? "on" : ""} aria-label={`${i + 1} ${monthLabel(month)}: ${formatRupiah(v)}`} onClick={() => pick(i + 1)}><i style={{ height: `${Math.max(4, (v / maxDay) * 100)}%` }} /></button>; })}</div>
+            <div className="fy-bars-pick" aria-live="polite">{day ? `${dayLabel(day, today)} · ${formatRupiah(dash?.byDay[Number(day.slice(8)) - 1] ?? 0)}` : "\u00a0"}</div>
+            <div className="fy-bars" onPointerDown={pickDay} data-testid="day-chart">{(dash?.byDay ?? []).map((v, i) => { const d = `${month}-${String(i + 1).padStart(2, "0")}`; return <button key={i} tabIndex={0} className={day === d ? "on" : ""} aria-label={`${i + 1} ${monthLabel(month)}: ${formatRupiah(v)}`} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); pick(i + 1); } }} style={{ pointerEvents: "none" }}><i className={v ? "" : "z"} style={{ height: `${Math.max(4, (v / maxDay) * 100)}%` }} /></button>; })}</div>
             <div className="fy-bars-axis"><span>1</span><span>{Math.ceil((dash?.days ?? 30) / 2)}</span><span>{dash?.days ?? 30}</span></div>
           </div>
           {(dash?.topPlaces.length ?? 0) > 0 && <div><div className="fy-section"><span>Top places</span></div><div className="fy-list" data-testid="top-places">

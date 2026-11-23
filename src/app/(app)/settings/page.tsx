@@ -12,9 +12,9 @@ export default async function Page() {
       <div className="fy-list">
         <div className="fy-row"><span className="fy-tile" data-color="lavender" style={{ width: 32, height: 32, borderRadius: 10 }}><UserRound size={18} /></span>
           <div className="main"><div className="t">Signed in</div><div className="s" data-testid="me">{me.email}</div></div></div>
-        <form className="fy-row" action={async () => { "use server"; await signOut({ redirectTo: "/login" }); }} style={{ margin: 0 }}>
-          <span className="fy-tile" data-color="slate" style={{ width: 32, height: 32, borderRadius: 10 }}><LogOut size={18} /></span>
-          <div className="main"><div className="t">Sign out</div></div><button className="fy-btn small">Sign out</button>
+        <form action={async () => { "use server"; await signOut({ redirectTo: "/login" }); }} style={{ margin: 0 }}>
+          <button className="fy-row" style={{ cursor: "pointer", borderTop: "1px solid var(--sep)" }}><span className="fy-tile" data-color="slate" style={{ width: 32, height: 32, borderRadius: 10 }}><LogOut size={18} /></span>
+            <div className="main"><div className="t">Sign out</div></div><ChevronRight className="chev" size={18} /></button>
         </form>
       </div>
       <div className="fy-section"><span>Your data</span></div>

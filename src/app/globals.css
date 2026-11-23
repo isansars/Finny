@@ -195,3 +195,38 @@ button.fy-row, .fy-row.tap { cursor: pointer; } button.fy-row:hover, .fy-row.tap
 /* the logo (chosen 23 Nov 2026: the F monogram, Nunito logotype) */
 .fy-lockup { display: inline-flex; align-items: center; gap: .45em; font-weight: 800; letter-spacing: -.02em; color: var(--text); }
 .fy-lockup svg { filter: drop-shadow(0 3px 8px color-mix(in srgb, var(--primary) 25%, transparent)); border-radius: 22.5%; }
+
+/* ---- UI/UX audit fixes (FINNY-55, 23 Nov 2026) */
+/* 1. secondary text meets WCAG AA (≥ 4.5:1) on white and on the soft fills */
+:root { --text-3: #6f5f82; --transfer: #6f5f82; }
+@media (prefers-color-scheme: dark) { :root { --text-3: #b3a6c2; --transfer: #b3a6c2; } }
+.fy-search input::placeholder, .fy-input::placeholder, .fy-what input::placeholder { color: var(--text-3); opacity: 1; }
+/* 6. a solid tab bar */
+.fy-tabbar { background: var(--surface); backdrop-filter: none; -webkit-backdrop-filter: none; box-shadow: 0 -4px 16px rgba(76, 29, 89, .06); }
+/* 8. thumb-sized targets */
+.fy-btn.small { min-height: 44px; } .fy-month button { width: 44px; height: 44px; }
+.fy-chip { min-height: 40px; } .fy-seg button { min-height: 40px; }
+.fy-row.tap, button.fy-row { min-height: 56px; }
+/* 5. account chips wrap */
+.fy-chips.wrap { flex-wrap: wrap; overflow: visible; }
+/* 3. placeholders while loading */
+.fy-skel { display: inline-block; height: .9em; width: 6em; border-radius: 8px; background: linear-gradient(90deg, var(--surface-3), var(--surface-2), var(--surface-3)); background-size: 200% 100%; animation: fy-shimmer 1.2s ease-in-out infinite; vertical-align: middle; }
+@keyframes fy-shimmer { to { background-position: -200% 0; } }
+/* 4. the legend shows whole names and amounts */
+.fy-legend .r { align-items: flex-start; } .fy-legend .r i { margin-top: 4px; }
+.fy-legend .r span { white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; line-height: 1.25; }
+.fy-legend .r small { display: block; color: var(--text-3); font-weight: 600; font-size: 12px; }
+/* 10. saved / invested on one quiet line */
+.fy-hero .extra { margin-top: 10px; font-size: 13px; font-weight: 700; color: var(--text-2); display: flex; gap: 14px; flex-wrap: wrap; }
+.fy-hero .extra b { color: var(--text); font-variant-numeric: tabular-nums; }
+/* 2. the whole chart is the tap area */
+.fy-bars { touch-action: pan-y; cursor: pointer; position: relative; }
+.fy-bars button { pointer-events: none; } .fy-bars button i.z { visibility: hidden; }
+.fy-bars-pick { font-size: 13px; font-weight: 700; color: var(--text-2); margin: -2px 0 8px; min-height: 18px; }
+/* 7. "Rp" and the amount together */
+.fy-amount { gap: 4px; } .fy-amount input { width: auto; min-width: 1.2ch; max-width: 100%; text-align: left; }
+/* 12. two-line amount on card rows */
+.fy-owed { text-align: right; } .fy-owed small { display: block; font-size: 12px; font-weight: 700; color: var(--text-3); }
+/* 14. a date field that reads "23 Nov 2026" */
+.fy-datefield { position: relative; display: flex; align-items: center; justify-content: space-between; cursor: pointer; }
+.fy-datefield input { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; }

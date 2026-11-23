@@ -32,3 +32,8 @@ test("formats the Indonesian way", () => {
 test("round-trips", () => {
   for (const sen of [0, 100, 4389000, 2499391, 3600000000000]) assert.equal(parseRupiah(formatRupiah(sen)), sen);
 });
+import { formatCompact } from "../../src/lib/money.ts";
+test("compact rupiah for tight spots", () => {
+  assert.equal(formatCompact(3480000000), "34,8 jt"); assert.equal(formatCompact(3600000000), "36 jt"); assert.equal(formatCompact(125000000000), "1,25 M");
+  assert.equal(formatCompact(8500000), "85 rb"); assert.equal(formatCompact(95000), "950"); assert.equal(formatCompact(-190200000), "−1,9 jt"); assert.equal(formatCompact(25000000000), "250 jt");
+});

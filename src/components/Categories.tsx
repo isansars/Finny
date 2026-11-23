@@ -82,11 +82,14 @@ export function Categories() {
         {tree.filter((c) => !hidden.has(c.id)).map((c) => {
           const hasKids = categories.some((x) => x.parentId === c.id);
           return (
-            <div key={c.id} className="fy-row" style={{ paddingLeft: 16 + c.depth * 22, opacity: c.active ? 1 : .5 }} data-testid={`cat-${c.name}`}>
-              <CatTile c={c} />
-              <div className="main"><div className="t">{c.name}{c.active ? "" : " (off)"}</div>{hasKids && <div className="s">{categories.filter((x) => x.parentId === c.id).length} inside</div>}</div>
-              {hasKids && <button className="fy-more" style={{ padding: 6 }} aria-label={`${folded.has(c.id) ? "Open" : "Fold"} ${c.name}`} onClick={() => { const f = new Set(folded); if (f.has(c.id)) f.delete(c.id); else f.add(c.id); setFolded(f); }}>{folded.has(c.id) ? <ChevronRight size={18} /> : <ChevronDown size={18} />}</button>}
-              <button className="fy-btn small" aria-label={`Change ${c.name}`} onClick={() => setEdit(c)}>Edit</button>
+            <div key={c.id} className="fy-row" style={{ padding: 0, opacity: c.active ? 1 : .5 }} data-testid={`cat-${c.name}`}>
+              {/* 11. tap the row to edit it, like Settings; folding has its own button */}
+              <button className="fy-row" style={{ flex: 1, paddingLeft: 16 + c.depth * 22 }} aria-label={`Change ${c.name}`} onClick={() => setEdit(c)}>
+                <CatTile c={c} />
+                <div className="main"><div className="t">{c.name}{c.active ? "" : " (off)"}</div>{hasKids && <div className="s">{categories.filter((x) => x.parentId === c.id).length} inside</div>}</div>
+                {!hasKids && <ChevronRight className="chev" size={18} />}
+              </button>
+              {hasKids && <button className="fy-more" style={{ width: 48, height: 56, justifyContent: "center" }} aria-label={`${folded.has(c.id) ? "Open" : "Fold"} ${c.name}`} onClick={() => { const f = new Set(folded); if (f.has(c.id)) f.delete(c.id); else f.add(c.id); setFolded(f); }}>{folded.has(c.id) ? <ChevronRight size={20} /> : <ChevronDown size={20} />}</button>}
             </div>
           );
         })}
