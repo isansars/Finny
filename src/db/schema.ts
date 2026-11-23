@@ -85,11 +85,15 @@ export const moneyAccounts = pgTable("money_accounts", {
   minFloorSen: bigint("min_floor_sen", { mode: "number" }),
   dueDay: integer("due_day"),
   purpose: text("purpose", { enum: ["productive", "consumptive"] }),
+  // FINNY-93: what an investment account holds; fixed income also has a yearly rate and a maturity date.
+  holdingKind: text("holding_kind", { enum: ["stock", "fund", "crypto", "gold", "bond", "deposit", "p2p", "other"] }),
+  rateBp: integer("rate_bp"),
+  maturityOn: date("maturity_on", { mode: "string" }),
   createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
 }, (t) => [index("money_accounts_user").on(t.userId), check("money_accounts_terms", sql`(${t.interestBp} is null or ${t.interestBp} between 0 and 100000)
     and (${t.minFixedSen} is null or ${t.minFixedSen} >= 0) and (${t.minPctBp} is null or ${t.minPctBp} between 0 and 10000)
     and (${t.minFloorSen} is null or ${t.minFloorSen} >= 0) and (${t.dueDay} is null or ${t.dueDay} between 1 and 31)
-    and (${t.statementDay} is null or ${t.statementDay} between 1 and 31)`)]);
+    and (${t.statementDay} is null or ${t.statementDay} between 1 and 31)`), check("money_accounts_holding", sql`${t.rateBp} is null or ${t.rateBp} between 0 and 100000`)]);
 
 export const categories = pgTable("categories", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -158,3 +162,30 @@ export const debtPlans = pgTable("debt_plans", {
   method: text("method", { enum: ["minimums", "snowball", "avalanche"] }).notNull().default("snowball"),
   extraSen: bigint("extra_sen", { mode: "number" }).notNull().default(0),
 }, (t) => [check("debt_plans_extra", sql`${t.extraSen} >= 0`)]);
+
+// FINNY-93: market values typed by the owner, one per investment account and day.
+export const accountValues = pgTable("account_values", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  accountId: uuid("account_id").notNull().references(() => moneyAccounts.id, { onDelete: "cascade" }),
+  on: date("on", { mode: "string" }).notNull(),
+  valueSen: bigint("value_sen", { mode: "number" }).notNull(),
+}, (t) => [uniqueIndex("account_values_one").on(t.accountId, t.on), check("account_values_shape", sql`${t.valueSen} >= 0`)]);
+
+// FINNY-93: property, vehicles, equipment, personal things and business stakes: no money flows, a value over time.
+export const THING_KINDS = ["property", "vehicle", "equipment", "personal", "business", "other"] as const;
+export const things = pgTable("things", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  kind: text("kind", { enum: THING_KINDS }).notNull(),
+  boughtOn: date("bought_on", { mode: "string" }).notNull(),
+  costSen: bigint("cost_sen", { mode: "number" }).notNull(),
+  yearlyBp: integer("yearly_bp").notNull().default(0), // + gains, − loses, per year
+  shareBp: integer("share_bp").notNull().default(10000), // a business stake: the share owned
+  valueSen: bigint("value_sen", { mode: "number" }), // set by hand on value_on; the yearly change carries on from there
+  valueOn: date("value_on", { mode: "string" }),
+  soldOn: date("sold_on", { mode: "string" }),
+  createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
+}, (t) => [index("things_user").on(t.userId), check("things_shape", sql`${t.costSen} >= 0 and ${t.yearlyBp} between -10000 and 10000 and ${t.shareBp} between 1 and 10000
+  and (${t.valueSen} is null or ${t.valueSen} >= 0) and ((${t.valueSen} is null) = (${t.valueOn} is null))`)]);

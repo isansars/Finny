@@ -14,7 +14,7 @@ await migrate(drizzle(pg), { migrationsFolder: folder });
 const tables = async () => (await pg.query<{ t: string }>("select table_name as t from information_schema.tables where table_schema = 'public' order by 1")).rows.map((r) => r.t);
 const up = await tables();
 console.log("up:", up.join(", "));
-for (const want of ["users", "sessions", "auth_accounts", "verification_tokens", "money_accounts", "categories", "entities", "transactions", "import_batches", "budgets", "income_plans", "debt_plans"]) assert.ok(up.includes(want), `missing ${want}`);
+for (const want of ["users", "sessions", "auth_accounts", "verification_tokens", "money_accounts", "categories", "entities", "transactions", "import_batches", "budgets", "income_plans", "debt_plans", "account_values", "things"]) assert.ok(up.includes(want), `missing ${want}`);
 
 // FINNY-26: the database itself refuses a malformed transaction (amounts in sen, transfers between two accounts, no category).
 await pg.exec(`insert into users (id, email) values ('u1', 'owner@finny.test');
@@ -57,6 +57,16 @@ await pg.exec(`insert into debt_plans (user_id, method, extra_sen) values ('u1',
 await refused("two plans for one owner", pg.exec(`insert into debt_plans (user_id) values ('u1')`));
 await refused("a negative extra", pg.exec(`update debt_plans set extra_sen = -1`));
 console.log("✓ debt terms and the payoff plan keep their shape");
+// FINNY-93: one market value per account and day, never negative; a thing's value comes with its date.
+await pg.exec(`update money_accounts set holding_kind = 'fund', rate_bp = 650 where id = ${B}`);
+await pg.exec(`insert into account_values (user_id, account_id, "on", value_sen) values ('u1', ${B}, '2026-11-20', 1840000000)`);
+await refused("two values on one day", pg.exec(`insert into account_values (user_id, account_id, "on", value_sen) values ('u1', ${B}, '2026-11-20', 1)`));
+await refused("a negative value", pg.exec(`insert into account_values (user_id, account_id, "on", value_sen) values ('u1', ${B}, '2026-11-21', -1)`));
+await pg.exec(`insert into things (user_id, name, kind, bought_on, cost_sen, yearly_bp) values ('u1', 'Motor', 'vehicle', '2024-11-12', 2400000000, -1200)`);
+await refused("a value without its date", pg.exec(`insert into things (user_id, name, kind, bought_on, cost_sen, value_sen) values ('u1', 'X', 'other', '2024-01-01', 1, 5)`));
+await refused("a share over 100%", pg.exec(`insert into things (user_id, name, kind, bought_on, cost_sen, share_bp) values ('u1', 'X', 'business', '2024-01-01', 1, 10001)`));
+console.log("✓ market values and things keep their shape");
+await pg.exec("delete from account_values; delete from things;");
 await pg.exec("delete from debt_plans;");
 await pg.exec("delete from budgets; delete from income_plans;");
 await pg.exec("delete from import_batches;");
