@@ -30,6 +30,9 @@ export function Home() {
   const { accounts, categories, version, loaded, openAdd } = useFinny();
   const today = todayIn();
   const [month, setMonth] = useState(today.slice(0, 7));
+  // ?month=2025-12 opens that month (the import's "See your latest month" links here).
+  // eslint-disable-next-line react-hooks/set-state-in-effect
+  useEffect(() => { const m = new URLSearchParams(location.search).get("month"); if (m && /^\d{4}-\d{2}$/.test(m)) setMonth(m); }, []);
   const [accountF, setAccountF] = useState("");
   const [categoryF, setCategoryF] = useState("");
   const [day, setDay] = useState<string | null>(null);
@@ -40,11 +43,13 @@ export function Home() {
 
   useEffect(() => {
     const p = new URLSearchParams({ month }); if (accountF) p.set("account", accountF); if (categoryF) p.set("category", categoryF); if (q.trim()) p.set("q", q.trim());
+    // An answer for a month (or filter) the owner has already left is ignored, so a slow reply can't overwrite a newer one.
+    let live = true;
     const t = setTimeout(() => {
-      api<{ items: Txn[]; more: boolean }>(`transactions?${p}`).then((r) => { setList(r); setErr(""); }).catch((e) => setErr(e.message));
-      api<Dash>(`dashboard?month=${month}${accountF ? `&account=${accountF}` : ""}`).then(setDash).catch(() => {});
+      api<{ items: Txn[]; more: boolean }>(`transactions?${p}`).then((r) => { if (live) { setList(r); setErr(""); } }).catch((e) => { if (live) setErr(e.message); });
+      api<Dash>(`dashboard?month=${month}${accountF ? `&account=${accountF}` : ""}`).then((d) => { if (live) setDash(d); }).catch(() => {});
     }, q ? 250 : 0);
-    return () => clearTimeout(t);
+    return () => { live = false; clearTimeout(t); };
   }, [month, accountF, categoryF, q, version]);
 
   const acc = useMemo(() => new Map(accounts.map((a) => [a.id, a])), [accounts]);

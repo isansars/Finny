@@ -30,7 +30,7 @@ export function ImportWizard() {
   const [logPick, setLogPick] = useState<Record<string, boolean>>({});
   const [batches, setBatches] = useState<Batch[]>([]);
   const [progress, setProgress] = useState({ done: 0, total: 0 });
-  const [result, setResult] = useState<{ added: number; skipped: number; batchId: string } | null>(null);
+  const [result, setResult] = useState<{ added: number; skipped: number; batchId: string; month: string } | null>(null);
   const [open, setOpen] = useState<string | null>(null);
 
   const loadBatches = () => api<Batch[]>("imports").then(setBatches).catch(() => {});
@@ -41,7 +41,8 @@ export function ImportWizard() {
     setErr(""); setFile(f.name); setStep("reading");
     try {
       const { default: readXlsxFile } = await import("read-excel-file/browser");
-      const sheets = (await readXlsxFile(f)) as unknown as Sheet[];
+      // A file that can't be read in 2 minutes says so instead of spinning forever.
+      const sheets = (await Promise.race([readXlsxFile(f), new Promise((_, no) => setTimeout(() => no(new Error("reading took too long; try again, or on a computer")), 120000))])) as unknown as Sheet[];
       const b = readBooks(sheets);
       if (b) { setBooks(b); setChoices(defaultChoices(b)); setStep("accounts"); return; }
       const l = readLog(sheets);
@@ -49,7 +50,7 @@ export function ImportWizard() {
         const days = l.map((r) => r.on).sort();
         const have = await api<{ on: string; sen: number }[]>(`imports/keys?from=${days[0]}&to=${days[days.length - 1]}`);
         const only = logOnly(l, null, have);
-        setLog(only); setLogPick(Object.fromEntries(only.map((r) => [r.ref, (r.type === "Expense" || r.type === "Income") && accounts.some((a) => a.name.toLowerCase() === r.account.toLowerCase())]))); setStep("log"); return;
+        setLog(only); setLogPick({}); setStep("log"); return; // defaults are decided when shown (the accounts may still be loading)
       }
       setErr("This doesn't look like either workbook: no account sheets (Tanggal, Keterangan, …) and no Transaction Log."); setStep("choose");
     } catch (e) { setErr(`Couldn't read the file: ${(e as Error).message}`); setStep("choose"); }
@@ -66,7 +67,8 @@ export function ImportWizard() {
         added += r.added; skipped += r.skipped; setProgress({ done: Math.min(i + 500, rows.length), total: rows.length });
       }
       await api(`imports/${start.batchId}/finish`, { method: "POST", json: { archive: p.archive.map((k) => start.accounts[k]).filter(Boolean) } });
-      setResult({ added, skipped, batchId: start.batchId }); setStep("done"); await reload(); loadBatches();
+      const last = p.txns.reduce((m, t) => (t.on > m ? t.on : m), "");
+      setResult({ added, skipped, batchId: start.batchId, month: last.slice(0, 7) }); setStep("done"); await reload(); loadBatches();
     } catch (e) { setErr((e as Error).message); setStep(books ? "check" : "log"); }
   }
   async function undo(b: Batch) {
@@ -217,8 +219,10 @@ export function ImportWizard() {
   }
 
   if (step === "log" && log) {
-    const pick = log.filter((r) => logPick[r.ref]);
     const accFor = (n: string) => accounts.find((a) => a.name.toLowerCase() === n.toLowerCase());
+    const okFor = (r: LogRow) => !!accFor(r.account) && (r.type === "Expense" || r.type === "Income");
+    const picked = (r: LogRow) => okFor(r) && (logPick[r.ref] ?? true);
+    const pick = log.filter(picked);
     const go = () => {
       const cats = new Map<string, { key: string; kind: "income" | "expense"; path: string[] }>();
       const txns = pick.map((r) => {
@@ -234,11 +238,11 @@ export function ImportWizard() {
         {head(file, "Not in Finny yet")}{errBox}
         <div className="fy-note" style={{ marginBottom: 10 }}>{log.length ? `${log.length} rows of the Transaction Log aren't in Finny yet. Pick the ones to add; a row needs an account you already have.` : "Everything in this Transaction Log is already in Finny."}</div>
         {log.length > 0 && <div className="fy-list" data-testid="log-rows">
-          {log.map((r) => { const ok = !!accFor(r.account) && (r.type === "Expense" || r.type === "Income"); return (
+          {log.map((r) => { const ok = okFor(r); return (
             <div className="fy-row" key={r.ref} style={{ opacity: ok ? 1 : 0.55 }}>
               <div className="main"><div className="t">{r.description || r.category}</div><div className="s">{shortDate(r.on)} · {r.type} · {r.category} · {r.account}{ok ? "" : r.type === "Expense" || r.type === "Income" ? " · no such account in Finny" : " · not a spend or income"}</div></div>
               <span className="fy-amt">{formatRupiah(r.sen)}</span>
-              <Switch on={!!logPick[r.ref]} label={`Add ${r.description || r.category}`} onChange={(v) => ok && setLogPick({ ...logPick, [r.ref]: v })} />
+              <Switch on={picked(r)} label={`Add ${r.description || r.category}`} onChange={(v) => ok && setLogPick({ ...logPick, [r.ref]: v })} />
             </div>); })}
         </div>}
         <button className="fy-btn primary block" style={{ marginTop: 14 }} disabled={!pick.length} onClick={go}>Add {pick.length} transaction{pick.length === 1 ? "" : "s"}</button>
@@ -259,7 +263,7 @@ export function ImportWizard() {
         <Tile icon="shield-check" color="mint" size={56} />
         <div style={{ fontWeight: 800, fontSize: 18, margin: "12px 0 4px" }} data-testid="import-done">Imported {result.added.toLocaleString("id-ID")} transactions</div>
         <div className="fy-hint" style={{ fontSize: 14 }}>{result.skipped ? `${result.skipped} were already in Finny and were skipped. ` : ""}You can undo this import from Settings › Import.</div>
-        <div style={{ display: "grid", gap: 8, marginTop: 16 }}><Link className="fy-btn primary" href="/">See your month</Link><button className="fy-btn" onClick={() => { setBooks(null); setLog(null); setResult(null); setStep("choose"); }}>Import another workbook</button></div>
+        <div style={{ display: "grid", gap: 8, marginTop: 16 }}><Link className="fy-btn primary" href={result.month ? `/?month=${result.month}` : "/"}>{result.month ? "See your latest month" : "See your month"}</Link><button className="fy-btn" onClick={() => { setBooks(null); setLog(null); setResult(null); setStep("choose"); }}>Import another workbook</button></div>
       </div></>
   );
   return null;
