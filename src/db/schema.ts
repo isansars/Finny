@@ -219,6 +219,8 @@ export const monthReviews = pgTable("month_reviews", {
   closedAt: timestamp("closed_at", { mode: "date" }),
   note: text("note"),
   summary: jsonb("summary").$type<Record<string, unknown>>(),
+  // FINNY-125: the last workbook match check, counts only (never the workbook's rows).
+  matchSummary: jsonb("match_summary").$type<Record<string, unknown>>(),
 }, (t) => [primaryKey({ columns: [t.userId, t.month] }), check("month_reviews_shape", sql`${t.month} ~ '^[0-9]{4}-(0[1-9]|1[0-2])$' and (${t.note} is null or length(${t.note}) <= 1000)`)]);
 
 // ---- FINNY-117: goals. "save" goals are held in accounts (all or a part, like the emergency fund); "networth" goals

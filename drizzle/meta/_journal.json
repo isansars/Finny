@@ -78,6 +78,13 @@
       "when": 1795446797305,
       "tag": "0010_goals",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1795452007827,
+      "tag": "0011_match_summary",
+      "breakpoints": true
     }
   ]
 }

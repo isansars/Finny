@@ -79,6 +79,8 @@ await pg.exec(`insert into month_reviews (user_id, month, budget_done, note, sum
 await refused("two reviews of one month", pg.exec(`insert into month_reviews (user_id, month) values ('u1', '2026-10')`));
 await refused("a month that isn't a month", pg.exec(`insert into month_reviews (user_id, month) values ('u1', '2026-13')`));
 await refused("a note over 1,000 characters", pg.exec(`update month_reviews set note = repeat('x', 1001)`));
+await pg.exec(`update month_reviews set match_summary = '{"accountsOk": 3, "accountsTotal": 3}'`);
+assert.equal((await pg.query("select match_summary->>'accountsOk' as n from month_reviews")).rows[0].n, "3", "the match result is kept");
 console.log("✓ month reviews keep their shape");
 await pg.exec(`insert into goals (id, user_id, name, kind, target_sen, by_month) values ('00000000-0000-0000-0000-0000000000a1', 'u1', 'DP rumah', 'save', 15000000000, '2028-06')`);
 await refused("a target of 0", pg.exec(`insert into goals (user_id, name, kind, target_sen) values ('u1', 'x', 'save', 0)`));

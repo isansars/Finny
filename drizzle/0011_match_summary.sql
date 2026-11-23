@@ -1,0 +1,1 @@
+ALTER TABLE "month_reviews" ADD COLUMN "match_summary" jsonb;
