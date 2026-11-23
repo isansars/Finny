@@ -242,3 +242,12 @@ button.fy-row, .fy-row.tap { cursor: pointer; } button.fy-row:hover, .fy-row.tap
 .fy-savebar { position: sticky; bottom: calc(76px + env(safe-area-inset-bottom)); margin-top: 16px; padding: 22px 0 6px; z-index: 5; background: linear-gradient(color-mix(in srgb, var(--bg) 0%, transparent), var(--bg) 20px); }
 @media (min-width: 760px) { .fy-savebar { bottom: 12px; } }
 .fy-ok { display: flex; gap: 8px; align-items: center; }
+/* FINNY-63: budget */
+.fy-bbar { height: 8px; border-radius: 99px; background: var(--surface-3); margin: 6px 0 4px; overflow: hidden; }
+.fy-bbar i { display: block; height: 100%; border-radius: 99px; }
+.fy-bline { display: flex; justify-content: space-between; gap: 8px; }
+.fy-bline > span:first-child { overflow: hidden; text-overflow: ellipsis; }
+.fy-bline .num { font-size: 14px; flex: none; font-variant-numeric: tabular-nums; }
+.fy-bline .of { color: var(--text-3); font-weight: 600; }
+.fy-linkish { border: 0; background: none; padding: 0; font: inherit; color: inherit; cursor: pointer; text-align: left; }
+.fy-linkish b { text-decoration: underline; text-decoration-color: color-mix(in srgb, var(--primary) 45%, transparent); text-underline-offset: 3px; }
