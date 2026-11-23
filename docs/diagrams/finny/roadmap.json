@@ -1,7 +1,7 @@
 {
   "type": "board",
   "title": "Finny · Roadmap",
-  "subtitle": "Replace the two workbooks: record every day, read the bank each month, then plan, report and grow. Current as of the v0.11.0 release, 23 Nov 2026.",
+  "subtitle": "Replace the two workbooks: record every day, read the bank each month, then plan, report and grow. Current as of Sprint 12 planning, 23 Nov 2026.",
   "footer": "🐰 Poppy · Finny · Product · 23 Nov 2026 · planned on the FINNY board",
   "badge": "💸 The owner's own product · FINNY board · isansars/Finny",
   "width": 1700,
@@ -33,13 +33,18 @@
       "name": "Now · Sprint 12",
       "icon": "🏃",
       "tone": "orange",
-      "sub": "chosen at Sprint 12 planning",
+      "sub": "23 Nov – 6 Dec · v0.12.0",
       "focus": true,
       "items": [
         [
-          "A month in Finny only: the done-when check, run with the review",
-          "planned",
-          "the owner"
+          "Workbook match check: accounts and categories, workbook vs Finny",
+          "dev",
+          "FINNY-123"
+        ],
+        [
+          "The rows behind each difference; the result on the review",
+          "dev",
+          "FINNY-123"
         ]
       ]
     },
@@ -50,9 +55,9 @@
       "sub": "",
       "items": [
         [
-          "What the month in Finny turns up",
+          "A month in Finny only, checked against the workbook",
           "planned",
-          "Poppy, after the owner's month"
+          "the owner, with the review and the check"
         ]
       ]
     },
@@ -66,11 +71,6 @@
           "More banks' statements",
           "gap",
           "only if wanted"
-        ],
-        [
-          "Workbook match check",
-          "gap",
-          "only if the month shows a difference"
         ]
       ]
     }
