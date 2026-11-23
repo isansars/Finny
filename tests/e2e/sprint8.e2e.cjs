@@ -77,7 +77,8 @@ module.exports = async ({ base, shots }) => {
   });
 
   await s.check("FINNY-18.4 Assets: net worth with everything, the groups, the allocation", async () => {
-    await page.goto(base + "/assets"); await page.getByTestId("groups").waitFor();
+    // The groups list renders before the figures arrive: wait for the figures, not the list.
+    await page.goto(base + "/assets"); await page.waitForFunction(() => document.querySelector('[data-testid="worth"]')?.textContent?.includes("since last month"));
     const api = (await json("assets")).body;
     ok(api.netSen === net, `net ${api.netSen} vs ${net}`);
     ok((await text("worth")).includes(fmt(net)), await text("worth"));
