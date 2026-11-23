@@ -14,7 +14,7 @@ await migrate(drizzle(pg), { migrationsFolder: folder });
 const tables = async () => (await pg.query<{ t: string }>("select table_name as t from information_schema.tables where table_schema = 'public' order by 1")).rows.map((r) => r.t);
 const up = await tables();
 console.log("up:", up.join(", "));
-for (const want of ["users", "sessions", "auth_accounts", "verification_tokens", "money_accounts", "categories", "entities", "transactions", "import_batches", "budgets", "income_plans", "debt_plans", "account_values", "things", "emergency_funds", "emergency_sources"]) assert.ok(up.includes(want), `missing ${want}`);
+for (const want of ["users", "sessions", "auth_accounts", "verification_tokens", "money_accounts", "categories", "entities", "transactions", "import_batches", "budgets", "income_plans", "debt_plans", "account_values", "things", "emergency_funds", "emergency_sources", "month_reviews"]) assert.ok(up.includes(want), `missing ${want}`);
 
 // FINNY-26: the database itself refuses a malformed transaction (amounts in sen, transfers between two accounts, no category).
 await pg.exec(`insert into users (id, email) values ('u1', 'owner@finny.test');
@@ -75,6 +75,12 @@ await pg.exec(`insert into emergency_sources (user_id, account_id, part_sen) val
 await refused("the same account twice", pg.exec(`insert into emergency_sources (user_id, account_id) values ('u1', ${A})`));
 await refused("a negative part", pg.exec(`insert into emergency_sources (user_id, account_id, part_sen) values ('u1', ${B}, -1)`));
 console.log("✓ the emergency fund and its sources keep their shape");
+await pg.exec(`insert into month_reviews (user_id, month, budget_done, note, summary) values ('u1', '2026-10', true, 'ok', '{"keptSen": 100}')`);
+await refused("two reviews of one month", pg.exec(`insert into month_reviews (user_id, month) values ('u1', '2026-10')`));
+await refused("a month that isn't a month", pg.exec(`insert into month_reviews (user_id, month) values ('u1', '2026-13')`));
+await refused("a note over 1,000 characters", pg.exec(`update month_reviews set note = repeat('x', 1001)`));
+console.log("✓ month reviews keep their shape");
+await pg.exec("delete from month_reviews;");
 await pg.exec("delete from emergency_sources; delete from emergency_funds;");
 await pg.exec("delete from account_values; delete from things;");
 await pg.exec("delete from debt_plans;");

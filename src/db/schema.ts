@@ -1,5 +1,5 @@
 // Finny's tables. Money is always integer sen (rupiah × 100) in bigint columns, never a float.
-import { pgTable, text, timestamp, integer, primaryKey, bigint, boolean, date, index, check, uuid, uniqueIndex } from "drizzle-orm/pg-core";
+import { pgTable, text, timestamp, integer, primaryKey, bigint, boolean, date, index, check, uuid, uniqueIndex, jsonb } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
 
 // ---- Auth.js (Drizzle adapter): who may be signed in.
@@ -208,3 +208,15 @@ export const emergencySources = pgTable("emergency_sources", {
   accountId: uuid("account_id").notNull().references(() => moneyAccounts.id, { onDelete: "cascade" }),
   partSen: bigint("part_sen", { mode: "number" }), // null = all of it
 }, (t) => [uniqueIndex("emergency_sources_one").on(t.userId, t.accountId), check("emergency_sources_part", sql`${t.partSen} is null or ${t.partSen} >= 0`)]);
+
+// ---- FINNY-109: the month-end review. One row per owner and month: the steps done, closed (with the figures saved at
+// close, so a past review reads the same later) and an optional note.
+export const monthReviews = pgTable("month_reviews", {
+  userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  month: text("month").notNull(),
+  budgetDone: boolean("budget_done").notNull().default(false),
+  wealthDone: boolean("wealth_done").notNull().default(false),
+  closedAt: timestamp("closed_at", { mode: "date" }),
+  note: text("note"),
+  summary: jsonb("summary").$type<Record<string, unknown>>(),
+}, (t) => [primaryKey({ columns: [t.userId, t.month] }), check("month_reviews_shape", sql`${t.month} ~ '^[0-9]{4}-(0[1-9]|1[0-2])$' and (${t.note} is null or length(${t.note}) <= 1000)`)]);

@@ -1,7 +1,7 @@
 // The data layer. Every function takes the signed-in owner's id and every query is scoped to it (Shield).
 import { and, asc, desc, eq, gte, ilike, inArray, lt, or, sql } from "drizzle-orm";
 import { db } from "@/db";
-import { accountValues, budgets, categories, debtPlans, emergencyFunds, emergencySources, entities, things, importBatches, incomePlans, moneyAccounts, transactions, ACCOUNT_TYPES, CATEGORY_KINDS } from "@/db/schema";
+import { accountValues, budgets, categories, debtPlans, emergencyFunds, emergencySources, entities, monthReviews, things, importBatches, incomePlans, moneyAccounts, transactions, ACCOUNT_TYPES, CATEGORY_KINDS } from "@/db/schema";
 import { HttpError } from "@/lib/session";
 import { addFlow, balanceOf, cardView, type Flows } from "@/lib/balance-rule";
 import { placeProblem, mergeProblem, type Cat } from "@/lib/category-rule";
@@ -272,7 +272,7 @@ export async function suggest(userId: string, q: string) {
 
 // ---------- export and delete (FINNY-24)
 export async function exportRows(userId: string) {
-  const [accs, cats, ents, txns, buds, plans, vals, thingRows] = await Promise.all([
+  const [accs, cats, ents, txns, buds, plans, vals, thingRows, reviews] = await Promise.all([
     db.select().from(moneyAccounts).where(eq(moneyAccounts.userId, userId)),
     listCategories(userId), listEntities(userId),
     db.select().from(transactions).where(eq(transactions.userId, userId)).orderBy(asc(transactions.on)),
@@ -280,8 +280,9 @@ export async function exportRows(userId: string) {
     db.select().from(incomePlans).where(eq(incomePlans.userId, userId)).orderBy(asc(incomePlans.month)),
     db.select().from(accountValues).where(eq(accountValues.userId, userId)).orderBy(asc(accountValues.on)),
     db.select().from(things).where(eq(things.userId, userId)).orderBy(asc(things.boughtOn)),
+    db.select().from(monthReviews).where(eq(monthReviews.userId, userId)).orderBy(asc(monthReviews.month)),
   ]);
-  return { accs, cats, ents, txns, buds, plans, vals, thingRows };
+  return { accs, cats, ents, txns, buds, plans, vals, thingRows, reviews };
 }
 export async function deleteEverything(userId: string) {
   await db.delete(transactions).where(eq(transactions.userId, userId));
@@ -292,6 +293,7 @@ export async function deleteEverything(userId: string) {
   await db.delete(things).where(eq(things.userId, userId));
   await db.delete(emergencySources).where(eq(emergencySources.userId, userId));
   await db.delete(emergencyFunds).where(eq(emergencyFunds.userId, userId));
+  await db.delete(monthReviews).where(eq(monthReviews.userId, userId));
   await db.delete(entities).where(eq(entities.userId, userId));
   await db.update(categories).set({ parentId: null }).where(eq(categories.userId, userId));
   await db.delete(categories).where(eq(categories.userId, userId));
