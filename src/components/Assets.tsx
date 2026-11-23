@@ -3,7 +3,7 @@
 // everything, investments with profit and loss, one sheet to update values, and property, vehicles and business stakes.
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Bike, Briefcase, ChevronLeft, ChevronRight, Coins, Gem, House, Landmark, Laptop, Package, Pencil, PiggyBank, Plus, TrendingUp, CreditCard, Settings2 } from "lucide-react";
+import { Bike, Briefcase, ChevronLeft, ChevronRight, Coins, Gem, House, Landmark, Laptop, Package, Pencil, PiggyBank, Plus, TrendingUp, CreditCard, Settings2, ShieldCheck } from "lucide-react";
 import { api, useFinny } from "./store";
 import { DateField, Sheet } from "./ui";
 import { formatRupiah, parseRupiah } from "@/lib/money";
@@ -38,6 +38,9 @@ function useOverview() {
 
 export function Assets() {
   const { data, err } = useOverview();
+  const { version } = useFinny();
+  const [ef, setEf] = useState<{ configured: boolean; pct: number; targetSen: number; setAsideSen: number } | null>(null);
+  useEffect(() => { let live = true; api<{ configured: boolean; pct: number; targetSen: number; setAsideSen: number }>("emergency").then((d) => { if (live) setEf(d); }).catch(() => {}); return () => { live = false; }; }, [version]);
   const order = ["cash", "investments", "fixed", "things", "business", "other"] as const;
   const total = data ? order.reduce((n, k) => n + Math.max(0, data.groups[k].sen), 0) || 1 : 1;
   const sub = (k: (typeof order)[number]) => {
@@ -79,6 +82,8 @@ export function Assets() {
       </div>
       <div className="fy-section"><span>What you owe</span><span className="num">{data ? formatRupiah(data.oweSen) : ""}</span></div>
       <div className="fy-list"><Link className="fy-row" href="/debts">{tile("peach", <CreditCard size={18} />)}<div className="main"><div className="t">Debts</div><div className="s">Cards and loans</div></div><span className="fy-amt">{data ? plain(data.oweSen) : ""}</span><ChevronRight className="chev" size={18} /></Link></div>
+      <div className="fy-section"><span>Safety net</span></div>
+      <div className="fy-list"><Link className="fy-row" href="/assets/emergency" data-testid="ef-row">{tile("mint", <ShieldCheck size={18} />)}<div className="main"><div className="t">Emergency fund</div><div className="s">{ef ? (ef.configured ? `${ef.pct}% of ${formatRupiah(ef.targetSen)}` : "Set your target") : ""}</div></div><span className="fy-amt">{ef?.configured ? plain(ef.setAsideSen) : ""}</span><ChevronRight className="chev" size={18} /></Link></div>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginTop: 12 }}>
         <Link className="fy-btn" href="/assets/investments"><TrendingUp size={16} />Investments</Link>
         <Link className="fy-btn" href="/assets/things"><Bike size={16} />Property &amp; vehicles</Link>

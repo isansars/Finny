@@ -272,3 +272,10 @@ button.fy-row, .fy-row.tap { cursor: pointer; } button.fy-row:hover, .fy-row.tap
 .fy-alloc { display: flex; height: 12px; border-radius: 99px; overflow: hidden; margin: 6px 0 8px; background: var(--surface-3); }
 .fy-alloc i { display: block; height: 100%; }
 .fy-key span { display: inline-flex; align-items: center; gap: 4px; }
+/* Sprint 9: the emergency fund's target options and the source ticks */
+.fy-opt { display: block; width: 100%; text-align: left; border: 2px solid var(--border); background: var(--surface); border-radius: 14px; padding: 10px 14px; margin-bottom: 8px; cursor: pointer; color: var(--text); font: inherit; }
+.fy-opt b { display: block; font-weight: 800; font-size: 15px; font-variant-numeric: tabular-nums; }
+.fy-opt span { display: block; font-size: 12.5px; font-weight: 600; color: var(--text-2); }
+.fy-opt.on { border-color: var(--primary); background: color-mix(in srgb, var(--primary) 8%, var(--surface)); }
+.fy-check { width: 26px; height: 26px; flex: none; border-radius: 8px; border: 2px solid var(--border-2, var(--border)); background: var(--surface); display: inline-grid; place-items: center; cursor: pointer; color: var(--primary-ink); padding: 0; }
+.fy-check.on { background: var(--primary); border-color: var(--primary); }
