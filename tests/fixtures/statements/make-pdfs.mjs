@@ -1,6 +1,6 @@
 // Draws made-up e-statements in the layouts Finny reads (FINNY-74), so tests never need the owner's real files.
 // Every name and amount here is invented; each statement adds up (opening + lines = closing).
-//   node tests/fixtures/statements/make-pdfs.mjs [dir]  →  bca.pdf, mandiri.pdf, krom.pdf, bri-card.pdf (locked), picture.pdf
+//   node tests/fixtures/statements/make-pdfs.mjs [dir]  →  bca.pdf, mandiri.pdf, krom.pdf, bri-card.pdf (locked), picture.pdf, bca-long.pdf (10 pages, for timing)
 // The BRI file is then locked with the test password "finny-test" (pypdf; see lockPdf below).
 import { chromium } from "playwright";
 import { mkdirSync, writeFileSync } from "node:fs";
@@ -97,6 +97,17 @@ function bcaHtml() {
   p2.push([110, y, "SALDO AKHIR"], [140, y, ":"], right(175, y, dot(totals.bca)));
   return page(p1) + page(p2);
 }
+/** A ten-page BCA statement (only for timing how fast a long statement is read; its totals don't matter). */
+function bcaLongHtml() {
+  let html = bcaHtml();
+  for (let p = 3; p <= 10; p++) {
+    const c = [[115, 22, "NO. REKENING"], [146, 22, ":"], [152, 22, BCA.account], [115, 32, "PERIODE"], [146, 32, ":"], [152, 32, "OKTOBER 2026"],
+      [12, 60, "TANGGAL", "b"], [40, 60, "KETERANGAN", "b"], [108, 60, "CBG", "b"], [130, 60, "MUTASI", "b"], [178, 60, "SALDO", "b"]];
+    for (let i = 0; i < 30; i++) { const y = 66 + i * 7; c.push([12, y, "15/10"], [40, y, "TRANSAKSI DEBIT"], [70, y, `TOKO CONTOH ${p}-${i}`], right(160, y, "10,000.00"), [162, y, "DB"]); }
+    html += page(c);
+  }
+  return html;
+}
 function mandiriHtml() {
   const c = [[10, 10, "mandiri", "b"], [10, 16, "Periode / Period: 1/10/26 s/d 31/10/26"], [10, 24, OWNER],
     [10, 40, "No. Rekening"], [45, 40, "Nama Produk"], [80, 40, "Cabang"], [130, 40, "Periode"], [160, 40, "Valuta"], [190, 40, "Saldo"],
@@ -158,7 +169,7 @@ export async function makeStatementPdfs(dir) {
   const browser = await chromium.launch();
   const pg = await browser.newPage();
   const out = {};
-  for (const [name, html] of [["bca", bcaHtml()], ["mandiri", mandiriHtml()], ["krom", kromHtml()], ["bri-card", briHtml()], ["picture", pictureHtml()]]) {
+  for (const [name, html] of [["bca", bcaHtml()], ["mandiri", mandiriHtml()], ["krom", kromHtml()], ["bri-card", briHtml()], ["picture", pictureHtml()], ["bca-long", bcaLongHtml()]]) {
     await pg.setContent(`<!doctype html><html><head><meta charset="utf-8"><style>${css}</style></head><body>${html}</body></html>`);
     await pg.waitForTimeout(50);
     const file = path.join(dir, `${name}.pdf`);
