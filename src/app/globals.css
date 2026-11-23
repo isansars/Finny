@@ -263,3 +263,8 @@ button.fy-row, .fy-row.tap { cursor: pointer; } button.fy-row:hover, .fy-row.tap
 .fy-trow .fy-amt { font-size: 14px; min-width: 84px; text-align: right; }
 .fy-trow .avg { min-width: 52px; text-align: right; font-size: 13px; font-weight: 700; color: var(--text-3); font-variant-numeric: tabular-nums; }
 .fy-3col { display: grid; grid-template-columns: 66px 66px 66px; gap: 4px; text-align: right; font-size: 13.5px; font-weight: 700; font-variant-numeric: tabular-nums; }
+/* FINNY-88: debts */
+.fy-billnote { margin-top: 12px; display: flex; gap: 10px; align-items: flex-start; background: var(--peach-s); color: var(--peach-i); }
+.fy-billnote svg { flex: none; margin-top: 2px; }
+.fy-billnote .h { font-weight: 800; }
+.fy-billnote .b { font-size: 13px; font-weight: 600; margin-top: 2px; }
