@@ -57,7 +57,7 @@ test("spending pace: running totals, the projection, a past month", () => {
   const p = spendingPace(txns, cats, "2026-11", "2026-11-10");
   assert.equal(p.daysGone, 10); assert.equal(p.thisMonth.length, 10);
   assert.equal(p.spentSen, 480_000, "saving isn't spending");
-  assert.equal(p.projectedSen, 1_440_000);
+  assert.equal(p.projectedSen, 1_400_000, "480.000 over 10 of 30 days, rounded to thousands of rupiah: 14.400 → 14.000");
   assert.equal(p.lastMonthSen, 1_000_000); assert.equal(p.lastMonth.length, 31);
   assert.equal(p.avg3[29], Math.round((1_000_000 + 600_000 + 300_000) / 3));
   assert.equal(p.biggest[0].amountSen, 400_000);

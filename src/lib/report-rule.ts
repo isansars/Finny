@@ -125,7 +125,8 @@ export function spendingPace(txns: RTxn[], cats: RCat[], month: string, today: s
   const at = (arr: number[], d: number) => (arr.length ? arr[Math.min(d, arr.length - 1)] : 0);
   const avg3 = Array.from({ length: n }, (_, d) => Math.round(three.reduce((s, a) => s + at(a, d), 0) / 3));
   const spentSen = thisMonth.length ? thisMonth[thisMonth.length - 1] : 0;
-  const projectedSen = isNow && gone > 0 ? Math.round((spentSen / gone) * n) : spentSen;
+  // A projection is a guess: whole thousands of rupiah, never false precision.
+  const projectedSen = isNow && gone > 0 ? Math.round((spentSen / gone) * n / 100_000) * 100_000 : spentSen;
   const biggest = txns.filter((t) => t.kind === "spend" && t.categoryId && expense.has(t.categoryId) && ym(t.on) === month)
     .sort((a, b) => b.amountSen - a.amountSen || b.on.localeCompare(a.on)).slice(0, 5);
   return { month, days: n, daysGone: gone, thisMonth, lastMonth: last, avg3, spentSen, projectedSen, lastMonthSen: last[last.length - 1] ?? 0, biggest };
