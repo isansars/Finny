@@ -7,7 +7,7 @@ import { zip } from "@/lib/zip";
 import { todayIn } from "@/lib/dates";
 
 export const GET = () => withMe(async (me) => {
-  const { accs, cats, ents, txns, buds, plans, vals, thingRows, reviews } = await exportRows(me.id);
+  const { accs, cats, ents, txns, buds, plans, vals, thingRows, reviews, goalRows } = await exportRows(me.id);
   const accName = new Map(accs.map((a) => [a.id, a.name])), catName = new Map(cats.map((c) => [c.id, c.name])), entName = new Map(ents.map((e) => [e.id, e.name]));
   const files = {
     "accounts.csv": toCsv(["id", "name", "type", "opening_rupiah", "opening_on", "limit_rupiah", "statement_day", "archived"],
@@ -26,6 +26,8 @@ export const GET = () => withMe(async (me) => {
     // FINNY-109: month-end reviews (the saved summary as JSON).
     "month_reviews.csv": toCsv(["month", "budget_done", "wealth_done", "closed_at", "note", "summary_json"],
       reviews.map((r) => ({ month: r.month, budget_done: r.budgetDone, wealth_done: r.wealthDone, closed_at: r.closedAt ? r.closedAt.toISOString() : "", note: r.note ?? "", summary_json: r.summary ? JSON.stringify(r.summary) : "" }))),
+    // FINNY-117: goals.
+    "goals.csv": toCsv(["name", "kind", "target_rupiah", "by_month"], goalRows.map((g) => ({ name: g.name, kind: g.kind, target_rupiah: senToPlain(g.targetSen), by_month: g.byMonth ?? "" }))),
   };
   return new NextResponse(Buffer.from(zip(files)), { headers: { "content-type": "application/zip", "content-disposition": `attachment; filename="finny-export-${todayIn()}.zip"`, "cache-control": "no-store" } });
 });

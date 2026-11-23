@@ -14,7 +14,7 @@ await migrate(drizzle(pg), { migrationsFolder: folder });
 const tables = async () => (await pg.query<{ t: string }>("select table_name as t from information_schema.tables where table_schema = 'public' order by 1")).rows.map((r) => r.t);
 const up = await tables();
 console.log("up:", up.join(", "));
-for (const want of ["users", "sessions", "auth_accounts", "verification_tokens", "money_accounts", "categories", "entities", "transactions", "import_batches", "budgets", "income_plans", "debt_plans", "account_values", "things", "emergency_funds", "emergency_sources", "month_reviews"]) assert.ok(up.includes(want), `missing ${want}`);
+for (const want of ["users", "sessions", "auth_accounts", "verification_tokens", "money_accounts", "categories", "entities", "transactions", "import_batches", "budgets", "income_plans", "debt_plans", "account_values", "things", "emergency_funds", "emergency_sources", "month_reviews", "goals", "goal_sources"]) assert.ok(up.includes(want), `missing ${want}`);
 
 // FINNY-26: the database itself refuses a malformed transaction (amounts in sen, transfers between two accounts, no category).
 await pg.exec(`insert into users (id, email) values ('u1', 'owner@finny.test');
@@ -80,6 +80,15 @@ await refused("two reviews of one month", pg.exec(`insert into month_reviews (us
 await refused("a month that isn't a month", pg.exec(`insert into month_reviews (user_id, month) values ('u1', '2026-13')`));
 await refused("a note over 1,000 characters", pg.exec(`update month_reviews set note = repeat('x', 1001)`));
 console.log("✓ month reviews keep their shape");
+await pg.exec(`insert into goals (id, user_id, name, kind, target_sen, by_month) values ('00000000-0000-0000-0000-0000000000a1', 'u1', 'DP rumah', 'save', 15000000000, '2028-06')`);
+await refused("a target of 0", pg.exec(`insert into goals (user_id, name, kind, target_sen) values ('u1', 'x', 'save', 0)`));
+await refused("an empty name", pg.exec(`insert into goals (user_id, name, kind, target_sen) values ('u1', '', 'save', 1)`));
+await refused("a month that isn't a month", pg.exec(`insert into goals (user_id, name, kind, target_sen, by_month) values ('u1', 'x', 'save', 1, '2028-6')`));
+await pg.exec(`insert into goal_sources (goal_id, account_id, part_sen) values ('00000000-0000-0000-0000-0000000000a1', ${A}, 4500000000)`);
+await refused("the same account twice in a goal", pg.exec(`insert into goal_sources (goal_id, account_id) values ('00000000-0000-0000-0000-0000000000a1', ${A})`));
+await pg.exec(`delete from goals`);
+assert.equal((await pg.query("select count(*)::int as n from goal_sources")).rows[0].n, 0, "sources go with their goal");
+console.log("✓ goals and their sources keep their shape");
 await pg.exec("delete from month_reviews;");
 await pg.exec("delete from emergency_sources; delete from emergency_funds;");
 await pg.exec("delete from account_values; delete from things;");

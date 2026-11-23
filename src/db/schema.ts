@@ -220,3 +220,23 @@ export const monthReviews = pgTable("month_reviews", {
   note: text("note"),
   summary: jsonb("summary").$type<Record<string, unknown>>(),
 }, (t) => [primaryKey({ columns: [t.userId, t.month] }), check("month_reviews_shape", sql`${t.month} ~ '^[0-9]{4}-(0[1-9]|1[0-2])$' and (${t.note} is null or length(${t.note}) <= 1000)`)]);
+
+// ---- FINNY-117: goals. "save" goals are held in accounts (all or a part, like the emergency fund); "networth" goals
+// follow the whole net worth. by_month is optional.
+export const goals = pgTable("goals", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  kind: text("kind", { enum: ["save", "networth"] }).notNull(),
+  targetSen: bigint("target_sen", { mode: "number" }).notNull(),
+  byMonth: text("by_month"),
+  icon: text("icon").notNull().default("target"),
+  createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
+}, (t) => [index("goals_user").on(t.userId), check("goals_shape", sql`${t.targetSen} > 0 and length(${t.name}) between 1 and 60 and (${t.byMonth} is null or ${t.byMonth} ~ '^[0-9]{4}-(0[1-9]|1[0-2])$')`)]);
+
+export const goalSources = pgTable("goal_sources", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  goalId: uuid("goal_id").notNull().references(() => goals.id, { onDelete: "cascade" }),
+  accountId: uuid("account_id").notNull().references(() => moneyAccounts.id, { onDelete: "cascade" }),
+  partSen: bigint("part_sen", { mode: "number" }), // null = all of it
+}, (t) => [uniqueIndex("goal_sources_one").on(t.goalId, t.accountId), check("goal_sources_part", sql`${t.partSen} is null or ${t.partSen} >= 0`)]);

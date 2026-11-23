@@ -71,6 +71,13 @@
       "when": 1795442181226,
       "tag": "0009_month_reviews",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1795446797305,
+      "tag": "0010_goals",
+      "breakpoints": true
     }
   ]
 }
