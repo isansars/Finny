@@ -11,6 +11,7 @@ import { formatCompact, formatRupiah } from "@/lib/money";
 import { Mark } from "./Logo";
 import { BudgetCard } from "./Budget";
 import { BillsCard } from "./Debts";
+import { PastReviews, ReviewNudge } from "./Review";
 import { dayLabel, monthLabel, shiftMonth, todayIn } from "@/lib/dates";
 
 type Dash = { month: string; days: number; totals: { incomeSen: number; spendSen: number; savedSen: number; investedSen: number };
@@ -89,6 +90,7 @@ export function Home() {
           </div>
         </div>
 
+        <ReviewNudge />
         <div className="fy-hero">
           <div className="lbl" style={{ display: "flex", justifyContent: "space-between" }}><span>Net across accounts</span><a className="fy-more" style={{ padding: 0, fontSize: 13 }} href="/reports?view=balance">Reports ›</a></div>
           <div className="big" data-testid="net">{loaded ? formatRupiah(net) : <span className="fy-skel" style={{ width: "7em" }} />}</div>
@@ -104,6 +106,7 @@ export function Home() {
 
         {month === today.slice(0, 7) && <BillsCard />}
         <BudgetCard month={month} />
+        {month === today.slice(0, 7) && <PastReviews />}
 
         {spent > 0 && (<div className="fy-grid2" style={{ marginTop: 12 }}>
           <div className="fy-card fy-pad" data-testid="by-category">

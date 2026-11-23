@@ -3,6 +3,7 @@
 // expected income, and every budgeted category with a bar (green, amber from 90%, red over). Tap one to change it.
 import { useEffect, useMemo, useState } from "react";
 import { ChevronLeft, ChevronRight, FileSpreadsheet, Plus, Wand2, Copy } from "lucide-react";
+import { BudgetWarning } from "./Review";
 import { api, useFinny, type Category } from "./store";
 import { CatTile, Tile } from "./icons";
 import { AmountInput, CategoryOptions, Sheet } from "./ui";
@@ -194,6 +195,7 @@ export function BudgetCard({ month }: { month: string }) {
   return (
     <div className="fy-card fy-pad" style={{ marginTop: 12 }} data-testid="budget-card">
       <div className="fy-section" style={{ margin: "0 0 10px" }}><span>Budget</span><span>{data.totals.pct}% used{thisMonth && data.daysLeft ? ` · ${data.daysLeft} day${data.daysLeft > 1 ? "s" : ""} left` : ""}</span></div>
+      {thisMonth && <BudgetWarning lines={data.lines} daysLeft={data.daysLeft} name={name} />}
       {data.lines.slice(0, 4).map((l) => (
         <div key={l.categoryId} style={{ marginBottom: 10 }}>
           <div className="fy-bline" style={{ fontWeight: 700, fontSize: 14 }}><span>{name(l.categoryId)}</span><span className="num">{l.pct}%</span></div>
