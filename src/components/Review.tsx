@@ -78,7 +78,7 @@ export function Review({ month }: { month: string }) {
         <Head r={r} />
         <div style={{ height: 10 }} />
         <Step testid="rv-statements" icon={<FileText size={18} />} color="sky" title="Statements" on={r.steps.statements}
-          sub={r.statements.total ? `${r.statements.read} of ${r.statements.total} account${r.statements.total === 1 ? "" : "s"} read` : "No accounts read by statement yet"}>
+          sub={r.statements.total ? `${r.statements.read} of ${r.statements.total} account${r.statements.total === 1 ? "" : "s"} read` : "Nothing to check: no account is read by statement"}>
           {r.statements.accounts.map((a) => (
             <div className="fy-rv-line" key={a.accountId}>
               <span><b>{a.name}</b><small>{a.read ? `${span(a.periodFrom, a.periodTo)} · ${a.lines} line${a.lines === 1 ? "" : "s"}` : "Not read yet"}</small></span>
@@ -157,7 +157,7 @@ export function ReviewBudget({ month }: { month: string }) {
         </div>
         {r.budget.over.length > 0 && <><div className="fy-section"><span>Over budget</span><span>{r.budget.over.length}</span></div><div className="fy-list" data-testid="rv-over">{r.budget.over.map((l) => row(l, true))}</div></>}
         {r.budget.under.length > 0 && <><div className="fy-section"><span>Under budget</span><span>{r.budget.under.length}</span></div><div className="fy-list" data-testid="rv-under">{r.budget.under.map((l) => row(l, false))}</div></>}
-        {!r.budget.plannedSen && <div className="fy-card fy-pad fy-hint" style={{ margin: "12px 0 0" }}>No budget for {monthName(month)}. <Link href={`/budget?month=${r.next}`}>Plan {monthName(r.next)} ›</Link></div>}
+        {!r.budget.plannedSen && <div className="fy-card fy-pad fy-hint" style={{ margin: "12px 0 0" }}>No budget for {monthName(month)}.<Link className="fy-btn block" style={{ marginTop: 10 }} href={`/budget?month=${r.next}`}>Plan {monthName(r.next)}</Link></div>}
         {r.budget.plannedSen > 0 && <>
           <div className="fy-section"><span>{monthName(r.next)}</span></div>
           <div className="fy-card fy-pad" data-testid="rv-plan">

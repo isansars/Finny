@@ -15,7 +15,7 @@ import type { TreeNode } from "@/lib/report-rule";
 type View = "cashflow" | "balance" | "pace";
 type Flow = { months: { month: string; inSen: number; outSen: number; keptSen: number }[]; totals: { inSen: number; outSen: number; keptSen: number };
   tree: { month: string; sections: { kind: string; sen: number; avg3Sen: number; nodes: TreeNode[] }[] } };
-type AccRow = { id: string; name: string; type: string; sen: number; changeSen: number };
+type AccRow = { id: string; name: string; type: string; sen: number; changeSen: number; inCredit?: boolean };
 type Bal = { month: string; series: { month: string; netSen: number }[]; have: AccRow[]; owe: AccRow[]; haveSen: number; oweSen: number; netSen: number; changeSen: number; yearChangeSen: number | null };
 type Pace = { month: string; days: number; daysGone: number; thisMonth: number[]; lastMonth: number[]; avg3: number[]; spentSen: number; projectedSen: number; lastMonthSen: number;
   biggest: { id: string; on: string; amountSen: number; description: string; categoryId: string | null }[] };
@@ -176,7 +176,7 @@ function Balance({ month }: { month: string }) {
     return (
       <a className="fy-row" key={a.id} href={a.type.startsWith("thing:") ? `/assets/things/${a.id}` : `/reports/account/${a.id}?to=${month}`} data-testid={`acc-${a.name}`}>
         <Tile icon={look.icon} color={look.color} />
-        <div className="main"><div className="t">{a.name}</div><div className="s">{a.changeSen ? `${a.changeSen > 0 ? "▲" : "▼"} ${formatRupiah(Math.abs(a.changeSen))} this month` : "No change this month"}</div></div>
+        <div className="main"><div className="t">{a.name}</div><div className="s">{a.inCredit ? "in credit · " : ""}{a.changeSen ? `${a.changeSen > 0 ? "▲" : "▼"} ${formatRupiah(Math.abs(a.changeSen), { prefix: false })}` : "no change"}</div></div>
         <span className="fy-amt">{plain(a.sen)}</span><ChevronRight className="chev" size={18} />
       </a>
     );

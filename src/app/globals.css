@@ -304,3 +304,13 @@ button.fy-row, .fy-row.tap { cursor: pointer; } button.fy-row:hover, .fy-row.tap
 .fy-mt-mark.ok { background: var(--income); } .fy-mt-mark.no { background: var(--spend); }
 .fy-mt-acc + .fy-mt-acc { border-top: 1px solid var(--sep); }
 .fy-rv-done { margin-top: 10px; background: var(--mint-s); color: var(--mint-i); border-radius: 12px; padding: 8px 10px; font-weight: 800; font-size: 13px; }
+/* Sprint 13 (FINNY-134): every small text link and button gets a 44 x 44 px tap area without changing its look;
+   amber warning text has its own token with AA contrast in both themes. */
+:root { --warn-text: #92400e; }
+@media (prefers-color-scheme: dark) { :root { --warn-text: #fcd34d; } }
+.fy-more, .fy-linkish:not(.fy-row):not(.fy-card):not(.fy-btn), .fy-rv-line a, .fy-tap { position: relative; }
+.fy-more::after, .fy-linkish:not(.fy-row):not(.fy-card):not(.fy-btn)::after, .fy-rv-line a::after, .fy-tap::after {
+  content: ""; position: absolute; left: 50%; top: 50%; width: max(100%, 44px); height: max(100%, 44px); transform: translate(-50%, -50%);
+}
+/* FINNY-135: single-column pages stay readable on a wide screen. */
+.fy-narrow { max-width: 720px; margin: 0 auto; }
