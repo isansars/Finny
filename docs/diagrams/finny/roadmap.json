@@ -1,7 +1,7 @@
 {
   "type": "board",
   "title": "Finny · Roadmap",
-  "subtitle": "Replace the two workbooks: record every day, read the bank each month, then plan, report and grow. Current as of the v0.5.0 release, 23 Nov 2026.",
+  "subtitle": "Replace the two workbooks: record every day, read the bank each month, then plan, report and grow. Current as of Sprint 6 planning, 23 Nov 2026.",
   "footer": "🐰 Poppy · Finny · Product · 23 Nov 2026 · planned on the FINNY board",
   "badge": "💸 The owner's own product · FINNY board · isansars/Finny",
   "width": 1700,
@@ -36,20 +36,30 @@
     },
     {
       "name": "Now · Sprint 6",
-      "icon": "🗓️",
+      "icon": "🏃",
       "tone": "orange",
-      "sub": "to plan with the owner · v0.6.0",
+      "sub": "23 Nov – 6 Dec · v0.6.0",
       "focus": true,
       "items": [
         [
-          "Reports: cashflow and balance sheet",
-          "planned",
-          "FINNY-16 · candidate"
+          "Cashflow: in, out and kept by category",
+          "dev",
+          "FINNY-16"
         ],
         [
-          "Credit cards, loans and debt payoff",
-          "planned",
-          "FINNY-17 · candidate"
+          "Balance sheet and net worth",
+          "dev",
+          "FINNY-16"
+        ],
+        [
+          "Spending pace and the month-end projection",
+          "dev",
+          "FINNY-16"
+        ],
+        [
+          "Each account month by month; CSV downloads",
+          "dev",
+          "FINNY-16"
         ]
       ]
     },
@@ -60,9 +70,9 @@
       "sub": "Slice 3",
       "items": [
         [
-          "Whichever of Reports / Debts comes second",
+          "Credit cards, loans and debt payoff",
           "planned",
-          "FINNY-16 or FINNY-17"
+          "FINNY-17 · snowball / avalanche"
         ],
         [
           "Budget alerts and a monthly review",
