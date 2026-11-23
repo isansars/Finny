@@ -14,7 +14,7 @@ await migrate(drizzle(pg), { migrationsFolder: folder });
 const tables = async () => (await pg.query<{ t: string }>("select table_name as t from information_schema.tables where table_schema = 'public' order by 1")).rows.map((r) => r.t);
 const up = await tables();
 console.log("up:", up.join(", "));
-for (const want of ["users", "sessions", "auth_accounts", "verification_tokens", "money_accounts", "categories", "entities", "transactions", "import_batches"]) assert.ok(up.includes(want), `missing ${want}`);
+for (const want of ["users", "sessions", "auth_accounts", "verification_tokens", "money_accounts", "categories", "entities", "transactions", "import_batches", "budgets", "income_plans"]) assert.ok(up.includes(want), `missing ${want}`);
 
 // FINNY-26: the database itself refuses a malformed transaction (amounts in sen, transfers between two accounts, no category).
 await pg.exec(`insert into users (id, email) values ('u1', 'owner@finny.test');
@@ -40,6 +40,15 @@ await refused("the same statement twice", pg.exec(`insert into import_batches (u
 const kinds = (await pg.query<{ k: string }>("select kind as k from import_batches order by created_at, kind")).rows.map((r) => r.k).sort();
 assert.deepEqual(kinds, ["statement", "workbook", "workbook"], "existing batches default to workbook");
 console.log("✓ a statement file is saved once");
+// FINNY-60: one budget per category and month (or "*" for every month), amounts in sen, never negative.
+await pg.exec(`insert into budgets (user_id, category_id, month, amount_sen) values ('u1', ${K}, '2026-11', 50000000), ('u1', ${K}, '*', 45000000)`);
+await refused("two budgets for one month", pg.exec(`insert into budgets (user_id, category_id, month, amount_sen) values ('u1', ${K}, '2026-11', 1)`));
+await refused("a month that isn't one", pg.exec(`insert into budgets (user_id, category_id, month, amount_sen) values ('u1', ${K}, '2026-13', 1)`));
+await refused("a negative budget", pg.exec(`insert into budgets (user_id, category_id, month, amount_sen) values ('u1', ${K}, '2026-12', -1)`));
+await pg.exec(`insert into income_plans (user_id, month, amount_sen) values ('u1', '2026-11', 1500000000)`);
+await refused("two income plans for one month", pg.exec(`insert into income_plans (user_id, month, amount_sen) values ('u1', '2026-11', 1)`));
+console.log("✓ budgets and income plans keep their shape");
+await pg.exec("delete from budgets; delete from income_plans;");
 await pg.exec("delete from import_batches;");
 await pg.exec("delete from transactions; delete from categories; delete from money_accounts; delete from users;");
 for (const { tag } of [...journal.entries].reverse()) {

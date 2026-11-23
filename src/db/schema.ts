@@ -122,3 +122,20 @@ export const transactions = pgTable("transactions", {
   check("transactions_shape", sql`(${t.kind} = 'transfer' and ${t.toAccountId} is not null and ${t.toAccountId} <> ${t.accountId} and ${t.categoryId} is null)
     or (${t.kind} <> 'transfer' and ${t.toAccountId} is null and ${t.categoryId} is not null)`),
 ]);
+
+// FINNY-60: a budget per category per month ("2026-11"), or every month ("*", overridden by a month's own row; an
+// override of 0 removes the budget for that month only). Expected income per month the same way.
+export const budgets = pgTable("budgets", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  categoryId: uuid("category_id").notNull().references(() => categories.id, { onDelete: "cascade" }),
+  month: text("month").notNull(),
+  amountSen: bigint("amount_sen", { mode: "number" }).notNull(),
+  createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
+}, (t) => [uniqueIndex("budgets_one").on(t.userId, t.categoryId, t.month), check("budgets_shape", sql`${t.amountSen} >= 0 and (${t.month} = '*' or ${t.month} ~ '^[0-9]{4}-(0[1-9]|1[0-2])$')`)]);
+
+export const incomePlans = pgTable("income_plans", {
+  userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  month: text("month").notNull(),
+  amountSen: bigint("amount_sen", { mode: "number" }).notNull(),
+}, (t) => [primaryKey({ columns: [t.userId, t.month] }), check("income_plans_shape", sql`${t.amountSen} >= 0 and (${t.month} = '*' or ${t.month} ~ '^[0-9]{4}-(0[1-9]|1[0-2])$')`)]);
