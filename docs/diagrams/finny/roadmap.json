@@ -1,7 +1,7 @@
 {
   "type": "board",
   "title": "Finny · Roadmap",
-  "subtitle": "Replace the two workbooks: record every day, read the bank each month, then plan, report and grow. Current as of Sprint 7 planning, 23 Nov 2026.",
+  "subtitle": "Replace the two workbooks: record every day, read the bank each month, then plan, report and grow. Current as of the v0.7.0 release, 23 Nov 2026.",
   "footer": "🐰 Poppy · Finny · Product · 23 Nov 2026 · planned on the FINNY board",
   "badge": "💸 The owner's own product · FINNY board · isansars/Finny",
   "width": 1700,
@@ -13,12 +13,12 @@
       "sub": "latest three releases",
       "items": [
         [
-          "Reports: cashflow, balance sheet, spending pace",
+          "Debts: terms, progress, bills, payoff plan",
           "live",
-          "v0.6.0 · FINNY-16"
+          "v0.7.0 · FINNY-17"
         ],
         [
-          "Each account month by month; CSV downloads",
+          "Reports: cashflow, balance sheet, spending pace",
           "live",
           "v0.6.0 · FINNY-16"
         ],
@@ -26,35 +26,25 @@
           "Monthly budget; the 2025 budget from the workbook",
           "live",
           "v0.5.0 · FINNY-15"
-        ],
-        [
-          "Bank e-statements: BCA, Mandiri, Krom, BRI card",
-          "live",
-          "v0.4.0 · FINNY-14"
         ]
       ]
     },
     {
-      "name": "Now · Sprint 7",
-      "icon": "🏃",
+      "name": "Now · Sprint 8",
+      "icon": "🗓️",
       "tone": "orange",
-      "sub": "23 Nov – 6 Dec · v0.7.0",
+      "sub": "to plan with the owner · v0.8.0",
       "focus": true,
       "items": [
         [
-          "Each debt's terms and progress",
-          "dev",
-          "FINNY-17"
+          "Budget alerts and a monthly review",
+          "gap",
+          "Poppy · candidate"
         ],
         [
-          "Bills coming up on Home; Mark paid",
-          "dev",
-          "FINNY-17"
-        ],
-        [
-          "Payoff plan: snowball or avalanche",
-          "dev",
-          "FINNY-17"
+          "Assets and investments with P/L",
+          "planned",
+          "the wealth sheets · candidate"
         ]
       ]
     },
@@ -62,24 +52,6 @@
       "name": "Next",
       "icon": "⏭️",
       "tone": "blue",
-      "sub": "",
-      "items": [
-        [
-          "Budget alerts and a monthly review",
-          "gap",
-          "Poppy · after the owner uses Budget"
-        ],
-        [
-          "Assets and investments with P/L",
-          "planned",
-          "the wealth sheets"
-        ]
-      ]
-    },
-    {
-      "name": "Later",
-      "icon": "🌱",
-      "tone": "purple",
       "sub": "",
       "items": [
         [
@@ -91,7 +63,15 @@
           "Net worth goals over time",
           "planned",
           ""
-        ],
+        ]
+      ]
+    },
+    {
+      "name": "Later",
+      "icon": "🌱",
+      "tone": "purple",
+      "sub": "",
+      "items": [
         [
           "More banks' statements",
           "gap",
