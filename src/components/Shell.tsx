@@ -36,8 +36,8 @@ function Frame({ children }: { children: React.ReactNode }) {
         {NAV.slice(2).map(tab)}
       </nav>
       {editing !== undefined && (
-        <Sheet title={editing ? "Edit" : "New transaction"} label={editing ? "Edit transaction" : "Add a transaction"} onClose={closeAdd}>
-          <QuickAddForm key={editing?.id ?? "new"} existing={editing} onDone={closeAdd} />
+        <Sheet title={editing?.id ? "Edit" : "New transaction"} label={editing?.id ? "Edit transaction" : "Add a transaction"} onClose={closeAdd}>
+          <QuickAddForm key={editing?.id || (editing ? `draft-${editing.toAccountId}` : "new")} existing={editing} onDone={closeAdd} />
         </Sheet>
       )}
     </>

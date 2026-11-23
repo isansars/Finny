@@ -51,6 +51,8 @@ function AccountChips({ label, accounts, value, onPick }: { label: string; accou
 }
 
 export function QuickAddForm({ existing, onDone, inline }: { existing?: Txn | null; onDone?: () => void; inline?: boolean }) {
+  // FINNY-89: a transaction without an id is a draft to fill in (e.g. "Mark paid"), not one to edit.
+  const isEdit = Boolean(existing?.id);
   const { accounts, categories, reload } = useFinny();
   const usable = accounts.filter((a) => !a.archived || a.id === existing?.accountId || a.id === existing?.toAccountId);
   const today = todayIn(), yesterday = dayBefore(today);
@@ -99,17 +101,17 @@ export function QuickAddForm({ existing, onDone, inline }: { existing?: Txn | nu
     const body = { kind, amount, on, accountId: account.id, toAccountId: kind === "transfer" ? toAccountId : null, categoryId: kind === "transfer" ? null : (catOk ? categoryId : ""), description, entity, note };
     setBusy(true);
     try {
-      await api(existing ? `transactions/${existing.id}` : "transactions", { method: existing ? "PATCH" : "POST", json: body });
+      await api(isEdit ? `transactions/${existing!.id}` : "transactions", { method: isEdit ? "PATCH" : "POST", json: body });
       remember.set("lastAccount", account.id);
       await reload();
-      if (existing || !inline) onDone?.();
+      if (isEdit || !inline) onDone?.();
       else { setAmount(""); setDescription(""); setEntity(""); setNote(""); setPicked(false); setCategoryId(""); setSuggested(null); setBusy(false); amountRef.current?.focus(); }
     } catch (x) { setErr((x as Error).message); setBusy(false); }
   }
   async function remove() {
-    if (!existing || !confirm("Delete this transaction?")) return;
+    if (!isEdit || !confirm("Delete this transaction?")) return;
     setBusy(true);
-    try { await api(`transactions/${existing.id}`, { method: "DELETE" }); await reload(); onDone?.(); } catch (x) { setErr((x as Error).message); setBusy(false); }
+    try { await api(`transactions/${existing!.id}`, { method: "DELETE" }); await reload(); onDone?.(); } catch (x) { setErr((x as Error).message); setBusy(false); }
   }
 
   if (!usable.some((a) => !a.archived) && !existing) {
@@ -117,7 +119,7 @@ export function QuickAddForm({ existing, onDone, inline }: { existing?: Txn | nu
   }
   const isDate = on !== today && on !== yesterday;
   return (
-    <form onSubmit={save} aria-label={existing ? "Edit transaction" : "Add a transaction"}>
+    <form onSubmit={save} aria-label={isEdit ? "Edit transaction" : "Add a transaction"}>
       {err && <div className="fy-err" role="alert">{err}</div>}
       <div className="fy-seg" role="tablist" aria-label="Kind">
         {(["spend", "income", "transfer"] as Kind[]).map((k) => (
@@ -165,8 +167,8 @@ export function QuickAddForm({ existing, onDone, inline }: { existing?: Txn | nu
         <label className="fy-field"><span className="fy-label">Note</span><textarea className="fy-input" rows={2} value={note} onChange={(e) => setNote(e.target.value)} maxLength={1000} /></label>
       </div>) : <button type="button" className="fy-more" onClick={() => setMore(true)}><ChevronDown size={16} />Paid to, note</button>}
       {kind === "transfer" && <p className="fy-note" style={{ margin: "8px 0 0" }}>A transfer moves money between your own accounts. It isn&apos;t spending or income.</p>}
-      <button className="fy-btn primary block" style={{ marginTop: 14 }} disabled={busy}>{busy ? "Saving…" : existing ? "Save changes" : "Save"}</button>
-      {existing && <button type="button" className="fy-btn danger block" style={{ marginTop: 8 }} onClick={remove} disabled={busy}>Delete</button>}
+      <button className="fy-btn primary block" style={{ marginTop: 14 }} disabled={busy}>{busy ? "Saving…" : isEdit ? "Save changes" : "Save"}</button>
+      {isEdit && <button type="button" className="fy-btn danger block" style={{ marginTop: 8 }} onClick={remove} disabled={busy}>Delete</button>}
     </form>
   );
 }
