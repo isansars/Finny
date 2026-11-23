@@ -1,7 +1,7 @@
 // The data layer. Every function takes the signed-in owner's id and every query is scoped to it (Shield).
 import { and, asc, desc, eq, gte, ilike, inArray, lt, or, sql } from "drizzle-orm";
 import { db } from "@/db";
-import { categories, entities, moneyAccounts, transactions, ACCOUNT_TYPES, CATEGORY_KINDS } from "@/db/schema";
+import { categories, entities, importBatches, moneyAccounts, transactions, ACCOUNT_TYPES, CATEGORY_KINDS } from "@/db/schema";
 import { HttpError } from "@/lib/session";
 import { addFlow, balanceOf, cardView, type Flows } from "@/lib/balance-rule";
 import { placeProblem, mergeProblem, type Cat } from "@/lib/category-rule";
@@ -282,5 +282,6 @@ export async function deleteEverything(userId: string) {
   await db.update(categories).set({ parentId: null }).where(eq(categories.userId, userId));
   await db.delete(categories).where(eq(categories.userId, userId));
   await db.delete(moneyAccounts).where(eq(moneyAccounts.userId, userId));
+  await db.delete(importBatches).where(eq(importBatches.userId, userId));
   return { ok: true };
 }
