@@ -308,7 +308,8 @@ button.fy-row, .fy-row.tap { cursor: pointer; } button.fy-row:hover, .fy-row.tap
    amber warning text has its own token with AA contrast in both themes. */
 :root { --warn-text: #92400e; }
 @media (prefers-color-scheme: dark) { :root { --warn-text: #fcd34d; } }
-.fy-more, .fy-linkish:not(.fy-row):not(.fy-card):not(.fy-btn), .fy-rv-line a, .fy-tap { position: relative; }
+/* z-index: the tap area sits above a card that follows (a section title's Edit above its list). */
+.fy-more, .fy-linkish:not(.fy-row):not(.fy-card):not(.fy-btn), .fy-rv-line a, .fy-tap { position: relative; z-index: 1; }
 .fy-more::after, .fy-linkish:not(.fy-row):not(.fy-card):not(.fy-btn)::after, .fy-rv-line a::after, .fy-tap::after {
   content: ""; position: absolute; left: 50%; top: 50%; width: max(100%, 44px); height: max(100%, 44px); transform: translate(-50%, -50%);
 }
