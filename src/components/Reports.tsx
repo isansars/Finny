@@ -172,9 +172,9 @@ function Balance({ month }: { month: string }) {
   const { data, err } = useJson<Bal>(`reports/balance?month=${month}`, version);
   if (err) return <div className="fy-err" role="alert">{err}</div>;
   const row = (a: AccRow) => {
-    const look = TYPE_LOOK[a.type] ?? { icon: "wallet", color: "slate" };
+    const look = TYPE_LOOK[a.type] ?? (a.type.startsWith("thing:") ? { icon: a.type === "thing:property" ? "home" : a.type === "thing:business" ? "briefcase" : "gem", color: "lemon" } : { icon: "wallet", color: "slate" });
     return (
-      <a className="fy-row" key={a.id} href={`/reports/account/${a.id}?to=${month}`} data-testid={`acc-${a.name}`}>
+      <a className="fy-row" key={a.id} href={a.type.startsWith("thing:") ? `/assets/things/${a.id}` : `/reports/account/${a.id}?to=${month}`} data-testid={`acc-${a.name}`}>
         <Tile icon={look.icon} color={look.color} />
         <div className="main"><div className="t">{a.name}</div><div className="s">{a.changeSen ? `${a.changeSen > 0 ? "▲" : "▼"} ${formatRupiah(Math.abs(a.changeSen))} this month` : "No change this month"}</div></div>
         <span className="fy-amt">{plain(a.sen)}</span><ChevronRight className="chev" size={18} />
