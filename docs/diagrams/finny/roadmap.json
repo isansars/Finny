@@ -1,7 +1,7 @@
 {
   "type": "board",
   "title": "Finny · Roadmap",
-  "subtitle": "Replace the two workbooks: record every day, read the bank each month, then plan, report and grow. Current as of the v0.6.0 release, 23 Nov 2026.",
+  "subtitle": "Replace the two workbooks: record every day, read the bank each month, then plan, report and grow. Current as of Sprint 7 planning, 23 Nov 2026.",
   "footer": "🐰 Poppy · Finny · Product · 23 Nov 2026 · planned on the FINNY board",
   "badge": "💸 The owner's own product · FINNY board · isansars/Finny",
   "width": 1700,
@@ -36,20 +36,25 @@
     },
     {
       "name": "Now · Sprint 7",
-      "icon": "🗓️",
+      "icon": "🏃",
       "tone": "orange",
-      "sub": "to plan with the owner · v0.7.0",
+      "sub": "23 Nov – 6 Dec · v0.7.0",
       "focus": true,
       "items": [
         [
-          "Credit cards, loans and debt payoff",
-          "planned",
-          "FINNY-17 · next in line"
+          "Each debt's terms and progress",
+          "dev",
+          "FINNY-17"
         ],
         [
-          "Budget alerts and a monthly review",
-          "gap",
-          "Poppy · candidate"
+          "Bills coming up on Home; Mark paid",
+          "dev",
+          "FINNY-17"
+        ],
+        [
+          "Payoff plan: snowball or avalanche",
+          "dev",
+          "FINNY-17"
         ]
       ]
     },
@@ -57,17 +62,17 @@
       "name": "Next",
       "icon": "⏭️",
       "tone": "blue",
-      "sub": "Slice 4",
+      "sub": "",
       "items": [
+        [
+          "Budget alerts and a monthly review",
+          "gap",
+          "Poppy · after the owner uses Budget"
+        ],
         [
           "Assets and investments with P/L",
           "planned",
           "the wealth sheets"
-        ],
-        [
-          "Emergency fund",
-          "planned",
-          ""
         ]
       ]
     },
@@ -77,6 +82,11 @@
       "tone": "purple",
       "sub": "",
       "items": [
+        [
+          "Emergency fund",
+          "planned",
+          ""
+        ],
         [
           "Net worth goals over time",
           "planned",
