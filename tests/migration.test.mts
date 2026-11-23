@@ -14,7 +14,7 @@ await migrate(drizzle(pg), { migrationsFolder: folder });
 const tables = async () => (await pg.query<{ t: string }>("select table_name as t from information_schema.tables where table_schema = 'public' order by 1")).rows.map((r) => r.t);
 const up = await tables();
 console.log("up:", up.join(", "));
-for (const want of ["users", "sessions", "auth_accounts", "verification_tokens", "money_accounts", "categories", "entities", "transactions", "import_batches", "budgets", "income_plans", "debt_plans", "account_values", "things"]) assert.ok(up.includes(want), `missing ${want}`);
+for (const want of ["users", "sessions", "auth_accounts", "verification_tokens", "money_accounts", "categories", "entities", "transactions", "import_batches", "budgets", "income_plans", "debt_plans", "account_values", "things", "emergency_funds", "emergency_sources"]) assert.ok(up.includes(want), `missing ${want}`);
 
 // FINNY-26: the database itself refuses a malformed transaction (amounts in sen, transfers between two accounts, no category).
 await pg.exec(`insert into users (id, email) values ('u1', 'owner@finny.test');
@@ -66,6 +66,16 @@ await pg.exec(`insert into things (user_id, name, kind, bought_on, cost_sen, yea
 await refused("a value without its date", pg.exec(`insert into things (user_id, name, kind, bought_on, cost_sen, value_sen) values ('u1', 'X', 'other', '2024-01-01', 1, 5)`));
 await refused("a share over 100%", pg.exec(`insert into things (user_id, name, kind, bought_on, cost_sen, share_bp) values ('u1', 'X', 'business', '2024-01-01', 1, 10001)`));
 console.log("✓ market values and things keep their shape");
+// FINNY-101: one fund per owner; dependents 0–3; "own" needs an amount; one source per account.
+await pg.exec(`insert into emergency_funds (user_id, stability, dependents, monthly_sen) values ('u1', 'fair', 1, 200000000)`);
+await refused("two funds for one owner", pg.exec(`insert into emergency_funds (user_id) values ('u1')`));
+await refused("four dependents", pg.exec(`update emergency_funds set dependents = 4`));
+await refused("an own target without an amount", pg.exec(`update emergency_funds set target = 'own'`));
+await pg.exec(`insert into emergency_sources (user_id, account_id, part_sen) values ('u1', ${A}, 200000000)`);
+await refused("the same account twice", pg.exec(`insert into emergency_sources (user_id, account_id) values ('u1', ${A})`));
+await refused("a negative part", pg.exec(`insert into emergency_sources (user_id, account_id, part_sen) values ('u1', ${B}, -1)`));
+console.log("✓ the emergency fund and its sources keep their shape");
+await pg.exec("delete from emergency_sources; delete from emergency_funds;");
 await pg.exec("delete from account_values; delete from things;");
 await pg.exec("delete from debt_plans;");
 await pg.exec("delete from budgets; delete from income_plans;");

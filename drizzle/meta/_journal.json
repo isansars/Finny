@@ -57,6 +57,13 @@
       "when": 1795422972761,
       "tag": "0007_assets",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1795440334310,
+      "tag": "0008_emergency_fund",
+      "breakpoints": true
     }
   ]
 }

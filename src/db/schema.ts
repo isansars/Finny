@@ -189,3 +189,22 @@ export const things = pgTable("things", {
   createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
 }, (t) => [index("things_user").on(t.userId), check("things_shape", sql`${t.costSen} >= 0 and ${t.yearlyBp} between -10000 and 10000 and ${t.shareBp} between 1 and 10000
   and (${t.valueSen} is null or ${t.valueSen} >= 0) and ((${t.valueSen} is null) = (${t.valueOn} is null))`)]);
+
+// FINNY-101: the emergency fund: the inputs behind its target, and the accounts that hold it (all of a balance, or a part).
+export const emergencyFunds = pgTable("emergency_funds", {
+  userId: text("user_id").primaryKey().references(() => users.id, { onDelete: "cascade" }),
+  stability: text("stability", { enum: ["stable", "fair", "uncertain"] }).notNull().default("fair"),
+  dependents: integer("dependents").notNull().default(0),
+  spendingSen: bigint("spending_sen", { mode: "number" }), // null = Finny's 3-month average
+  target: text("target", { enum: ["low", "high", "own"] }).notNull().default("low"),
+  ownTargetSen: bigint("own_target_sen", { mode: "number" }),
+  monthlySen: bigint("monthly_sen", { mode: "number" }).notNull().default(0),
+}, (t) => [check("emergency_funds_shape", sql`${t.dependents} between 0 and 3 and (${t.spendingSen} is null or ${t.spendingSen} >= 0)
+  and (${t.ownTargetSen} is null or ${t.ownTargetSen} >= 0) and ${t.monthlySen} >= 0 and (${t.target} <> 'own' or ${t.ownTargetSen} is not null)`)]);
+
+export const emergencySources = pgTable("emergency_sources", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  accountId: uuid("account_id").notNull().references(() => moneyAccounts.id, { onDelete: "cascade" }),
+  partSen: bigint("part_sen", { mode: "number" }), // null = all of it
+}, (t) => [uniqueIndex("emergency_sources_one").on(t.userId, t.accountId), check("emergency_sources_part", sql`${t.partSen} is null or ${t.partSen} >= 0`)]);
