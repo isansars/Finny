@@ -145,5 +145,5 @@ export async function undoImport(userId: string, batchId: string) {
 /** The days and amounts already in Finny between two days (so the wealth log only offers what's missing). */
 export async function existingKeys(userId: string, from: string, to: string) {
   if (!isDay(from) || !isDay(to)) bad("from and to must be days like 2024-06-01");
-  return db.select({ on: transactions.on, sen: transactions.amountSen }).from(transactions).where(and(eq(transactions.userId, userId), gte(transactions.on, from), lte(transactions.on, to)));
+  return db.select({ on: transactions.on, sen: transactions.amountSen, categoryId: transactions.categoryId }).from(transactions).where(and(eq(transactions.userId, userId), gte(transactions.on, from), lte(transactions.on, to)));
 }

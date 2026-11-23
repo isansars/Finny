@@ -11,6 +11,7 @@ function account(name, rows) {
   return { sheet: name, data };
 }
 export const OWNER = "Rina";
+const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 export const BOOKS = [
   { sheet: "HOME", data: [[null, "Catatan Keuangan Pribadi"], [null, "Input Data"]] },
   { sheet: "COA", data: [["Nama Akun", "Kode", "COA1", "COA2", "COA3", "COA4", "COA5", "COA6"],
@@ -59,4 +60,12 @@ export const WEALTH = [
     [null, D("2024-06-02"), "June", "June 2024", "Bank Satu", "Expense", "Coffee", "Ngopi di Kedai", 43890],
     [null, D("2024-06-15"), "June", "June 2024", "GoPay", "Expense", "Transportation", "Parkir", 12000],
     [null, D("2024-06-16"), "June", "June 2024", "Bank Satu", "Income", "Gifts", "Hadiah", 250000]] },
+  // FINNY-62: the dashboard's year and the annual budget (made-up amounts; empty lines like the template's).
+  { sheet: "Dashboard", data: [[], [null, "Budgeting & Spending", null, "Year", null, "Months"], [null, null, null, 2025, null, "July"]] },
+  { sheet: "Budgeting", data: [[], [null, "Annual Budget", ...MONTHS], [], [null, "Allocated:", ...Array(12).fill(4300000)], [], [], [],
+    [null, "Expected Income"], [null, "Salary", ...Array(12).fill(15000000)], [null, "Bonuses"], [null, "Total", ...Array(12).fill(15000000)], [],
+    [null, "Expenses Budget"], [null, "Housing", ...Array(12).fill(1500000)], [null, "Food", ...Array(12).fill(1200000)], [null, "Pets"],
+    [null, "Transportation", ...Array(12).fill(600000)], [null, "Coffee", ...Array(11).fill(500000), 750000], [null, "Bills", ...Array(12).fill(400000)],
+    [null, "Total", ...Array(12).fill(4300000)], [null, "Expense as % of Income", ...Array(12).fill(0.29)], [],
+    [null, "Saving Budget"], [null, "General Savings", ...Array(12).fill(1000000)], [null, "Total", ...Array(12).fill(1000000)], [], [null, "Grand Total", ...Array(12).fill(5300000)]] },
 ];
