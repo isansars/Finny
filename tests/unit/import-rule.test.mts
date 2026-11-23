@@ -52,7 +52,7 @@ test("a row that can't be placed is listed, never guessed", () => {
 });
 test("the balance check: every account matches its workbook Saldo, except by exactly what wasn't placed", () => {
   const c = (k: string) => plan.checks.find((x) => x.account === k)!;
-  assert.equal(c("GoPay").ok, true); assert.equal(c("GoPay").finnySen, 6500000);
+  assert.equal(c("GoPay").ok, true); assert.equal(c("GoPay").finnySen, 6100000);
   assert.equal(c("CLOSED Kartu Kredit").ok, true); assert.equal(c("CLOSED Kartu Kredit").workbookSen, -15000000);
   assert.equal(c("PinjamDulu").ok, true); assert.equal(c("PinjamDulu").finnySen, -50000000);
   assert.equal(c("Bank Satu").ok, false); assert.equal(c("Bank Satu").finnySen - c("Bank Satu").workbookSen, 2500000);
@@ -60,7 +60,7 @@ test("the balance check: every account matches its workbook Saldo, except by exa
 });
 test("the template's rows never come in", () => {
   assert.ok(!plan.txns.some((t) => t.ref.startsWith("Kas Tunai#")));
-  assert.equal(plan.txns.length, 4 + 5 + 1 + 2 + 1); // transfers + Bank Satu (kopi, gaji, lend, repaid, refund) + GoPay + card (2) + loan drawdown
+  assert.equal(plan.txns.length, 4 + 5 + 3 + 2 + 1); // transfers + Bank Satu (kopi, gaji, lend, repaid, refund) + GoPay (lunch, 2 × parking) + card (2) + loan drawdown
 });
 test("the wealth log: only rows that aren't already in the books", () => {
   const log = readLog(WEALTH)!; assert.equal(log.length, 3);

@@ -15,6 +15,7 @@ export const BOOKS = [
   { sheet: "HOME", data: [[null, "Catatan Keuangan Pribadi"], [null, "Input Data"]] },
   { sheet: "COA", data: [["Nama Akun", "Kode", "COA1", "COA2", "COA3", "COA4", "COA5", "COA6"],
     ["Beli Kopi", null, "Pengeluaran", "Kebutuhan Pribadi", "Beli Kopi"],
+    ["Biaya Parkir", null, "Pengeluaran", "Transportasi", "Biaya Parkir"],
     ["Makan di Luar", null, "Pengeluaran", "Kebutuhan Rumah Tangga", "Kebutuhan Pokok", "Makan di Luar"],
     ["Biaya Listrik", null, "Pengeluaran", "Kebutuhan Rumah Tangga", "Properti", "Rumah", "Sarana Pelengkap Properti", "Biaya Listrik"],
     ["Gaji Bulanan", null, "Pendapatan", "Pendapatan Tetap", "Gaji", "Gaji Bulanan"],
@@ -38,7 +39,9 @@ export const BOOKS = [
     ["2024-06-11", "Pindah ke tabungan lama", OWNER, OWNER, "Tabungan Bank-0001", "Debet", 25000]]),
   account("GoPay", [
     ["2024-06-04", "Top up dari Bank Satu", OWNER, OWNER, "Bank Satu", "Kredit", 100000],
-    ["2024-06-05", "Makan siang", OWNER, "Warung", "Makan di Luar", "Debet", 35000]]),
+    ["2024-06-05", "Makan siang", OWNER, "Warung", "Makan di Luar", "Debet", 35000],
+    ["2024-06-12", "Parkir motor", OWNER, "Lainnya", "Biaya Parkir", "Debet", 2000],
+    ["2024-06-12", "Parkir motor", OWNER, "Lainnya", "Biaya Parkir", "Debet", 2000]]), // two identical rows: two transactions
   account("CLOSED Kartu Kredit", [
     ["2024-06-01", "Limit Awal Kartu Kredit", "Bank", OWNER, "CLOSED Kartu Kredit", "Kredit", 10000000],
     ["2024-06-02", "Belanja", OWNER, "Toko", "Makan di Luar", "Debet", 200000],
