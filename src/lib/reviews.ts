@@ -25,6 +25,7 @@ export type Summary = {
   netSen: number; netChangeSen: number; usedPct: number | null; over: number; under: number;
   emergencyPct: number | null; emergencyPrevPct: number | null; debtsPaidSen: number;
   goals?: { name: string; pct: number; change: number }[];
+  match?: Record<string, unknown> | null;
 };
 
 async function reviewRow(userId: string, month: string) {
@@ -65,11 +66,12 @@ export async function getReview(userId: string, monthIn: unknown) {
     netSen: sheet.netSen, netChangeSen: sheet.changeSen, usedPct: check.usedPct, over: check.over.length, under: check.under.length,
     emergencyPct: ef.configured ? ef.pct : null, emergencyPrevPct: (prev?.summary as Summary | null)?.emergencyPct ?? null, debtsPaidSen: debtsPaid(w.txns, owed, month),
     goals: goalRows.map((g) => ({ name: g.name, pct: g.pct, change: g.change })),
+    match: (row?.matchSummary as Record<string, unknown> | null) ?? null,
   };
   const named = <T extends { categoryId: string }>(l: T) => ({ ...l, name: name.get(l.categoryId) ?? "" });
   return {
     month, next, today, closed: !!row?.closedAt, closedAt: row?.closedAt ?? null, note: row?.note ?? "",
-    steps: steps(statements.done, row), statements,
+    steps: steps(statements.done, row), statements, match: (row?.matchSummary as Record<string, unknown> | null) ?? null,
     budget: { ...check, over: check.over.map(named), under: check.under.map(named), nextPlanned: nextRows.length, planNext: planNext(bud.lines, new Set(nextRows.map((r) => r.categoryId))).map(named) },
     wealth: { netSen: sheet.netSen, changeSen: sheet.changeSen, holdings: holdings.length, valuesOn, valuesDays: daysSince(valuesOn, today),
       emergency: { configured: ef.configured, pct: ef.pct, setAsideSen: ef.setAsideSen, targetSen: ef.targetSen, prevPct: live.emergencyPrevPct }, goals: goalRows },
