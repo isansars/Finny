@@ -14,7 +14,7 @@ await migrate(drizzle(pg), { migrationsFolder: folder });
 const tables = async () => (await pg.query<{ t: string }>("select table_name as t from information_schema.tables where table_schema = 'public' order by 1")).rows.map((r) => r.t);
 const up = await tables();
 console.log("up:", up.join(", "));
-for (const want of ["users", "sessions", "auth_accounts", "verification_tokens", "money_accounts", "categories", "entities", "transactions"]) assert.ok(up.includes(want), `missing ${want}`);
+for (const want of ["users", "sessions", "auth_accounts", "verification_tokens", "money_accounts", "categories", "entities", "transactions", "import_batches"]) assert.ok(up.includes(want), `missing ${want}`);
 
 // FINNY-26: the database itself refuses a malformed transaction (amounts in sen, transfers between two accounts, no category).
 await pg.exec(`insert into users (id, email) values ('u1', 'owner@finny.test');

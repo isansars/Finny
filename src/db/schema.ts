@@ -43,6 +43,19 @@ export const ACCOUNT_TYPES = ["cash", "bank", "ewallet", "card", "loan", "invest
 export const CATEGORY_KINDS = ["income", "expense", "saving", "investment"] as const;
 export const TXN_KINDS = ["spend", "income", "transfer"] as const;
 
+// ---- FINNY-46 (🦦 Mira): one row per workbook import, so an import can be undone exactly.
+export const importBatches = pgTable("import_batches", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  source: text("source").notNull(),
+  createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
+  finishedAt: timestamp("finished_at", { mode: "date" }),
+  txns: integer("txns").notNull().default(0),
+  skipped: integer("skipped").notNull().default(0),
+  accounts: integer("accounts").notNull().default(0),
+  categories: integer("categories").notNull().default(0),
+}, (t) => [index("import_batches_user").on(t.userId)]);
+
 export const moneyAccounts = pgTable("money_accounts", {
   id: uuid("id").primaryKey().defaultRandom(),
   userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
@@ -55,6 +68,7 @@ export const moneyAccounts = pgTable("money_accounts", {
   statementDay: integer("statement_day"),
   archived: boolean("archived").notNull().default(false),
   position: integer("position").notNull().default(0),
+  importBatchId: uuid("import_batch_id"), // FINNY-46: created by this import (undo removes it if nothing else uses it)
   createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
 }, (t) => [index("money_accounts_user").on(t.userId)]);
 
@@ -69,6 +83,7 @@ export const categories = pgTable("categories", {
   parentId: uuid("parent_id"),
   active: boolean("active").notNull().default(true),
   position: integer("position").notNull().default(0),
+  importBatchId: uuid("import_batch_id"), // FINNY-46
 }, (t) => [index("categories_user").on(t.userId)]);
 
 export const entities = pgTable("entities", {
@@ -94,6 +109,7 @@ export const transactions = pgTable("transactions", {
 }, (t) => [
   index("transactions_user_on").on(t.userId, t.on),
   index("transactions_user_account_on").on(t.userId, t.accountId, t.on),
+  index("transactions_import_batch").on(t.importBatchId),
   check("transactions_amount_positive", sql`${t.amountSen} > 0`),
   // A transfer moves between two different accounts and has no category; spend and income have a category and no second account.
   check("transactions_shape", sql`(${t.kind} = 'transfer' and ${t.toAccountId} is not null and ${t.toAccountId} <> ${t.accountId} and ${t.categoryId} is null)
