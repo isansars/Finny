@@ -45,14 +45,14 @@ function ItemTile({ kind, categoryId }: { kind: Kind; categoryId: string | null 
 
 /** Home: what's due today (and missed since), and the next 7 days. Nothing is added without a tap. */
 export function DueToday() {
-  const { version, reload } = useFinny();
+  const { version, reload, loaded } = useFinny();
   const acc = useAccName();
   const [d, setD] = useState<Due | null>(null);
   const [amounts, setAmounts] = useState<Record<string, string>>({});
   const [err, setErr] = useState("");
   const [busy, setBusy] = useState(false);
   useEffect(() => { let live = true; api<Due>("recurring/due").then((x) => { if (live) setD(x); }).catch(() => {}); return () => { live = false; }; }, [version]);
-  if (!d || (!d.due.length && !d.coming.length)) return null;
+  if (!loaded || !d || (!d.due.length && !d.coming.length)) return null; // no rows without their account names
   const k = (x: { id: string; dueOn: string }) => `${x.id}|${x.dueOn}`;
   async function act(list: Due["due"], how: "add" | "skip") {
     setErr(""); setBusy(true);

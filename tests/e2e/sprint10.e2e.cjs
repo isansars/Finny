@@ -61,7 +61,7 @@ module.exports = async ({ base, shots }) => {
   await s.check("FINNY-107.6 Home: the review nudge, and a budget warning at 90%", async () => {
     await page.goto(base + "/"); await page.getByTestId("rv-nudge").waitFor();
     ok((await text("rv-nudge")).includes(`${name(M)} is ready for review`) && (await text("rv-nudge")).includes("0 of 4 done · BRI card statement still to read"), await text("rv-nudge"));
-    await page.getByTestId("budget-warning").waitFor();
+    await page.getByTestId("budget-warning").waitFor(); await waitText("budget-warning", "Makan di Luar");
     ok((await text("budget-warning")).includes("Makan di Luar is at 95%") && (await text("budget-warning")).includes("to go"), await text("budget-warning"));
     await noSideScroll("Home"); await page.screenshot({ path: require("node:path").join(shots, "s10-04-home-375.png") });
   });

@@ -248,6 +248,7 @@ export function BudgetWarning({ lines, daysLeft, name }: { lines: { categoryId: 
   const w = lines.filter((l) => l.plannedSen > 0 && l.spentSen >= l.plannedSen * 0.9).sort((a, b) => b.pct - a.pct);
   if (!w.length) return null;
   const top = w[0], over = top.spentSen > top.plannedSen;
+  if (!name(top.categoryId)) return null; // categories still loading: no nameless warning
   return (
     <div className="fy-rv-warn" role="status" data-testid="budget-warning"><CircleAlert size={16} style={{ flex: "none" }} />
       <span>{name(top.categoryId)} {over ? `is over budget (${top.pct}%)` : `is at ${top.pct}%`}{daysLeft ? ` with ${daysLeft} day${daysLeft === 1 ? "" : "s"} to go` : ""}{w.length > 1 ? ` · ${w.length - 1} more` : ""}</span></div>
