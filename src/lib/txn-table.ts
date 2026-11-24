@@ -5,6 +5,7 @@ import { db } from "@/db";
 import { categories, entities, importBatches, moneyAccounts, transactions } from "@/db/schema";
 import { HttpError } from "@/lib/session";
 import { listCategories } from "@/lib/data";
+import { trashTransactions } from "@/lib/undo";
 import { checkFlags, USUAL_DAYS, type Flag } from "@/lib/check-rule";
 import { senToPlain, toCsv } from "@/lib/csv";
 
@@ -83,7 +84,7 @@ export async function tableCsv(userId: string, f: TableFilter) {
 
 /** Several at once: delete, change category (spend and income rows whose kind fits it; others are left), or mark as looking fine.
  *  All or nothing, and only the owner's rows: one id that isn't theirs refuses the whole request. */
-export async function bulkTransactions(userId: string, body: Record<string, unknown>) {
+export async function bulkTransactions(userId: string, body: Record<string, unknown>, now = new Date()) {
   const ids = Array.isArray(body.ids) ? [...new Set(body.ids.map(String))] : [];
   if (!ids.length || ids.length > 500 || ids.some((id) => !UUID.test(id))) bad("ids must be 1 to 500 transaction ids.");
   const action = String(body.action ?? "");
@@ -98,7 +99,7 @@ export async function bulkTransactions(userId: string, body: Record<string, unkn
   return db.transaction(async (tx) => {
     const mine = await tx.select({ id: transactions.id, kind: transactions.kind }).from(transactions).where(and(eq(transactions.userId, userId), inArray(transactions.id, ids)));
     if (mine.length !== ids.length) bad("Some of these transactions weren't found.", 404);
-    if (action === "delete") { await tx.delete(transactions).where(and(eq(transactions.userId, userId), inArray(transactions.id, ids))); return { changed: ids.length, skipped: 0 }; }
+    if (action === "delete") return trashTransactions(tx, userId, ids, now); // FINNY-186: undoable for a day
     if (action === "fine") { await tx.update(transactions).set({ looksOk: true }).where(and(eq(transactions.userId, userId), inArray(transactions.id, ids))); return { changed: ids.length, skipped: 0 }; }
     const fits = mine.filter((t) => (cat!.kind === "income" ? t.kind === "income" : t.kind === "spend")).map((t) => t.id);
     if (fits.length) await tx.update(transactions).set({ categoryId: cat!.id }).where(and(eq(transactions.userId, userId), inArray(transactions.id, fits)));
