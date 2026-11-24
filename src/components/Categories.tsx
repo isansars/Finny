@@ -72,7 +72,7 @@ export function Categories() {
   return (
     <>
       <a className="fy-back" href="/settings"><ChevronLeft size={20} />Settings</a>
-      <div className="fy-large"><div><div className="sub">{categories.length} in all</div><h1>Categories</h1></div><button className="fy-btn primary small" onClick={() => setEdit(null)} aria-label="Add category"><Plus size={16} />Add</button></div>
+      <div className="fy-large"><div><div className="sub">{categories.length} in all</div><h1>Categories</h1></div><button className="fy-btn primary small" onClick={() => setEdit(null)} aria-label="New category"><Plus size={16} />New category</button></div>
       <div className="fy-seg" role="tablist" style={{ marginBottom: 6 }}>{KINDS.map(([k, l]) => <button key={k} role="tab" aria-selected={kind === k} className={kind === k ? "on" : ""} onClick={() => setKind(k)}>{l}</button>)}</div>
       {loaded && !categories.length && (
         <div className="fy-card fy-empty" style={{ marginTop: 12 }}><Tile icon="shapes" color="lavender" size={52} /><b>No categories yet</b>Start with a set in your own words (Makan di Luar, Beli Kopi, Gaji Bulanan…) and change anything after.

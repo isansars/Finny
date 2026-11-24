@@ -149,8 +149,8 @@ button.fy-row, .fy-row.tap { cursor: pointer; } button.fy-row:hover, .fy-row.tap
 .fy-month { display: inline-flex; align-items: center; gap: 2px; background: var(--surface); border: 1px solid var(--border); border-radius: 999px; padding: 3px; box-shadow: var(--shadow-sm); }
 .fy-month button { border: 0; background: none; width: 34px; height: 34px; border-radius: 999px; display: grid; place-items: center; cursor: pointer; color: var(--text-2); }
 .fy-month button:hover { background: var(--surface-3); } .fy-month span { font-weight: 700; font-size: 14px; padding: 0 4px; min-width: 112px; text-align: center; }
-.fy-donut { display: flex; gap: 18px; align-items: center; }
-.fy-legend { flex: 1; min-width: 0; }
+.fy-donut { display: flex; gap: 14px 18px; align-items: center; flex-wrap: wrap; justify-content: center; } /* FINNY-165: in a narrow card the legend goes under the donut, names whole */
+.fy-legend { flex: 1 1 180px; min-width: 0; }
 .fy-legend .r { display: flex; align-items: center; gap: 8px; padding: 4px 0; font-size: 13.5px; }
 .fy-legend .r i { width: 10px; height: 10px; border-radius: 4px; flex: none; } .fy-legend .r span { flex: 1; color: var(--text-2); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .fy-legend .r b { font-weight: 700; font-variant-numeric: tabular-nums; }
@@ -178,7 +178,7 @@ button.fy-row, .fy-row.tap { cursor: pointer; } button.fy-row:hover, .fy-row.tap
 .fy-catgrid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; margin: 4px 0 8px; }
 @media (min-width: 420px) { .fy-catgrid { grid-template-columns: repeat(5, 1fr); } }
 .fy-cat { display: flex; flex-direction: column; align-items: center; gap: 5px; padding: 8px 2px 6px; border-radius: 16px; border: 1.5px solid transparent; background: none; cursor: pointer; min-height: 76px; }
-.fy-cat small { font-size: 11.5px; font-weight: 700; color: var(--text-2); max-width: 100%; text-align: center; line-height: 1.15; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.fy-cat small { font-size: 11.5px; font-weight: 700; color: var(--text-2); max-width: 100%; text-align: center; line-height: 1.15; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; }
 .fy-cat[aria-checked="true"] { background: var(--primary-soft); border-color: var(--primary-2); } .fy-cat[aria-checked="true"] small { color: var(--primary-text); }
 .fy-cat:hover { background: var(--surface-2); }
 .fy-subhead { font-size: 12.5px; font-weight: 700; color: var(--text-3); margin: 10px 2px 6px; display: flex; justify-content: space-between; }
@@ -354,3 +354,5 @@ button.fy-row, .fy-row.tap { cursor: pointer; } button.fy-row:hover, .fy-row.tap
 main.fy-wrap:focus { outline: none; }
 /* FINNY-164: Home's add form on a laptop: Save stays at the bottom of the panel while the form scrolls inside it. */
 @media (min-width: 900px) { .fy-home .side .fy-sheet-foot { position: sticky; bottom: -16px; z-index: 2; background: var(--surface); margin: 14px -16px -16px; padding: 12px 16px 16px; border-top: 1px solid var(--border); } }
+/* FINNY-165: rows you can click react to the mouse (only where there is one). */
+@media (hover: hover) { a.fy-row:hover, button.fy-row:hover:not(:disabled), .fy-row.tap:hover { background: color-mix(in srgb, var(--primary) 6%, transparent); cursor: pointer; } }

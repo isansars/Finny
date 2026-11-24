@@ -47,7 +47,7 @@ module.exports = async ({ base, shots }) => {
 
   // ---------- FINNY-8 / 27 / 28: accounts
   async function addAccount({ name, type, opening, limit, day }) {
-    await page.goto(base + "/accounts"); await page.getByRole("button", { name: "Add account" }).click();
+    await page.goto(base + "/accounts"); await page.getByRole("button", { name: "New account" }).click();
     const f = page.getByRole("dialog"); await f.getByLabel("Name").fill(name); await f.getByLabel("Type").selectOption(type);
     if (opening) await f.getByLabel(/Opening balance|Owed on the opening date/).fill(opening);
     if (limit) await f.getByLabel("Limit").fill(limit);
@@ -91,7 +91,7 @@ module.exports = async ({ base, shots }) => {
     await page.getByTestId("cat-Beli Kopi").waitFor(); ok(await page.getByTestId("cat-Kebutuhan Pribadi").isVisible(), "no group");
   });
   await s.check("FINNY-10.1 a tree by kind: add a third-level category; a fourth level is refused", async () => {
-    await page.getByRole("button", { name: "Add category" }).click(); let f = page.getByRole("dialog");
+    await page.getByRole("button", { name: "New category" }).click(); let f = page.getByRole("dialog");
     await f.getByLabel("Name").fill("Kopi Susu"); await f.getByLabel("Parent category").selectOption({ label: "  Beli Kopi" });
     await f.getByRole("button", { name: "Add category" }).click(); await f.waitFor({ state: "detached" });
     const cats = (await json("categories")).body; const ks = cats.find((c) => c.name === "Kopi Susu"), bk = cats.find((c) => c.name === "Beli Kopi");

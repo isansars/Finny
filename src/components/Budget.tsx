@@ -65,7 +65,7 @@ export function Budget() {
       {data && !data.lines.length ? (
         <div className="fy-card fy-empty" style={{ marginTop: 12 }} data-testid="budget-empty">
           <Tile icon="pie-chart" color="pink" size={52} /><b>Plan {name}</b>Give your categories a budget for the month. A group&apos;s budget covers everything inside it.
-          <div style={{ display: "flex", flexDirection: "column", gap: 8, width: "100%", maxWidth: 320, marginTop: 14 }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 8, width: "100%", maxWidth: 320, margin: "14px auto 0" }}>
             <button className="fy-btn primary block" onClick={() => setEdit({ categoryId: null })}><Plus size={17} />Budget a category</button>
             <a className="fy-btn block" href="/import"><FileSpreadsheet size={17} />Bring in your workbook budget</a>
           </div>

@@ -93,7 +93,7 @@ export function Accounts() {
   return (
     <>
       <div className="fy-large"><div><div className="sub">{open.length} open</div><h1>Accounts</h1></div>
-        <div style={{ display: "flex", gap: 8 }}>{open.length > 1 && <button className="fy-btn small" onClick={() => setReorder(!reorder)}>{reorder ? "Done" : "Reorder"}</button>}<button className="fy-btn primary small" onClick={() => setEdit(null)} aria-label="Add account"><Plus size={16} />Add</button></div></div>
+        <div style={{ display: "flex", gap: 8 }}>{open.length > 1 && <button className="fy-btn small" onClick={() => setReorder(!reorder)}>{reorder ? "Done" : "Reorder"}</button>}<button className="fy-btn primary small" onClick={() => setEdit(null)} aria-label="New account"><Plus size={16} />New account</button></div></div>
       <div className="fy-hero"><div className="lbl" style={{ display: "flex", justifyContent: "space-between" }}><span>Total across open accounts</span><span style={{ display: "flex", gap: 12 }}><Link className="fy-more" style={{ padding: 0, fontSize: 13 }} href="/assets">Assets ›</Link>{open.some((a) => a.type === "card" || a.type === "loan") && <Link className="fy-more" style={{ padding: 0, fontSize: 13 }} href="/debts">Debts ›</Link>}</span></div><div className="big" style={{ marginBottom: 0 }} data-testid="accounts-total">{formatRupiah(total)}</div></div>
       {loaded && !accounts.length && <div className="fy-card fy-empty" style={{ marginTop: 12 }}><Tile icon="landmark" color="sky" size={52} /><b>No accounts yet</b>Add each place your money lives: cash, banks, e-wallets, credit cards and loans.</div>}
       {GROUPS.map((g) => {
