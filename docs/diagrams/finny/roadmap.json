@@ -1,7 +1,7 @@
 {
   "type": "board",
   "title": "Finny · Roadmap",
-  "subtitle": "Replace the two workbooks: record every day, read the bank each month, then plan, report and grow. Current as of Sprint 22 planning, 24 Nov 2026.",
+  "subtitle": "Replace the two workbooks: record every day, read the bank each month, then plan, report and grow. Current as of v0.22.0, 25 Nov 2026.",
   "footer": "🐰 Poppy · Finny · Product · 24 Nov 2026 · planned on the FINNY board",
   "badge": "💸 The owner's own product · FINNY board · isansars/Finny",
   "width": 1700,
@@ -13,6 +13,11 @@
       "sub": "latest three releases",
       "items": [
         [
+          "Several at once, offline: delete, category and looks fine without a signal",
+          "live",
+          "v0.22.0 · FINNY-199"
+        ],
+        [
           "Fix and delete offline: changes wait on the phone, nothing overwritten without asking",
           "live",
           "v0.21.0 · FINNY-191"
@@ -21,30 +26,25 @@
           "The BRI × Tokopedia card bill read again, with its interest and due date",
           "live",
           "v0.20.1 · FINNY-198"
-        ],
-        [
-          "Undo a delete: right away or for a day, exactly as it was",
-          "live",
-          "v0.20.0 · FINNY-183"
         ]
       ]
     },
     {
-      "name": "Now · Sprint 22",
+      "name": "Now",
       "icon": "🏃",
       "tone": "orange",
-      "sub": "25 Nov – 8 Dec · v0.22.0",
+      "sub": "Your data audit (25 Nov)",
       "focus": true,
       "items": [
         [
-          "Several at once, offline: delete, category and looks fine without a signal",
-          "dev",
-          "FINNY-199"
+          "Clean the doubles the audit found: card bill payments, transfers seen by two banks",
+          "planned",
+          "the owner, with the audit's list"
         ],
         [
-          "Alongside: the owner's month in Finny only",
+          "Read the combined Mandiri statement (account and card)",
           "planned",
-          "the owner: the done-when check"
+          "needs a sample PDF"
         ]
       ]
     },
