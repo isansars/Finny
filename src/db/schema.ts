@@ -128,8 +128,11 @@ export const transactions = pgTable("transactions", {
   description: text("description").notNull().default(""),
   note: text("note"),
   importBatchId: uuid("import_batch_id"),
+  // FINNY-148: set by the phone for an entry saved offline, so a resend is recognised (unique per owner when set).
+  clientRef: text("client_ref"),
   createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
 }, (t) => [
+  uniqueIndex("transactions_client_ref").on(t.userId, t.clientRef).where(sql`${t.clientRef} is not null`),
   index("transactions_user_on").on(t.userId, t.on),
   index("transactions_user_account_on").on(t.userId, t.accountId, t.on),
   index("transactions_import_batch").on(t.importBatchId),

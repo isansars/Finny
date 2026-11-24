@@ -1,0 +1,2 @@
+ALTER TABLE "transactions" ADD COLUMN "client_ref" text;--> statement-breakpoint
+CREATE UNIQUE INDEX "transactions_client_ref" ON "transactions" USING btree ("user_id","client_ref") WHERE "transactions"."client_ref" is not null;
