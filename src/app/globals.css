@@ -361,10 +361,10 @@ main.fy-wrap:focus { outline: none; }
 /* FINNY-165: the add form beside Home is narrower than a phone: four categories a row so long names fit. */
 @media (min-width: 900px) { .fy-home .side .fy-catgrid { grid-template-columns: repeat(4, 1fr); } }
 /* FINNY-172/173: every transaction, to check. */
-.fy-tx-filters { display: grid; gap: 8px; grid-template-columns: 1fr 1fr; }
-.fy-tx-filters .fy-search { grid-column: 1 / -1; }
-.fy-tx-filters select.fy-input { min-height: 40px; font-weight: 700; color: var(--text-2); }
-@media (min-width: 760px) { .fy-tx-filters { grid-template-columns: minmax(220px, 1fr) repeat(4, auto); } .fy-tx-filters .fy-search { grid-column: auto; } }
+.fy-tx-filters { display: flex; flex-wrap: wrap; gap: 8px; }
+.fy-tx-filters .fy-search { flex: 1 1 100%; }
+.fy-tx-filters select.fy-input { flex: 1 1 40%; min-width: 0; min-height: 40px; font-weight: 700; color: var(--text-2); text-overflow: ellipsis; }
+@media (min-width: 760px) { .fy-tx-filters .fy-search { flex: 1 1 260px; } .fy-tx-filters select.fy-input { flex: 0 1 auto; width: auto; max-width: 210px; } }
 .fy-tx-wrap { overflow-x: auto; }
 .fy-tx { width: 100%; border-collapse: collapse; font-size: 14px; }
 .fy-tx th { text-align: left; font-size: 12.5px; color: var(--text-2); font-weight: 800; padding: 10px 12px; border-bottom: 1px solid var(--border); white-space: nowrap; }

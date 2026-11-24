@@ -2,7 +2,7 @@
 // FINNY-172/173: every transaction, to check, as approved in "Sprint 18 · Design notes (Every transaction, to check,
 // approved)": a table on a laptop and rows on a phone, filters kept in the URL, Finny's guesses at mistakes, and
 // fixing or deleting one or several at once.
-import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { ArrowDown, ArrowUp, Check, CircleAlert, Download, Pencil, Search, Tag, Trash2, X } from "lucide-react";
 import { api, useFinny, type Txn } from "./store";
@@ -29,7 +29,12 @@ export function Transactions() {
   const wide = useWide();
   const month = params.get("month") ?? todayIn().slice(0, 7);
   const filter = useMemo(() => ({ month, account: params.get("account") ?? "", category: params.get("category") ?? "", kind: params.get("kind") ?? "", source: params.get("source") ?? "", look: params.get("look") ?? "", q: params.get("q") ?? "", sort: params.get("sort") ?? "-date" }), [params, month]);
-  const set = (k: string, v: string) => { const p = new URLSearchParams(params); if (v) p.set(k, v); else p.delete(k); if (k === "look" || k === "source") { if (k === "look") p.delete("source"); else p.delete("look"); } router.replace(`${path}?${p}`, { scroll: false }); };
+  // Two quick changes in a row (before the page re-renders) must both stick: build on the last URL asked for, not the last rendered.
+  const pending = useRef<string | null>(null);
+  useEffect(() => { pending.current = null; }, [params]);
+  const go = (p: URLSearchParams) => { pending.current = p.toString(); router.replace(`${path}?${p}`, { scroll: false }); };
+  const latest = () => new URLSearchParams(pending.current ?? params.toString());
+  const set = (k: string, v: string) => { const p = latest(); if (v) p.set(k, v); else p.delete(k); if (k === "look" || k === "source") { if (k === "look") p.delete("source"); else p.delete("look"); } go(p); };
   const query = (offset: number, limit = PAGE) => { const p = new URLSearchParams(); for (const [k, v] of Object.entries(filter)) if (v && !(k === "month" && v === "all")) p.set(k, v); p.set("offset", String(offset)); p.set("limit", String(limit)); return p; };
 
   const [data, setData] = useState<Page | null>(null);
@@ -82,7 +87,7 @@ export function Transactions() {
   const flags = (r: Row) => r.flags.map((f, i) => <span key={i} className="fy-pill fy-flag" title={f.kind === "twice" ? "The same amount on the same day and account more than once" : "Far above what this category usually is"}><CircleAlert size={12} />{flagLabel(f)}</span>);
   const chips: [string, string, number | undefined][] = [["all", "All", data?.counts.all], ["look", "Needs a look", data?.counts.look], ["typed", "Typed", data?.counts.typed], ["statement", "From a statement", data?.counts.statement], ["workbook", "From the workbook", data?.counts.workbook]];
   const chipOn = (k: string) => (k === "all" ? !filter.look && !filter.source : k === "look" ? filter.look === "1" : filter.source === k);
-  const chipSet = (k: string) => { const p = new URLSearchParams(params); p.delete("look"); p.delete("source"); if (k === "look") p.set("look", "1"); else if (k !== "all") p.set("source", k); router.replace(`${path}?${p}`, { scroll: false }); };
+  const chipSet = (k: string) => { const p = latest(); p.delete("look"); p.delete("source"); if (k === "look") p.set("look", "1"); else if (k !== "all") p.set("source", k); go(p); };
   const csv = `/api/transactions/csv?${(() => { const p = query(0, 5000); p.delete("offset"); p.delete("limit"); return p; })()}`;
 
   return (
