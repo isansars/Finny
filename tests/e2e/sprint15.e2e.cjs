@@ -72,6 +72,7 @@ module.exports = async ({ base, shots }) => {
     await page.waitForFunction(() => !document.querySelector('[data-testid="waiting"]'));
     const t = (await txns()).filter((x) => x.description === "Kopi Tuku");
     ok(t.length === 1 && t[0].amountSen === 3_800_000 && t[0].on === today && t[0].clientRef, JSON.stringify(t));
+    await page.waitForFunction(() => document.body.innerText.includes("Rp 83.000")); // the month's totals catch up too
     await page.screenshot({ path: require("node:path").join(shots, "s15-03-back-online-375.png") });
     // The same entry sent again (an answer lost on the way) is the same row; two at once make one row.
     const again = await json("transactions", { method: "POST", data: { kind: "spend", amount: "38.000", accountId: bca.id, categoryId: kopi.id, description: "Kopi Tuku", on: today, clientRef: t[0].clientRef } });
