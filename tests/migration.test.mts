@@ -14,7 +14,7 @@ await migrate(drizzle(pg), { migrationsFolder: folder });
 const tables = async () => (await pg.query<{ t: string }>("select table_name as t from information_schema.tables where table_schema = 'public' order by 1")).rows.map((r) => r.t);
 const up = await tables();
 console.log("up:", up.join(", "));
-for (const want of ["users", "sessions", "auth_accounts", "verification_tokens", "money_accounts", "categories", "entities", "transactions", "import_batches", "budgets", "income_plans", "debt_plans", "account_values", "things", "emergency_funds", "emergency_sources", "month_reviews", "goals", "goal_sources", "recurring", "recurring_runs", "recurring_dismissed"]) assert.ok(up.includes(want), `missing ${want}`);
+for (const want of ["users", "sessions", "auth_accounts", "verification_tokens", "money_accounts", "categories", "entities", "transactions", "import_batches", "budgets", "income_plans", "debt_plans", "account_values", "things", "emergency_funds", "emergency_sources", "month_reviews", "goals", "goal_sources", "recurring", "recurring_runs", "recurring_dismissed", "deleted_transactions"]) assert.ok(up.includes(want), `missing ${want}`);
 
 // FINNY-26: the database itself refuses a malformed transaction (amounts in sen, transfers between two accounts, no category).
 await pg.exec(`insert into users (id, email) values ('u1', 'owner@finny.test');
@@ -113,6 +113,10 @@ assert.deepEqual(lo.rows.map((r) => r.looks_ok), [false], "existing rows don't l
 await pg.exec("update transactions set looks_ok = true where amount_sen = 100");
 await refused("looks_ok left empty", pg.exec("update transactions set looks_ok = null"));
 console.log("✓ a transaction can be marked as looking fine; existing rows aren't");
+// FINNY-185: a deleted transaction waits in the trash; its account may be gone by then (no foreign key), its owner may not.
+await pg.exec(`insert into deleted_transactions (id, user_id, undo_id, "on", kind, amount_sen, account_id, created_at) values ('6f1c0b2e-2222-4a2b-9c3d-000000000001', 'u1', '6f1c0b2e-2222-4a2b-9c3d-0000000000aa', '2026-11-24', 'spend', 100, '6f1c0b2e-2222-4a2b-9c3d-00000000dead', now())`);
+await refused("a trash row for nobody", pg.exec(`insert into deleted_transactions (id, user_id, undo_id, "on", kind, amount_sen, account_id, created_at) values ('6f1c0b2e-2222-4a2b-9c3d-000000000002', 'nobody', '6f1c0b2e-2222-4a2b-9c3d-0000000000aa', '2026-11-24', 'spend', 100, '6f1c0b2e-2222-4a2b-9c3d-00000000dead', now())`));
+console.log("✓ the trash keeps a deleted transaction even when its account is gone");
 await pg.exec("delete from month_reviews;");
 await pg.exec("delete from emergency_sources; delete from emergency_funds;");
 await pg.exec("delete from account_values; delete from things;");

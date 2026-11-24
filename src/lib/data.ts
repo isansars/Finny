@@ -1,7 +1,7 @@
 // The data layer. Every function takes the signed-in owner's id and every query is scoped to it (Shield).
 import { and, asc, desc, eq, gte, ilike, inArray, lt, or, sql } from "drizzle-orm";
 import { db } from "@/db";
-import { accountValues, budgets, categories, debtPlans, emergencyFunds, emergencySources, entities, monthReviews, goals, recurring, recurringDismissed, things, importBatches, incomePlans, moneyAccounts, transactions, ACCOUNT_TYPES, CATEGORY_KINDS } from "@/db/schema";
+import { accountValues, budgets, categories, debtPlans, deletedTransactions, emergencyFunds, emergencySources, entities, monthReviews, goals, recurring, recurringDismissed, things, importBatches, incomePlans, moneyAccounts, transactions, ACCOUNT_TYPES, CATEGORY_KINDS } from "@/db/schema";
 import { HttpError } from "@/lib/session";
 import { addFlow, balanceOf, cardView, type Flows } from "@/lib/balance-rule";
 import { placeProblem, mergeProblem, type Cat } from "@/lib/category-rule";
@@ -308,6 +308,7 @@ export async function exportRows(userId: string) {
 export async function deleteEverything(userId: string) {
   await db.delete(recurring).where(eq(recurring.userId, userId)); // its runs go with it
   await db.delete(recurringDismissed).where(eq(recurringDismissed.userId, userId));
+  await db.delete(deletedTransactions).where(eq(deletedTransactions.userId, userId)); // the undo trash
   await db.delete(transactions).where(eq(transactions.userId, userId));
   await db.delete(budgets).where(eq(budgets.userId, userId));
   await db.delete(incomePlans).where(eq(incomePlans.userId, userId));

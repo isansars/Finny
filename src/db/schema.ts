@@ -63,6 +63,28 @@ export const importBatches = pgTable("import_batches", {
   fileHash: text("file_hash"),
 }, (t) => [index("import_batches_user").on(t.userId), uniqueIndex("import_batches_file").on(t.userId, t.fileHash).where(sql`${t.fileHash} is not null`)]);
 
+// FINNY-185: deleted transactions, kept for a day so a delete can be undone exactly (same id, every column). No foreign keys
+// to accounts, categories or entities: those may be deleted meanwhile, and the undo checks they still exist.
+export const deletedTransactions = pgTable("deleted_transactions", {
+  id: uuid("id").primaryKey(),
+  userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  undoId: uuid("undo_id").notNull(),
+  deletedAt: timestamp("deleted_at", { mode: "date" }).notNull().defaultNow(),
+  on: date("on", { mode: "string" }).notNull(),
+  kind: text("kind").notNull(),
+  amountSen: bigint("amount_sen", { mode: "number" }).notNull(),
+  accountId: uuid("account_id").notNull(),
+  toAccountId: uuid("to_account_id"),
+  categoryId: uuid("category_id"),
+  entityId: uuid("entity_id"),
+  description: text("description").notNull().default(""),
+  note: text("note"),
+  importBatchId: uuid("import_batch_id"),
+  clientRef: text("client_ref"),
+  looksOk: boolean("looks_ok").notNull().default(false),
+  createdAt: timestamp("created_at", { mode: "date" }).notNull(),
+}, (t) => [index("deleted_transactions_undo").on(t.userId, t.undoId), index("deleted_transactions_when").on(t.userId, t.deletedAt)]);
+
 export const moneyAccounts = pgTable("money_accounts", {
   id: uuid("id").primaryKey().defaultRandom(),
   userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
