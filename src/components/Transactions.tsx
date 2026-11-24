@@ -103,7 +103,7 @@ export function Transactions() {
         <label className="fy-search"><Search size={16} /><input className="fy-input" type="search" placeholder="Search description, place, note" aria-label="Search transactions" value={q} onChange={(e) => setQ(e.target.value)} /></label>
         <select className="fy-input" aria-label="Month" value={month} onChange={(e) => set("month", e.target.value === todayIn().slice(0, 7) ? "" : e.target.value)}>
           <option value="all">All time</option>
-          {monthOptions.map((m) => <option key={m} value={m}>{MONTHS[Number(m.slice(5)) - 1]} {m.slice(0, 4)}</option>)}
+          {monthOptions.map((m) => <option key={m} value={m}>{wide ? MONTHS[Number(m.slice(5)) - 1] : MONTHS[Number(m.slice(5)) - 1].slice(0, 3)} {m.slice(0, 4)}</option>)}
         </select>
         <select className="fy-input" aria-label="Account" value={filter.account} onChange={(e) => set("account", e.target.value)}>
           <option value="">All accounts</option>{accounts.filter((a) => !a.archived || a.id === filter.account).map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
