@@ -6,14 +6,14 @@ export const metadata: Metadata = {
   title: { default: "Finny", template: "%s · Finny" }, // FINNY-163: every tab says which page it is
   description: "Your money, in one place.",
   robots: { index: false, follow: false }, // personal data: never indexed
-  appleWebApp: { capable: true, title: "Finny", statusBarStyle: "default" },
+  appleWebApp: { capable: true, title: "Finny", statusBarStyle: "black-translucent" },
 };
-export const viewport: Viewport = { width: "device-width", initialScale: 1, themeColor: [{ media: "(prefers-color-scheme: light)", color: "#fdf8fb" }, { media: "(prefers-color-scheme: dark)", color: "#1b1622" }] };
+export const viewport: Viewport = { width: "device-width", initialScale: 1, viewportFit: "cover", themeColor: [{ media: "(prefers-color-scheme: light)", color: "#fdf8fb" }, { media: "(prefers-color-scheme: dark)", color: "#1b1622" }] };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="id">
-      <body>{children}</body>
+      <body><div className="fy-statusbar" aria-hidden="true" />{children}</body>
     </html>
   );
 }

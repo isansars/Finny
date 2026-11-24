@@ -26,7 +26,7 @@ function Frame({ children }: { children: React.ReactNode }) {
   // Phones: four tabs, Home also for reports and reviews. Laptops: Reports and Assets have their own.
   const on = (h: string) => (h === "/" ? path === "/" || path.startsWith("/reports") || path.startsWith("/review") : path.startsWith(h) || settings(h));
   const onWide = (h: string) => (h === "/" ? path === "/" || path.startsWith("/review") : h === "/assets" ? path.startsWith("/assets") || path.startsWith("/debts") : path.startsWith(h) || settings(h));
-  const tab = (n: (typeof NAV)[number]) => <Link key={n.href} href={n.href} className={on(n.href) ? "on" : ""} aria-current={on(n.href) ? "page" : undefined}><n.Icon size={22} strokeWidth={on(n.href) ? 2.3 : 1.9} />{n.label}</Link>;
+  const tab = (n: (typeof NAV)[number]) => <Link key={n.href} href={n.href} className={on(n.href) ? "on" : ""} aria-current={on(n.href) ? "page" : undefined}><n.Icon size={26} strokeWidth={on(n.href) ? 2.3 : 1.9} />{n.label}</Link>;
   // FINNY-164: on Home, a laptop already shows the add form beside the month; the bar's Add goes to it instead of opening a copy.
   const addWide = () => {
     const field = path === "/" ? document.querySelector<HTMLElement>("aside.side form input:not([type=hidden])") : null;
@@ -45,7 +45,7 @@ function Frame({ children }: { children: React.ReactNode }) {
       <main className="fy-wrap" id="main" tabIndex={-1}><OfflineBanner />{children}</main>
       <nav className="fy-tabbar" aria-label="Main">
         {NAV.slice(0, 2).map(tab)}
-        <button className="add" aria-label="Add a transaction" onClick={() => openAdd()}><span><Plus size={24} strokeWidth={2.4} /></span></button>
+        <button className="add" aria-label="Add a transaction" onClick={() => openAdd()}><span><Plus size={28} strokeWidth={2.4} /></span></button>
         {NAV.slice(2).map(tab)}
       </nav>
       {editing !== undefined && (

@@ -70,7 +70,11 @@ button, input, textarea, select { font: inherit; color: inherit; }
 .fy-tile[data-color="primary"] { background: linear-gradient(135deg, var(--primary-2), var(--primary)); color: var(--primary-ink); }
 
 /* ---------- Apple layout */
-.fy-wrap { max-width: 720px; margin: 0 auto; padding: 8px 16px calc(110px + env(safe-area-inset-bottom)); }
+.fy-wrap { max-width: 720px; margin: 0 auto; padding: calc(8px + env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) calc(124px + env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left)); }
+/* FINNY-190: on an iPhone home screen the page runs under the clock and battery (viewport-fit=cover, black-translucent).
+   The clock's text is always white there, so a soft fade of the page's own colour keeps it readable over whatever scrolls under it (dark mode); in light mode it's a Finny-pink strip. */
+.fy-statusbar { position: fixed; top: 0; left: 0; right: 0; height: env(safe-area-inset-top); z-index: 70; pointer-events: none; background: linear-gradient(color-mix(in srgb, var(--bg) 80%, transparent), color-mix(in srgb, var(--bg) 0%, transparent)); }
+@media (prefers-color-scheme: light) { .fy-statusbar { background: linear-gradient(135deg, var(--primary-2), var(--primary)); } }
 .fy-large { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px; margin: 10px 2px 14px; } /* FINNY-165: longer button labels drop under the title on a narrow phone */
 .fy-large h1 { font-size: 30px; font-weight: 800; letter-spacing: -.01em; margin: 0; line-height: 1.1; }
 .fy-large .sub { color: var(--text-2); font-size: 14px; font-weight: 600; margin-bottom: 2px; }
@@ -123,10 +127,10 @@ button.fy-row, .fy-row.tap { cursor: pointer; } button.fy-row:hover, .fy-row.tap
 @keyframes fy-fade { from { opacity: 0; } } @keyframes fy-up { from { transform: translateY(24px); opacity: .6; } }
 /* tab bar */
 .fy-tabbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 40; background: color-mix(in srgb, var(--surface) 82%, transparent); backdrop-filter: saturate(160%) blur(16px); -webkit-backdrop-filter: saturate(160%) blur(16px);
-  border-top: 1px solid var(--border); display: grid; grid-template-columns: repeat(5, 1fr); padding: 6px 6px calc(6px + env(safe-area-inset-bottom)); }
-.fy-tabbar a, .fy-tabbar button { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; min-height: 48px; font-size: 11px; font-weight: 700; color: var(--text-3); text-decoration: none; border: 0; background: none; cursor: pointer; }
+  border-top: 1px solid var(--border); display: grid; grid-template-columns: repeat(5, 1fr); padding: 8px max(6px, env(safe-area-inset-right)) calc(8px + env(safe-area-inset-bottom)) max(6px, env(safe-area-inset-left)); }
+.fy-tabbar a, .fy-tabbar button { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; min-height: 58px; font-size: 13px; font-weight: 700; color: var(--text-3); text-decoration: none; border: 0; background: none; cursor: pointer; }
 .fy-tabbar a.on { color: var(--primary-text); }
-.fy-tabbar .add span { width: 46px; height: 46px; border-radius: 16px; display: grid; place-items: center; background: linear-gradient(135deg, var(--primary-2), var(--primary)); color: #fff; box-shadow: 0 6px 16px color-mix(in srgb, var(--primary) 35%, transparent); }
+.fy-tabbar .add span { width: 54px; height: 54px; border-radius: 18px; display: grid; place-items: center; background: linear-gradient(135deg, var(--primary-2), var(--primary)); color: #fff; box-shadow: 0 6px 16px color-mix(in srgb, var(--primary) 35%, transparent); }
 .fy-topbar { display: none; }
 @media (min-width: 760px) {
   .fy-tabbar { display: none; }
@@ -257,7 +261,7 @@ button.fy-row, .fy-row.tap { cursor: pointer; } button.fy-row:hover, .fy-row.tap
 .fy-gap { background: var(--lemon-s); color: var(--lemon-i); margin-bottom: 4px; }
 .fy-gap .h { display: flex; gap: 8px; align-items: center; font-weight: 800; }
 .fy-gap .b { font-size: 13.5px; font-weight: 600; margin-top: 4px; line-height: 1.45; }
-.fy-savebar { position: sticky; bottom: calc(76px + env(safe-area-inset-bottom)); margin-top: 16px; padding: 22px 0 6px; z-index: 5; background: linear-gradient(color-mix(in srgb, var(--bg) 0%, transparent), var(--bg) 20px); }
+.fy-savebar { position: sticky; bottom: calc(90px + env(safe-area-inset-bottom)); margin-top: 16px; padding: 22px 0 6px; z-index: 5; background: linear-gradient(color-mix(in srgb, var(--bg) 0%, transparent), var(--bg) 20px); }
 @media (min-width: 760px) { .fy-savebar { bottom: 12px; } }
 .fy-ok { display: flex; gap: 8px; align-items: center; }
 /* FINNY-63: budget */
@@ -388,7 +392,7 @@ main.fy-wrap:focus { outline: none; }
 .fy-tx-foot.phone { border: 0; padding: 10px 4px 0; }
 .fy-tx-row.flag { background: color-mix(in srgb, #f59e0b 8%, transparent); } .fy-tx-row.on { background: color-mix(in srgb, var(--primary) 9%, transparent); }
 .fy-tx-row .main .t { white-space: normal; }
-.fy-bulk { position: sticky; bottom: calc(92px + env(safe-area-inset-bottom)); z-index: 30; margin-top: 14px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; background: var(--text); color: var(--bg); border-radius: 18px; padding: 10px 10px 10px 16px; box-shadow: var(--shadow-lg); }
+.fy-bulk { position: sticky; bottom: calc(106px + env(safe-area-inset-bottom)); z-index: 30; margin-top: 14px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; background: var(--text); color: var(--bg); border-radius: 18px; padding: 10px 10px 10px 16px; box-shadow: var(--shadow-lg); }
 .fy-bulk b { flex: 1 1 140px; }
 .fy-bulk .fy-btn.ghost { background: transparent; color: inherit; border-color: color-mix(in srgb, var(--bg) 35%, transparent); }
 .fy-bulk .fy-icon-btn { color: inherit; } .fy-bulk .fy-icon-btn:hover { background: color-mix(in srgb, var(--bg) 15%, transparent); color: inherit; }
@@ -401,7 +405,7 @@ main.fy-wrap:focus { outline: none; }
 @media (max-width: 759px) {
   .fy-input, input.fy-input, select.fy-input, textarea.fy-input, .fy-search input { font-size: 16px; }
   .fy-sheet-bg { top: var(--vvt, 0px); bottom: auto; height: var(--vvh, 100%); }
-  .fy-sheet { max-height: calc(var(--vvh, 100dvh) - 16px); padding-bottom: 0; }
+  .fy-sheet { max-height: calc(var(--vvh, 100dvh) - 16px - env(safe-area-inset-top)); padding-bottom: 0; }
   .fy-sheet > .fy-sheet-h { position: sticky; top: -8px; z-index: 3; background: var(--surface); margin: 0 -16px 12px; padding: 4px 16px 0; }
   .fy-sheet .fy-sheet-foot { position: sticky; bottom: 0; z-index: 3; background: var(--surface); margin: 14px -16px 0; padding: 12px 16px calc(12px + env(safe-area-inset-bottom)); border-top: 1px solid var(--border); }
   .fy-sheet > :last-child:not(.fy-sheet-foot):not(form), .fy-sheet > form:last-child > :last-child:not(.fy-sheet-foot) { margin-bottom: calc(16px + env(safe-area-inset-bottom)); }
