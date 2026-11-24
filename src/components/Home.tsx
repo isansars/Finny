@@ -1,8 +1,9 @@
 "use client";
+import Link from "next/link";
 // Home = the month at a glance (FINNY-12/43): the balance card, spending by category (donut), by day (tap a day to filter
 // the list), top places and biggest spends, then the month's transactions grouped by day, Apple-style.
 import { useEffect, useMemo, useState } from "react";
-import { ArrowLeftRight, ChevronLeft, ChevronRight, Search, X } from "lucide-react";
+import { ArrowLeftRight, ChevronLeft, ChevronRight, Search, X, TableProperties } from "lucide-react";
 import { api, useFinny, type Txn } from "./store";
 import { Money, CategoryOptions } from "./ui";
 import { CatTile, Tile } from "./icons";
@@ -188,6 +189,8 @@ export function Home() {
           })}
           {list?.more && <p className="fy-hint" style={{ textAlign: "center" }}>Showing the latest 200: narrow the filters to see more.</p>}
         </div>
+        {/* FINNY-173: the table of every record, to check, opened on this month. */}
+        <Link className="fy-btn block" style={{ marginTop: 12 }} href={`/transactions?month=${month}`} data-testid="see-all"><TableProperties size={16} />See every transaction</Link>
       </section>
       <aside className="side fy-side-only"><div className="fy-card fy-pad"><div className="fy-section" style={{ margin: "0 0 10px" }}><span>New transaction</span></div><QuickAddForm inline /></div></aside>
     </div>

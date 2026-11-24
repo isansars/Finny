@@ -117,6 +117,11 @@ export function QuickAddForm({ existing, onDone, inline }: { existing?: Txn | nu
       else { setAmount(""); setDescription(""); setEntity(""); setNote(""); setPicked(false); setCategoryId(""); setSuggested(null); setBusy(false); amountRef.current?.focus(); }
     } catch (x) { setErr((x as Error).message); setBusy(false); }
   }
+  // FINNY-173: a transaction Finny flagged that the owner checked: stop guessing it's a mistake.
+  async function looksFine() {
+    setBusy(true);
+    try { await api(`transactions/${existing!.id}`, { method: "PATCH", json: { looksOk: true } }); await reload(); onDone?.(); } catch (x) { setErr((x as Error).message); setBusy(false); }
+  }
   async function remove() {
     if (!isEdit || !confirm("Delete this transaction?")) return;
     setBusy(true);
@@ -184,6 +189,7 @@ export function QuickAddForm({ existing, onDone, inline }: { existing?: Txn | nu
       <div className="fy-sheet-foot">
         <button className="fy-btn primary block" disabled={busy || (offline && isEdit)}>{busy ? "Saving…" : isEdit ? "Save changes" : offline ? "Save on this phone" : "Save"}</button>
         {isEdit && <button type="button" className="fy-btn danger block" onClick={remove} disabled={busy}>Delete</button>}
+        {isEdit && (existing as { flags?: unknown[] } | null)?.flags?.length ? <button type="button" className="fy-btn block" onClick={looksFine} disabled={busy}>Looks fine</button> : null}
       </div>
     </form>
   );

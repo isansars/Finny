@@ -3,7 +3,7 @@
 // moved into Settings), a top bar on desktop.
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ChartColumn, ChartPie, Gem, House, Landmark, Plus, Settings } from "lucide-react";
+import { ChartColumn, ChartPie, Gem, House, Landmark, List, Plus, Settings } from "lucide-react";
 import { Lockup } from "./Logo";
 import { FinnyProvider, useFinny } from "./store";
 import { PhoneSync } from "./Phone";
@@ -17,7 +17,7 @@ const NAV = [
   { href: "/settings", label: "Settings", Icon: Settings },
 ];
 // FINNY-163: a laptop has room for Reports and Assets (Debts, goals and the emergency fund live under Assets).
-const NAV_WIDE = [NAV[0], NAV[1], NAV[2], { href: "/reports", label: "Reports", Icon: ChartColumn }, { href: "/assets", label: "Assets", Icon: Gem }, NAV[3]];
+const NAV_WIDE = [NAV[0], { href: "/transactions", label: "Transactions", Icon: List }, NAV[1], NAV[2], { href: "/reports", label: "Reports", Icon: ChartColumn }, { href: "/assets", label: "Assets", Icon: Gem }, NAV[3]];
 
 function Frame({ children }: { children: React.ReactNode }) {
   const path = usePathname();

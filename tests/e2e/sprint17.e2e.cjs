@@ -99,7 +99,7 @@ module.exports = async ({ base, shots }) => {
     await go(`/review/${M}`); ok((await cur()) === "Home", "on a review"); ok(/^[A-Z][a-z]+ \d{4} review · Finny$/.test(await page.title()), await page.title());
     await go("/"); ok((await page.title()) === "Home · Finny", await page.title());
     const links = await page.locator(".fy-topbar a.nav").allInnerTexts();
-    ok(links.join(",") === "Home,Budget,Accounts,Reports,Assets,Settings", links.join(","));
+    ok(links.join(",") === "Home,Transactions,Budget,Accounts,Reports,Assets,Settings", links.join(",")); // FINNY-172 added Transactions
     await page.locator("body").click({ position: { x: 5, y: 300 } }); await page.evaluate(() => document.activeElement?.blur());
     await page.keyboard.press("Tab"); ok((await focused()).label === "Skip to content", `first Tab: ${(await focused()).label}`);
     await page.screenshot({ path: path.join(shots, "s17-03-skip-1440.png"), clip: { x: 0, y: 0, width: 1440, height: 120 } });

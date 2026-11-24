@@ -1,4 +1,4 @@
-import { ChartColumn, Download, FileSpreadsheet, FileText, Shapes, UserRound, ChevronRight } from "lucide-react";
+import { ChartColumn, Download, FileSpreadsheet, FileText, Shapes, UserRound, ChevronRight, TableProperties } from "lucide-react";
 import { RecurringRow } from "@/components/Recurring";
 import { PhoneRow, SignOutButton } from "@/components/Phone";
 import { requireMe } from "@/lib/session";
@@ -19,6 +19,8 @@ export default async function Page() {
       </div>
       <div className="fy-section"><span>Your data</span></div>
       <div className="fy-list">
+        <a className="fy-row" href="/transactions" aria-label="Every transaction"><span className="fy-tile" data-color="peach" style={{ width: 32, height: 32, borderRadius: 10 }}><TableProperties size={18} /></span>
+          <div className="main"><div className="t">Every transaction</div><div className="s">A table to check, fix or delete records, one or many</div></div><ChevronRight className="chev" size={18} /></a>
         <a className="fy-row" href="/reports" aria-label="Reports"><span className="fy-tile" data-color="sky" style={{ width: 32, height: 32, borderRadius: 10 }}><ChartColumn size={18} /></span>
           <div className="main"><div className="t">Reports</div><div className="s">Cashflow, balance sheet and net worth, spending pace</div></div><ChevronRight className="chev" size={18} /></a>
         <RecurringRow />

@@ -360,3 +360,36 @@ main.fy-wrap:focus { outline: none; }
 
 /* FINNY-165: the add form beside Home is narrower than a phone: four categories a row so long names fit. */
 @media (min-width: 900px) { .fy-home .side .fy-catgrid { grid-template-columns: repeat(4, 1fr); } }
+/* FINNY-172/173: every transaction, to check. */
+.fy-tx-filters { display: grid; gap: 8px; grid-template-columns: 1fr 1fr; }
+.fy-tx-filters .fy-search { grid-column: 1 / -1; }
+.fy-tx-filters select.fy-input { min-height: 40px; font-weight: 700; color: var(--text-2); }
+@media (min-width: 760px) { .fy-tx-filters { grid-template-columns: minmax(220px, 1fr) repeat(4, auto); } .fy-tx-filters .fy-search { grid-column: auto; } }
+.fy-tx-wrap { overflow-x: auto; }
+.fy-tx { width: 100%; border-collapse: collapse; font-size: 14px; }
+.fy-tx th { text-align: left; font-size: 12.5px; color: var(--text-2); font-weight: 800; padding: 10px 12px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+.fy-tx td { padding: 9px 12px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+.fy-tx tbody tr:last-child td { border-bottom: 0; }
+.fy-tx td.dt { white-space: nowrap; color: var(--text-2); font-weight: 700; }
+.fy-tx td.ds .t { font-weight: 700; } .fy-tx td.ds .s { color: var(--text-3); font-size: 12.5px; }
+.fy-tx td.src { color: var(--text-2); font-size: 12.5px; font-weight: 700; }
+.fy-tx .am { text-align: right; white-space: nowrap; } .fy-tx th.pick, .fy-tx td.pick { width: 36px; padding-right: 0; }
+.fy-tx td.act { white-space: nowrap; text-align: right; width: 80px; }
+.fy-tx tr.flag td { background: color-mix(in srgb, #f59e0b 8%, transparent); }
+.fy-tx tr.on td { background: color-mix(in srgb, var(--primary) 9%, transparent); }
+@media (hover: hover) { .fy-tx tbody tr:hover td { background: color-mix(in srgb, var(--primary) 5%, transparent); } }
+.fy-sort { border: 0; background: none; font: inherit; color: inherit; cursor: pointer; padding: 0; display: inline-flex; align-items: center; gap: 4px; }
+.fy-tick { width: 18px; height: 18px; accent-color: var(--primary); cursor: pointer; margin: 0; vertical-align: middle; }
+.fy-icon-btn { border: 0; background: none; color: var(--text-2); width: 32px; height: 32px; border-radius: 9px; display: inline-grid; place-items: center; cursor: pointer; }
+.fy-icon-btn:hover { background: var(--surface-3); color: var(--text); }
+.fy-flag { background: var(--lemon-s); color: var(--lemon-i); font-size: 11.5px; padding: 2px 8px; display: inline-flex; gap: 4px; align-items: center; vertical-align: 1px; white-space: nowrap; }
+.fy-tx-foot { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding: 12px 16px; border-top: 1px solid var(--border); font-weight: 700; color: var(--text-2); font-size: 13.5px; }
+.fy-tx-foot.phone { border: 0; padding: 10px 4px 0; }
+.fy-tx-row.flag { background: color-mix(in srgb, #f59e0b 8%, transparent); } .fy-tx-row.on { background: color-mix(in srgb, var(--primary) 9%, transparent); }
+.fy-tx-row .main .t { white-space: normal; }
+.fy-bulk { position: sticky; bottom: calc(92px + env(safe-area-inset-bottom)); z-index: 30; margin-top: 14px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; background: var(--text); color: var(--bg); border-radius: 18px; padding: 10px 10px 10px 16px; box-shadow: var(--shadow-lg); }
+.fy-bulk b { flex: 1 1 140px; }
+.fy-bulk .fy-btn.ghost { background: transparent; color: inherit; border-color: color-mix(in srgb, var(--bg) 35%, transparent); }
+.fy-bulk .fy-icon-btn { color: inherit; } .fy-bulk .fy-icon-btn:hover { background: color-mix(in srgb, var(--bg) 15%, transparent); color: inherit; }
+.fy-btn.danger-solid { background: #e11d48; color: #fff; border-color: #e11d48; }
+@media (min-width: 760px) { .fy-bulk { bottom: 16px; } }
