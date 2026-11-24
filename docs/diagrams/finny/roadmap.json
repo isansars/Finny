@@ -1,7 +1,7 @@
 {
   "type": "board",
   "title": "Finny · Roadmap",
-  "subtitle": "Replace the two workbooks: record every day, read the bank each month, then plan, report and grow. Current as of Sprint 20 planning, 24 Nov 2026.",
+  "subtitle": "Replace the two workbooks: record every day, read the bank each month, then plan, report and grow. Current as of v0.20.0, 24 Nov 2026.",
   "footer": "🐰 Poppy · Finny · Product · 24 Nov 2026 · planned on the FINNY board",
   "badge": "💸 The owner's own product · FINNY board · isansars/Finny",
   "width": 1700,
@@ -13,36 +13,31 @@
       "sub": "latest three releases",
       "items": [
         [
+          "Undo a delete: right away or for a day, exactly as it was",
+          "live",
+          "v0.20.0 · FINNY-183"
+        ],
+        [
+          "Edge to edge on the iPhone, a bigger tab bar (the owner's report)",
+          "live",
+          "v0.19.1 · FINNY-190"
+        ],
+        [
           "Finny on the phone: the 10 findings of the phone audit fixed",
           "live",
           "v0.19.0 · FINNY-176"
-        ],
-        [
-          "Every transaction, to check: a table, guesses at mistakes, fix or delete several at once",
-          "live",
-          "v0.18.0 · FINNY-168"
-        ],
-        [
-          "Finny on the web: the 15 findings of the web audit fixed",
-          "live",
-          "v0.17.0 · FINNY-160"
         ]
       ]
     },
     {
-      "name": "Now · Sprint 20",
+      "name": "Now",
       "icon": "🏃",
       "tone": "orange",
-      "sub": "24 Nov – 7 Dec · v0.20.0",
+      "sub": "Sprint 21: the owner's pick",
       "focus": true,
       "items": [
         [
-          "Undo a delete: right away or for a day, exactly as it was",
-          "dev",
-          "FINNY-183"
-        ],
-        [
-          "Alongside: the owner's month in Finny only",
+          "The owner's month in Finny only, checked against the workbook",
           "planned",
           "the owner: the done-when check"
         ]
