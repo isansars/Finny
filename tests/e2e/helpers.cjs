@@ -8,7 +8,7 @@ function suite(name) {
   return {
     async check(label, fn) {
       try { await fn(); results.push([true, label]); console.log(`  ✓ ${label}`); }
-      catch (e) { results.push([false, label]); console.log(`  ✗ ${label}\n      ${String(e && e.message || e).split("\n")[0]}`); }
+      catch (e) { results.push([false, label]); console.log(`  ✗ ${label}\n      ${process.env.QA_VERBOSE ? String(e && e.message || e) : String(e && e.message || e).split("\n")[0]}`); }
     },
     done() { const bad = results.filter((r) => !r[0]); console.log(`  ${name}: ${results.length - bad.length}/${results.length}`); if (bad.length) throw new Error(`${bad.length} check(s) failed`); },
   };
