@@ -1,6 +1,6 @@
 // Draws made-up e-statements in the layouts Finny reads (FINNY-74), so tests never need the owner's real files.
 // Every name and amount here is invented; each statement adds up (opening + lines = closing).
-//   node tests/fixtures/statements/make-pdfs.mjs [dir]  →  bca.pdf, mandiri.pdf, krom.pdf, bri-card.pdf (locked), picture.pdf, bca-long.pdf (10 pages, for timing)
+//   node tests/fixtures/statements/make-pdfs.mjs [dir]  →  bca.pdf, mandiri.pdf, krom.pdf, bri-card.pdf (locked), bca-card.pdf, picture.pdf, bca-long.pdf (10 pages, for timing)
 // The BRI file is then locked with the test password "finny-test" (pypdf; see lockPdf below).
 import { chromium } from "playwright";
 import { mkdirSync, writeFileSync } from "node:fs";
@@ -57,11 +57,27 @@ export const BRI = {
     ["20-10-2026", "20-10-2026", "BEA MATERAI LUNAS", "IDR", "0.00", "0.00", 10_000_00],
   ],
 };
+/** FINNY-158: a BCA credit card bill (two cards on one bill), dated 3 January 2027 so December lines belong to 2026. */
+export const BCA_CARD = {
+  customer: "12345678", statementDate: "03 JANUARI 2027", dueDate: "19 JANUARI 2027", minimum: 50_000_00, previous: 500_000_00, limit: 10_000_000_00,
+  cards: [ // [product, card number (empty: no card line, as when a section only has a payment), previous, lines: [date, posting, description, rupiah sen, credit?, foreign?]]
+    ["MASTERCARD CONTOH", "5120-00XX-XXXX-4821", 500_000_00, [
+      ["05-DES", "06-DES", "STREAMING PLUS SINGAPORE SG", 216_000_00, false, "(USD 12,00 X 18.000,00)"],
+      ["20-DES", "20-DES", "PEMBAYARAN - MBCA", 500_000_00, true],
+      ["28-DES", "29-DES", "TOKO BUKU ONLINE JAKARTA", 148_400_00, false],
+    ]],
+    ["BCA EVERYDAY CARD", "1889-00XX-XXXX-7730", 0, [
+      ["15-DES", "16-DES", "CICILAN TOKO ELEKTRONIK 03/12", 300_000_00, false],
+      ["03-JAN", "03-JAN", "BIAYA IURAN TAHUNAN", 125_000_00, false],
+    ]],
+  ],
+};
 export const totals = {
   bca: BCA.opening + BCA.lines.reduce((n, l) => n + l[3], 0),
   mandiri: MANDIRI.opening + MANDIRI.lines.reduce((n, l) => n + l[2], 0),
   krom: KROM.opening + KROM.lines.reduce((n, l) => n + l[6], 0),
   bri: BRI.previous + BRI.lines.reduce((n, l) => n + (l[7] ? -l[6] : l[6]), 0),
+  bcaCard: BCA_CARD.previous + BCA_CARD.cards.flatMap((c) => c[3]).reduce((n, l) => n + (l[4] ? -l[3] : l[3]), 0),
 };
 
 // ---------------------------------------------------------------- drawing
@@ -156,6 +172,36 @@ function briHtml() {
   c.push([10, 284, "Nilai Tukar Transaksi Valas sudah memperhitungkan Komponen Biaya Penggunaan Kartu Kredit di Luar Negeri"]);
   return page(c);
 }
+function bcaCardHtml() {
+  const B = BCA_CARD, lines = B.cards.flatMap((c) => c[3]);
+  const pay = lines.filter((l) => l[4]).reduce((n, l) => n + l[3], 0), buy = lines.filter((l) => !l[4]).reduce((n, l) => n + l[3], 0);
+  const c = [[75, 39, "REKENING KARTU KREDIT", "b"], [21, 47, OWNER], [108, 47, "NOMOR CUSTOMER"], [151, 47, ":"], [154, 47, B.customer],
+    [108, 51, "TANGGAL REKENING"], [151, 51, ":"], [154, 51, B.statementDate], [108, 54, "TANGGAL JATUH TEMPO"], [151, 54, ":"], [154, 54, B.dueDate],
+    [108, 57, "TAGIHAN BARU"], [151, 57, ":"], [154, 57, "RP " + idr0(totals.bcaCard)], [108, 61, "PEMBAYARAN MINIMUM"], [151, 61, ":"], [154, 61, "RP " + idr0(B.minimum)],
+    [108, 65, "KUALITAS KREDIT"], [151, 65, ":"], [154, 65, "LANCAR"],
+    [36, 75, "TANGGAL", "b"], [100, 77, "KETERANGAN", "b"], [162, 77, "JUMLAH (RP)", "b"], [23, 80, "TRANSAKSI", "b"], [47, 80, "PEMBUKUAN", "b"]];
+  let y = 90;
+  for (const [product, card, prev, rows] of B.cards) {
+    c.push([19, y, product]); y += 4.2;
+    c.push([19, y, "% SUKU BUNGA PEMBELANJAAN (bln/thn) 1,75/21,00"]); y += 4.2;
+    c.push([19, y, "% SUKU BUNGA TARIK TUNAI (bln/thn) 1,75/21,00"]); y += 8.4;
+    c.push([19, y, "SALDO SEBELUMNYA"], right(183, y, idr0(prev))); y += 4.2;
+    if (card) { c.push([26, y, card], [70, y, OWNER]); y += 4.2; }
+    let sub = prev;
+    for (const [d, p, desc, sen, cr, fx] of rows) {
+      c.push([26, y, d], [50, y, p], [69, y, desc], right(183, y, idr0(sen))); if (cr) c.push([185, y, "CR"]);
+      sub += cr ? -sen : sen; y += 4.2;
+      if (fx) { c.push([70, y, fx]); y += 4.2; }
+    }
+    c.push([19, y, "SUBTOTAL"], right(183, y, idr0(sub))); y += 8.4;
+  }
+  c.push([19, y, "TOTAL"], right(183, y, idr0(totals.bcaCard)));
+  c.push([20, 245, "TAGIHAN SEBELUMNYA"], [57, 245, "PEMBAYARAN/CR"], [93, 245, "PEMBELANJAAN"], [130, 243, "BIAYA ADM &"], [163, 245, "TAGIHAN BARU"], [134, 247, "BUNGA"],
+    right(50, 252, idr0(B.previous)), right(85, 252, idr0(pay)), right(118, 252, idr0(buy)), right(150, 252, "0"), right(185, 252, idr0(totals.bcaCard)));
+  c.push([22, 260, "KREDIT LIMIT"], [47, 260, "BATAS TARIK"], [120, 260, "BEA METERAI"], [145, 260, "SISA TAGIHAN"], [171, 260, "SISA KREDIT"],
+    right(40, 268, idr0(B.limit)), right(185, 268, idr0(B.limit - totals.bcaCard)), [105, 282, "1 / 1"]);
+  return page(c);
+}
 const pictureHtml = () => `<div class="pg"><canvas id="c" width="700" height="900" style="position:absolute;left:10mm;top:10mm;width:180mm"></canvas></div>
 <script>const x=document.getElementById('c').getContext('2d');x.fillStyle='#1d4ed8';x.fillRect(0,0,700,60);for(let i=0;i<30;i++){x.fillStyle=i%2?'#ddd':'#eee';x.fillRect(0,80+i*26,700,22)}</script>`;
 
@@ -169,7 +215,7 @@ export async function makeStatementPdfs(dir) {
   const browser = await chromium.launch();
   const pg = await browser.newPage();
   const out = {};
-  for (const [name, html] of [["bca", bcaHtml()], ["mandiri", mandiriHtml()], ["krom", kromHtml()], ["bri-card", briHtml()], ["picture", pictureHtml()], ["bca-long", bcaLongHtml()]]) {
+  for (const [name, html] of [["bca", bcaHtml()], ["mandiri", mandiriHtml()], ["krom", kromHtml()], ["bri-card", briHtml()], ["bca-card", bcaCardHtml()], ["picture", pictureHtml()], ["bca-long", bcaLongHtml()]]) {
     await pg.setContent(`<!doctype html><html><head><meta charset="utf-8"><style>${css}</style></head><body>${html}</body></html>`);
     await pg.waitForTimeout(50);
     const file = path.join(dir, `${name}.pdf`);

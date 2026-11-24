@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 import { readStatement, senDotDecimal, senCommaDecimal, monthNumber, tidy, type Statement } from "../../src/lib/statement-rule.ts";
 import { pdfPages } from "./statement-pdf.mts";
 // @ts-expect-error a plain .mjs fixture
-import { totals, PASSWORD, BCA, MANDIRI, KROM, BRI } from "../fixtures/statements/make-pdfs.mjs";
+import { totals, PASSWORD, BCA, MANDIRI, KROM, BRI, BCA_CARD } from "../fixtures/statements/make-pdfs.mjs";
 
 const dir = "tests/fixtures/statements/";
 async function read(name: string, password?: string): Promise<Statement> {
@@ -75,10 +75,28 @@ test("BRI card: locked, the bill, payments CR, foreign currency, instalments", a
   assert.equal(s.lines.find((l) => l.instalment)?.instalment, "3 of 12");
 });
 
+test("BCA card (FINNY-156): two cards on one bill, the bill and due date, CR payments, USD, instalments, December on a January bill", async () => {
+  const s = await read("bca-card");
+  assert.equal(s.bank, "bca-card");
+  assert.equal(s.accountDigits, "5678", "the customer number's last 4");
+  assert.deepEqual([s.periodFrom, s.periodTo, s.dueOn], ["2026-12-04", "2027-01-03", "2027-01-19"]);
+  assert.equal(s.minimumSen, BCA_CARD.minimum);
+  assert.equal(s.openingSen, BCA_CARD.previous); assert.equal(s.closingSen, totals.bcaCard);
+  assert.equal(s.openingSen! - s.lines.reduce((n, l) => n + l.amountSen, 0), totals.bcaCard, "previous bill − (payments − charges) = this bill");
+  assert.equal(s.lines.length, 5); assert.deepEqual(s.warnings, []);
+  assert.deepEqual(s.lines.map((l) => l.card), ["Mastercard Contoh ·· 4821", "Mastercard Contoh ·· 4821", "Mastercard Contoh ·· 4821", "Everyday ·· 7730", "Everyday ·· 7730"]);
+  const pay = s.lines.find((l) => /Pembayaran/.test(l.description))!;
+  assert.deepEqual([pay.on, pay.amountSen], ["2026-12-20", 500_000_00], "a payment is money into the card");
+  const fx = s.lines.find((l) => l.currency)!;
+  assert.deepEqual([fx.on, fx.description, fx.currency, fx.foreignAmount, fx.rate, fx.amountSen], ["2026-12-05", "Streaming Plus Singapore Sg", "USD", "12,00", "18.000,00", -216_000_00]);
+  assert.equal(s.lines.find((l) => l.instalment)?.instalment, "3 of 12");
+  assert.equal(s.lines.at(-1)!.on, "2027-01-03", "a January line stays in January");
+});
+
 test("a picture-only PDF and an unknown layout are refused with a reason", async () => {
   const pic = readStatement(await pdfPages(dir + "picture.pdf"));
   assert.ok(!pic.ok && pic.reason === "no-text");
   const other = readStatement([{ w: 600, h: 800, items: [{ s: "Some other bank statement with plenty of words on it", x: 10, y: 10, w: 300, h: 9 }] }]);
   assert.ok(!other.ok && other.reason === "unknown");
-  assert.match(!other.ok ? other.message : "", /BCA, Mandiri, Krom and BRI/);
+  assert.match(!other.ok ? other.message : "", /BCA, BCA credit card, Mandiri, Krom and BRI/);
 });

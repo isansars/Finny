@@ -9,7 +9,7 @@ import { addImportRows } from "@/lib/imports";
 
 const bad = (m: string, status = 400): never => { throw new HttpError(status, m); };
 const isDay = (v: unknown): v is string => typeof v === "string" && /^\d{4}-\d{2}-\d{2}$/.test(v);
-const BANKS = ["bca", "mandiri", "krom", "bri-card"] as const;
+const BANKS = ["bca", "mandiri", "krom", "bri-card", "bca-card"] as const;
 const shift = (day: string, n: number) => new Date(Date.parse(day) + n * 86_400_000).toISOString().slice(0, 10);
 
 async function ownAccount(userId: string, id: string) {
