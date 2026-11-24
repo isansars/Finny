@@ -393,3 +393,5 @@ main.fy-wrap:focus { outline: none; }
 .fy-bulk .fy-icon-btn { color: inherit; } .fy-bulk .fy-icon-btn:hover { background: color-mix(in srgb, var(--bg) 15%, transparent); color: inherit; }
 .fy-btn.danger-solid { background: #e11d48; color: #fff; border-color: #e11d48; }
 @media (min-width: 760px) { .fy-bulk { bottom: 16px; } }
+/* FINNY-172: seven places in the bar: on a small laptop only the current one keeps its label (each keeps its name and a tooltip). */
+@media (min-width: 760px) and (max-width: 1199px) { .fy-topbar a.nav { padding: 8px 10px; } .fy-topbar a.nav:not(.on) .lbl { display: none; } .fy-topbar .brand { margin-right: 8px; } }

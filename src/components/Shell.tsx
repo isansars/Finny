@@ -38,7 +38,7 @@ function Frame({ children }: { children: React.ReactNode }) {
       <a className="fy-skip" href="#main">Skip to content</a>
       <header className="fy-topbar"><div className="in">
         <Link href="/" className="brand" aria-label="Finny, home"><Lockup size={30} /></Link>
-        <nav aria-label="Main" className="links">{NAV_WIDE.map((n) => <Link key={n.href} href={n.href} className={`nav ${onWide(n.href) ? "on" : ""}`} aria-current={onWide(n.href) ? "page" : undefined}><n.Icon size={18} />{n.label}</Link>)}</nav>
+        <nav aria-label="Main" className="links">{NAV_WIDE.map((n) => <Link key={n.href} href={n.href} className={`nav ${onWide(n.href) ? "on" : ""}`} aria-current={onWide(n.href) ? "page" : undefined} aria-label={n.label} title={n.label}><n.Icon size={18} /><span className="lbl">{n.label}</span></Link>)}</nav>
         <span className="grow" />
         <button className="fy-btn primary small" aria-label="Add a transaction" onClick={addWide}><Plus size={17} />Add</button>
       </div></header>
