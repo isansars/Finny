@@ -1,0 +1,411 @@
+<!doctype html><html><head><meta charset="utf-8"><style>/* nunito-cyrillic-ext-wght-normal */
+@font-face {
+  font-family: 'Nunito Variable';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 200 1000;
+  src: url(file:///home/user/finny/node_modules/@fontsource-variable/nunito/files/nunito-cyrillic-ext-wght-normal.woff2) format('woff2-variations');
+  unicode-range: U+0460-052F,U+1C80-1C8A,U+20B4,U+2DE0-2DFF,U+A640-A69F,U+FE2E-FE2F;
+}
+
+/* nunito-cyrillic-wght-normal */
+@font-face {
+  font-family: 'Nunito Variable';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 200 1000;
+  src: url(file:///home/user/finny/node_modules/@fontsource-variable/nunito/files/nunito-cyrillic-wght-normal.woff2) format('woff2-variations');
+  unicode-range: U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116;
+}
+
+/* nunito-vietnamese-wght-normal */
+@font-face {
+  font-family: 'Nunito Variable';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 200 1000;
+  src: url(file:///home/user/finny/node_modules/@fontsource-variable/nunito/files/nunito-vietnamese-wght-normal.woff2) format('woff2-variations');
+  unicode-range: U+0102-0103,U+0110-0111,U+0128-0129,U+0168-0169,U+01A0-01A1,U+01AF-01B0,U+0300-0301,U+0303-0304,U+0308-0309,U+0323,U+0329,U+1EA0-1EF9,U+20AB;
+}
+
+/* nunito-latin-ext-wght-normal */
+@font-face {
+  font-family: 'Nunito Variable';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 200 1000;
+  src: url(file:///home/user/finny/node_modules/@fontsource-variable/nunito/files/nunito-latin-ext-wght-normal.woff2) format('woff2-variations');
+  unicode-range: U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF;
+}
+
+/* nunito-latin-wght-normal */
+@font-face {
+  font-family: 'Nunito Variable';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 200 1000;
+  src: url(file:///home/user/finny/node_modules/@fontsource-variable/nunito/files/nunito-latin-wght-normal.woff2) format('woff2-variations');
+  unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;
+}/* Finny's design system (Sprint 2, owner 23 Nov 2026: "like Dango Board", "Apple apps are a good example").
+   Dango Board's tokens, font and soft pastel surfaces, laid out the way Apple's own apps are: large titles, inset grouped
+   lists, segmented controls, sheets with a grabber, a tab bar. Light and dark follow the phone. */
+:root {
+  --bg: #fdf8fb; --blob-1: #fde2ef; --blob-2: #e9e3ff; --blob-3: #dff5ea;
+  --surface: #ffffff; --surface-2: #faf6fd; --surface-3: #f3eef8;
+  --border: #eee5f3; --border-strong: #ddd0e6; --sep: #f1eaf6;
+  --text: #3b2f4a; --text-2: #6f6280; --text-3: #8a7b9c;
+  --primary: #ec4899; --primary-2: #f472b6; --primary-soft: #fde7f3; --primary-ink: #ffffff; --primary-text: #be185d;
+  --spend: #be123c; --income: #047857; --transfer: #8a7b9c;
+  --shadow-sm: 0 1px 2px rgba(76, 29, 89, .06), 0 2px 8px rgba(76, 29, 89, .05);
+  --shadow: 0 6px 24px rgba(120, 60, 140, .10);
+  --shadow-lg: 0 18px 50px rgba(120, 60, 140, .18);
+  --hero: linear-gradient(135deg, #fde2ef 0%, #ede4ff 55%, #e0f2fe 100%);
+  --r-sm: 10px; --r: 16px; --r-lg: 22px;
+  /* pastel pairs: soft fill / ink (Dango Board pills) */
+  --pink-s: #fde7f3; --pink-i: #be185d; --lavender-s: #ede9fe; --lavender-i: #7c3aed; --mint-s: #dcfce7; --mint-i: #047857;
+  --peach-s: #ffedd5; --peach-i: #c2410c; --sky-s: #e0f2fe; --sky-i: #0369a1; --lemon-s: #fef9c3; --lemon-i: #a16207;
+  --rose-s: #ffe4e6; --rose-i: #be123c; --slate-s: #eef0f4; --slate-i: #475569;
+  --chart-1: #f472b6; --chart-2: #a78bfa; --chart-3: #34d399; --chart-4: #fb923c; --chart-5: #38bdf8; --chart-6: #facc15;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #1b1622; --blob-1: #3a1f33; --blob-2: #2a2445; --blob-3: #1d3330;
+    --surface: #251f2e; --surface-2: #2b2435; --surface-3: #342c40; --border: #3a3147; --border-strong: #4a3f59; --sep: #342c40;
+    --text: #f5eefa; --text-2: #c7b9d6; --text-3: #a395b3;
+    --primary: #f472b6; --primary-2: #f9a8d4; --primary-soft: #4a2440; --primary-ink: #2a1324; --primary-text: #f9a8d4;
+    --spend: #fda4af; --income: #6ee7b7; --transfer: #a395b3;
+    --shadow-sm: 0 1px 2px rgba(0,0,0,.3); --shadow: 0 6px 24px rgba(0,0,0,.35); --shadow-lg: 0 18px 50px rgba(0,0,0,.5);
+    --hero: linear-gradient(135deg, #3a1f33 0%, #2a2445 60%, #1e3647 100%);
+    --pink-s: #4a2440; --pink-i: #f9a8d4; --lavender-s: #352d55; --lavender-i: #c4b5fd; --mint-s: #1f3b30; --mint-i: #6ee7b7;
+    --peach-s: #43301f; --peach-i: #fdba74; --sky-s: #1e3647; --sky-i: #7dd3fc; --lemon-s: #3f3a1c; --lemon-i: #fde047;
+    --rose-s: #4a1f29; --rose-i: #fda4af; --slate-s: #342c40; --slate-i: #c7b9d6;
+    color-scheme: dark;
+  }
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); font-family: "Nunito Variable", "Nunito", ui-rounded, -apple-system, "Segoe UI", system-ui, sans-serif;
+  font-size: 15px; line-height: 1.45; -webkit-font-smoothing: antialiased; min-height: 100vh; }
+body::before { content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none;
+  background: radial-gradient(600px 400px at 0% 0%, var(--blob-1), transparent 70%), radial-gradient(500px 400px at 100% 10%, var(--blob-2), transparent 70%), radial-gradient(600px 500px at 60% 110%, var(--blob-3), transparent 70%); }
+a { color: var(--primary-text); text-decoration: none; }
+button, input, textarea, select { font: inherit; color: inherit; }
+:focus-visible { outline: 3px solid color-mix(in srgb, var(--primary) 55%, transparent); outline-offset: 2px; border-radius: 8px; }
+.num { font-variant-numeric: tabular-nums; }
+
+/* ---------- Dango primitives */
+.fy-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; border: 1px solid var(--border-strong); background: var(--surface); color: var(--text);
+  padding: 0 18px; border-radius: 999px; font-weight: 700; font-size: 15px; cursor: pointer; transition: transform .12s, box-shadow .12s; white-space: nowrap; text-decoration: none; }
+.fy-btn:hover { transform: translateY(-1px); box-shadow: var(--shadow-sm); } .fy-btn:active { transform: scale(.98); }
+.fy-btn:disabled { opacity: .5; cursor: default; transform: none; box-shadow: none; }
+.fy-btn.primary { background: linear-gradient(135deg, var(--primary-2), var(--primary)); border-color: transparent; color: var(--primary-ink); box-shadow: 0 6px 16px color-mix(in srgb, var(--primary) 30%, transparent); }
+.fy-btn.danger { color: var(--spend); border-color: color-mix(in srgb, var(--spend) 30%, transparent); }
+.fy-btn.small { min-height: 34px; padding: 0 14px; font-size: 13.5px; } .fy-btn.block { width: 100%; }
+.fy-pill { display: inline-flex; align-items: center; gap: 4px; padding: 2px 9px; border-radius: 999px; font-size: 12px; font-weight: 700; background: var(--surface-3); color: var(--text-2); white-space: nowrap; }
+.fy-input { width: 100%; min-height: 44px; border: 1.5px solid var(--border-strong); background: var(--surface); border-radius: 14px; padding: 9px 14px; outline: none; font-size: 15px; transition: border-color .12s, box-shadow .12s; }
+.fy-input:focus { border-color: var(--primary-2); box-shadow: 0 0 0 4px var(--primary-soft); }
+.fy-label { display: block; font-weight: 700; font-size: 13px; color: var(--text-2); margin: 0 0 6px; }
+.fy-field { margin-bottom: 14px; display: block; }
+.fy-hint { font-size: 12.5px; color: var(--text-3); margin-top: 4px; }
+.fy-err { background: var(--rose-s); color: var(--rose-i); border-radius: 14px; padding: 9px 14px; font-weight: 700; font-size: 13.5px; margin-bottom: 12px; }
+.fy-ok { background: var(--mint-s); color: var(--mint-i); border-radius: 14px; padding: 9px 14px; font-weight: 700; font-size: 13.5px; margin-bottom: 12px; }
+.fy-tile { display: inline-grid; place-items: center; flex: none; }
+.fy-tile[data-color="pink"] { background: var(--pink-s); color: var(--pink-i); } .fy-tile[data-color="lavender"] { background: var(--lavender-s); color: var(--lavender-i); }
+.fy-tile[data-color="mint"] { background: var(--mint-s); color: var(--mint-i); } .fy-tile[data-color="peach"] { background: var(--peach-s); color: var(--peach-i); }
+.fy-tile[data-color="sky"] { background: var(--sky-s); color: var(--sky-i); } .fy-tile[data-color="lemon"] { background: var(--lemon-s); color: var(--lemon-i); }
+.fy-tile[data-color="rose"] { background: var(--rose-s); color: var(--rose-i); } .fy-tile[data-color="slate"] { background: var(--slate-s); color: var(--slate-i); }
+.fy-tile[data-color="primary"] { background: linear-gradient(135deg, var(--primary-2), var(--primary)); color: var(--primary-ink); }
+
+/* ---------- Apple layout */
+.fy-wrap { max-width: 720px; margin: 0 auto; padding: 8px 16px calc(110px + env(safe-area-inset-bottom)); }
+.fy-large { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; margin: 10px 2px 14px; }
+.fy-large h1 { font-size: 30px; font-weight: 800; letter-spacing: -.01em; margin: 0; line-height: 1.1; }
+.fy-large .sub { color: var(--text-2); font-size: 14px; font-weight: 600; margin-bottom: 2px; }
+.fy-section { font-size: 13px; font-weight: 700; color: var(--text-2); margin: 22px 6px 8px; display: flex; justify-content: space-between; align-items: baseline; }
+.fy-section span + span, .fy-section button { font-weight: 600; color: var(--text-3); font-size: 12.5px; }
+.fy-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-lg); box-shadow: var(--shadow-sm); }
+.fy-pad { padding: 16px; }
+/* inset grouped list (Settings) */
+.fy-list { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-lg); box-shadow: var(--shadow-sm); overflow: hidden; }
+.fy-row { display: flex; align-items: center; gap: 12px; padding: 11px 16px; min-height: 56px; position: relative; width: 100%; background: none; border: 0; text-align: left; color: inherit; }
+.fy-row + .fy-row::before { content: ""; position: absolute; top: 0; right: 0; left: 60px; border-top: 1px solid var(--sep); }
+.fy-row.plain + .fy-row.plain::before { left: 16px; }
+button.fy-row, .fy-row.tap { cursor: pointer; } button.fy-row:hover, .fy-row.tap:hover { background: var(--surface-2); }
+.fy-row .main { flex: 1; min-width: 0; }
+.fy-row .t { font-weight: 700; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.fy-row .s { font-size: 13px; color: var(--text-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 1px; }
+.fy-row .chev { color: var(--text-3); flex: none; }
+.fy-amt { font-weight: 700; font-size: 15px; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.fy-amt.spend { color: var(--text); } .fy-amt.income { color: var(--income); } .fy-amt.transfer { color: var(--transfer); }
+/* segmented control */
+.fy-seg { display: flex; background: var(--surface-3); border-radius: 12px; padding: 3px; gap: 2px; }
+.fy-seg button { flex: 1; min-height: 36px; border: 0; background: none; border-radius: 9px; font-weight: 700; font-size: 13.5px; color: var(--text-2); cursor: pointer; white-space: nowrap; padding: 0 10px; }
+.fy-seg button.on { background: var(--surface); color: var(--text); box-shadow: var(--shadow-sm); }
+/* chips */
+.fy-chips { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; padding: 2px 0; }
+.fy-chips::-webkit-scrollbar { display: none; }
+.fy-chip { display: inline-flex; align-items: center; gap: 6px; flex: none; min-height: 36px; border: 1.5px solid var(--border-strong); background: var(--surface); border-radius: 999px; padding: 0 13px; font-weight: 700; font-size: 13.5px; cursor: pointer; color: var(--text-2); }
+.fy-chip.on, .fy-chip[aria-checked="true"] { border-color: var(--primary-2); background: var(--primary-soft); color: var(--primary-text); }
+/* sheet */
+.fy-sheet-bg { position: fixed; inset: 0; z-index: 60; background: rgba(43, 26, 56, .32); display: flex; align-items: flex-end; justify-content: center; animation: fy-fade .18s ease; }
+.fy-sheet { background: var(--surface); width: 100%; max-width: 520px; max-height: 94vh; overflow: auto; border-radius: 24px 24px 0 0; padding: 8px 16px calc(16px + env(safe-area-inset-bottom)); box-shadow: var(--shadow-lg); animation: fy-up .22s cubic-bezier(.2,.8,.2,1); }
+@media (min-width: 760px) { .fy-sheet-bg { align-items: center; } .fy-sheet { border-radius: 24px; } }
+.fy-grab { width: 38px; height: 5px; border-radius: 9px; background: var(--border-strong); margin: 0 auto 8px; }
+.fy-sheet-h { display: grid; grid-template-columns: 80px 1fr 80px; align-items: center; margin-bottom: 12px; }
+.fy-sheet-h b { text-align: center; font-size: 16px; font-weight: 800; }
+.fy-sheet-h .x { justify-self: start; border: 0; background: none; color: var(--primary-text); font-weight: 700; font-size: 15px; cursor: pointer; min-height: 44px; padding: 0; }
+@keyframes fy-fade { from { opacity: 0; } } @keyframes fy-up { from { transform: translateY(24px); opacity: .6; } }
+/* tab bar */
+.fy-tabbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 40; background: color-mix(in srgb, var(--surface) 82%, transparent); backdrop-filter: saturate(160%) blur(16px); -webkit-backdrop-filter: saturate(160%) blur(16px);
+  border-top: 1px solid var(--border); display: grid; grid-template-columns: repeat(5, 1fr); padding: 6px 6px calc(6px + env(safe-area-inset-bottom)); }
+.fy-tabbar a, .fy-tabbar button { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; min-height: 48px; font-size: 11px; font-weight: 700; color: var(--text-3); text-decoration: none; border: 0; background: none; cursor: pointer; }
+.fy-tabbar a.on { color: var(--primary-text); }
+.fy-tabbar .add span { width: 46px; height: 46px; border-radius: 16px; display: grid; place-items: center; background: linear-gradient(135deg, var(--primary-2), var(--primary)); color: #fff; box-shadow: 0 6px 16px color-mix(in srgb, var(--primary) 35%, transparent); }
+.fy-topbar { display: none; }
+@media (min-width: 760px) {
+  .fy-tabbar { display: none; }
+  .fy-topbar { display: block; position: sticky; top: 0; z-index: 40; background: color-mix(in srgb, var(--surface) 75%, transparent); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border-bottom: 1px solid var(--border); }
+  .fy-topbar .in { max-width: 1040px; margin: 0 auto; padding: 10px 20px; display: flex; align-items: center; gap: 6px; }
+  .fy-topbar .brand { font-weight: 800; font-size: 18px; margin-right: 18px; display: flex; align-items: center; gap: 8px; color: var(--text); }
+  .fy-topbar a.nav { display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; border-radius: 14px; color: var(--text-2); font-weight: 700; }
+  .fy-topbar a.nav:hover { background: var(--surface-3); color: var(--text); } .fy-topbar a.nav.on { background: var(--primary-soft); color: var(--primary-text); }
+  .fy-topbar .grow { flex: 1; }
+  .fy-wrap { max-width: 1040px; padding: 8px 20px 48px; }
+}
+/* home */
+.fy-hero { border-radius: var(--r-lg); padding: 18px 18px 16px; background: var(--hero); border: 1px solid var(--border); box-shadow: var(--shadow-sm); }
+.fy-hero .lbl { font-size: 13px; font-weight: 700; color: var(--text-2); }
+.fy-hero .big { font-size: 32px; font-weight: 800; letter-spacing: -.02em; margin: 2px 0 12px; font-variant-numeric: tabular-nums; }
+.fy-hero .stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+.fy-stat { background: color-mix(in srgb, var(--surface) 70%, transparent); border-radius: 14px; padding: 8px 12px; }
+.fy-stat small { display: block; font-size: 12px; font-weight: 700; color: var(--text-2); }
+.fy-stat b { font-size: 16px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.fy-month { display: inline-flex; align-items: center; gap: 2px; background: var(--surface); border: 1px solid var(--border); border-radius: 999px; padding: 3px; box-shadow: var(--shadow-sm); }
+.fy-month button { border: 0; background: none; width: 34px; height: 34px; border-radius: 999px; display: grid; place-items: center; cursor: pointer; color: var(--text-2); }
+.fy-month button:hover { background: var(--surface-3); } .fy-month span { font-weight: 700; font-size: 14px; padding: 0 4px; min-width: 112px; text-align: center; }
+.fy-donut { display: flex; gap: 18px; align-items: center; }
+.fy-legend { flex: 1; min-width: 0; }
+.fy-legend .r { display: flex; align-items: center; gap: 8px; padding: 4px 0; font-size: 13.5px; }
+.fy-legend .r i { width: 10px; height: 10px; border-radius: 4px; flex: none; } .fy-legend .r span { flex: 1; color: var(--text-2); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.fy-legend .r b { font-weight: 700; font-variant-numeric: tabular-nums; }
+.fy-bars { display: flex; align-items: flex-end; gap: 3px; height: 72px; }
+.fy-bars button { flex: 1; border: 0; padding: 0; background: none; height: 100%; display: flex; align-items: flex-end; cursor: pointer; }
+.fy-bars button i { display: block; width: 100%; border-radius: 4px; background: var(--primary-soft); min-height: 3px; }
+.fy-bars button.on i, .fy-bars button:hover i { background: var(--primary-2); }
+.fy-bars-axis { display: flex; justify-content: space-between; font-size: 11px; color: var(--text-3); font-weight: 600; margin-top: 4px; }
+.fy-grid2 { display: grid; gap: 12px; }
+@media (min-width: 900px) { .fy-grid2 { grid-template-columns: 1fr 1fr; } .fy-home { display: grid; grid-template-columns: 1fr 380px; gap: 20px; align-items: start; } .fy-home .side { position: sticky; top: 76px; } }
+.fy-side-only { display: none; } @media (min-width: 900px) { .fy-side-only { display: block; } }
+.fy-empty { text-align: center; padding: 28px 16px; color: var(--text-2); }
+.fy-empty b { display: block; font-size: 17px; color: var(--text); margin: 8px 0 4px; }
+.fy-search { position: relative; } .fy-search svg { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-3); }
+.fy-search input { padding-left: 38px; background: var(--surface-3); border-color: transparent; min-height: 40px; border-radius: 12px; }
+/* quick add */
+.fy-amount { display: flex; align-items: baseline; justify-content: center; gap: 6px; margin: 6px 0 2px; }
+.fy-amount small { font-size: 20px; font-weight: 700; color: var(--text-3); }
+.fy-amount input { border: 0; background: none; outline: none; width: 100%; max-width: 280px; text-align: center; font-size: 40px; font-weight: 800; letter-spacing: -.02em; color: var(--text); padding: 0; font-variant-numeric: tabular-nums; }
+.fy-amount input::placeholder { color: var(--border-strong); }
+.fy-what { display: flex; align-items: center; gap: 8px; background: var(--surface-3); border-radius: 14px; padding: 0 12px; margin: 10px 0 6px; }
+.fy-what input { flex: 1; border: 0; background: none; outline: none; min-height: 44px; font-size: 15px; font-weight: 600; }
+.fy-sugg { display: inline-flex; align-items: center; gap: 4px; font-size: 12.5px; font-weight: 700; color: var(--mint-i); background: var(--mint-s); border-radius: 999px; padding: 3px 10px; border: 0; cursor: pointer; margin: 0 0 6px; }
+.fy-catgrid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; margin: 4px 0 8px; }
+@media (min-width: 420px) { .fy-catgrid { grid-template-columns: repeat(5, 1fr); } }
+.fy-cat { display: flex; flex-direction: column; align-items: center; gap: 5px; padding: 8px 2px 6px; border-radius: 16px; border: 1.5px solid transparent; background: none; cursor: pointer; min-height: 76px; }
+.fy-cat small { font-size: 11.5px; font-weight: 700; color: var(--text-2); max-width: 100%; text-align: center; line-height: 1.15; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.fy-cat[aria-checked="true"] { background: var(--primary-soft); border-color: var(--primary-2); } .fy-cat[aria-checked="true"] small { color: var(--primary-text); }
+.fy-cat:hover { background: var(--surface-2); }
+.fy-subhead { font-size: 12.5px; font-weight: 700; color: var(--text-3); margin: 10px 2px 6px; display: flex; justify-content: space-between; }
+.fy-subhead button { border: 0; background: none; color: var(--primary-text); font-weight: 700; font-size: 12.5px; cursor: pointer; padding: 0; }
+.fy-more { border: 0; background: none; color: var(--primary-text); font-weight: 700; font-size: 13.5px; cursor: pointer; padding: 8px 0; display: inline-flex; align-items: center; gap: 4px; }
+.fy-note { background: var(--lavender-s); color: var(--lavender-i); border-radius: 14px; padding: 8px 12px; font-weight: 700; font-size: 13px; }
+/* accounts */
+.fy-usage { height: 6px; border-radius: 999px; background: var(--surface-3); margin-top: 6px; overflow: hidden; } .fy-usage i { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--primary-2), var(--primary)); }
+.fy-reorder { display: flex; gap: 2px; } .fy-reorder button { width: 34px; height: 34px; border-radius: 10px; border: 0; background: var(--surface-3); color: var(--text-2); display: grid; place-items: center; cursor: pointer; }
+.fy-swatches { display: flex; gap: 8px; flex-wrap: wrap; } .fy-swatches button { border: 2px solid transparent; border-radius: 12px; padding: 2px; background: none; cursor: pointer; }
+.fy-swatches button[aria-checked="true"] { border-color: var(--text); }
+.fy-icons { display: grid; grid-template-columns: repeat(auto-fill, minmax(44px, 1fr)); gap: 6px; max-height: 200px; overflow: auto; }
+.fy-icons button { border: 2px solid transparent; border-radius: 12px; padding: 4px; background: none; cursor: pointer; display: grid; place-items: center; }
+.fy-icons button[aria-checked="true"] { border-color: var(--primary-2); }
+.fy-center { max-width: 380px; margin: 14vh auto 0; padding: 16px; text-align: center; }
+.fy-center h1 { font-size: 28px; font-weight: 800; margin: 14px 0 6px; } .fy-center p { color: var(--text-2); font-weight: 600; margin: 0 0 24px; }
+.fy-logo { width: 64px; height: 64px; border-radius: 20px; display: inline-grid; place-items: center; background: linear-gradient(135deg, var(--primary-2), var(--primary)); color: #fff; box-shadow: 0 10px 24px color-mix(in srgb, var(--primary) 35%, transparent); }
+.fy-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+/* long category names never push a card wider than the screen */
+.fy-grid2 { grid-template-columns: minmax(0, 1fr); } .fy-grid2 > *, .fy-home > * { min-width: 0; }
+@media (min-width: 900px) { .fy-grid2 { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } .fy-home { grid-template-columns: minmax(0, 1fr) 380px; } }
+.fy-donut > svg { flex: none; } .fy-what input { min-width: 0; }
+/* import (Sprint 3) */
+.fy-switch { width: 46px; height: 28px; border-radius: 99px; border: 0; background: var(--border-strong); position: relative; flex: none; cursor: pointer; transition: background .15s; }
+.fy-switch i { position: absolute; top: 3px; left: 3px; width: 22px; height: 22px; border-radius: 99px; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.2); transition: left .15s; }
+.fy-switch[aria-checked="true"] { background: linear-gradient(135deg, var(--primary-2), var(--primary)); } .fy-switch[aria-checked="true"] i { left: 21px; }
+.fy-spin { animation: fy-spin 1s linear infinite; } @keyframes fy-spin { to { transform: rotate(360deg); } }
+/* the logo (chosen 23 Nov 2026: the F monogram, Nunito logotype) */
+.fy-lockup { display: inline-flex; align-items: center; gap: .45em; font-weight: 800; letter-spacing: -.02em; color: var(--text); }
+.fy-lockup svg { filter: drop-shadow(0 3px 8px color-mix(in srgb, var(--primary) 25%, transparent)); border-radius: 22.5%; }
+
+/* ---- UI/UX audit fixes (FINNY-55, 23 Nov 2026) */
+/* 1. secondary text meets WCAG AA (≥ 4.5:1) on white and on the soft fills */
+:root { --text-3: #6f5f82; --transfer: #6f5f82; }
+@media (prefers-color-scheme: dark) { :root { --text-3: #b3a6c2; --transfer: #b3a6c2; } }
+.fy-search input::placeholder, .fy-input::placeholder, .fy-what input::placeholder { color: var(--text-3); opacity: 1; }
+/* 6. a solid tab bar */
+.fy-tabbar { background: var(--surface); backdrop-filter: none; -webkit-backdrop-filter: none; box-shadow: 0 -4px 16px rgba(76, 29, 89, .06); }
+/* 8. thumb-sized targets */
+.fy-btn.small { min-height: 44px; } .fy-month button { width: 44px; height: 44px; }
+.fy-chip { min-height: 40px; } .fy-seg button { min-height: 40px; }
+.fy-row.tap, button.fy-row { min-height: 56px; }
+/* 5. account chips wrap */
+.fy-chips.wrap { flex-wrap: wrap; overflow: visible; }
+/* 3. placeholders while loading */
+.fy-skel { display: inline-block; height: .9em; width: 6em; border-radius: 8px; background: linear-gradient(90deg, var(--surface-3), var(--surface-2), var(--surface-3)); background-size: 200% 100%; animation: fy-shimmer 1.2s ease-in-out infinite; vertical-align: middle; }
+@keyframes fy-shimmer { to { background-position: -200% 0; } }
+/* 4. the legend shows whole names and amounts */
+.fy-legend .r { align-items: flex-start; } .fy-legend .r i { margin-top: 4px; }
+.fy-legend .r span { white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; line-height: 1.25; }
+.fy-legend .r small { display: block; color: var(--text-3); font-weight: 600; font-size: 12px; }
+/* 10. saved / invested on one quiet line */
+.fy-hero .extra { margin-top: 10px; font-size: 13px; font-weight: 700; color: var(--text-2); display: flex; gap: 14px; flex-wrap: wrap; }
+.fy-hero .extra b { color: var(--text); font-variant-numeric: tabular-nums; }
+/* 2. the whole chart is the tap area */
+.fy-bars { touch-action: pan-y; cursor: pointer; position: relative; }
+.fy-bars button { pointer-events: none; } .fy-bars button i.z { visibility: hidden; }
+.fy-bars-pick { font-size: 13px; font-weight: 700; color: var(--text-2); margin: -2px 0 8px; min-height: 18px; }
+/* 7. "Rp" and the amount together */
+.fy-amount { gap: 4px; } .fy-amount input { width: auto; min-width: 1.2ch; max-width: 100%; text-align: left; }
+/* 12. two-line amount on card rows */
+.fy-owed { text-align: right; } .fy-owed small { display: block; font-size: 12px; font-weight: 700; color: var(--text-3); }
+/* 14. a date field that reads "23 Nov 2026" */
+.fy-datefield { position: relative; display: flex; align-items: center; justify-content: space-between; cursor: pointer; }
+.fy-datefield input { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; }
+/* FINNY-73: bank statements */
+.fy-back { display: inline-flex; align-items: center; gap: 2px; margin: 4px 0 4px -6px; padding: 4px 6px; border: 0; background: none; color: var(--primary-text); font-weight: 700; font-size: 15px; text-decoration: none; cursor: pointer; }
+.fy-drop { text-align: center; display: flex; flex-direction: column; align-items: center; border: 2px dashed color-mix(in srgb, var(--primary) 35%, transparent); }
+.fy-iconnote { display: flex; gap: 8px; align-items: flex-start; margin-top: 12px; }
+.fy-iconnote svg { flex: none; margin-top: 1px; }
+.fy-faded .fy-tile { opacity: .55; } /* a line already in Finny: quieter, its words still readable (FINNY-157) */
+.fy-faded .main .t, .fy-faded .fy-amt { color: var(--text-2); }
+.fy-eye { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); width: 36px; height: 36px; display: grid; place-items: center; border: 0; background: none; color: var(--text-3); cursor: pointer; border-radius: 10px; }
+.fy-gap { background: var(--lemon-s); color: var(--lemon-i); margin-bottom: 4px; }
+.fy-gap .h { display: flex; gap: 8px; align-items: center; font-weight: 800; }
+.fy-gap .b { font-size: 13.5px; font-weight: 600; margin-top: 4px; line-height: 1.45; }
+.fy-savebar { position: sticky; bottom: calc(76px + env(safe-area-inset-bottom)); margin-top: 16px; padding: 22px 0 6px; z-index: 5; background: linear-gradient(color-mix(in srgb, var(--bg) 0%, transparent), var(--bg) 20px); }
+@media (min-width: 760px) { .fy-savebar { bottom: 12px; } }
+.fy-ok { display: flex; gap: 8px; align-items: center; }
+/* FINNY-63: budget */
+.fy-bbar { height: 8px; border-radius: 99px; background: var(--surface-3); margin: 6px 0 4px; overflow: hidden; }
+.fy-bbar i { display: block; height: 100%; border-radius: 99px; }
+.fy-bline { display: flex; justify-content: space-between; gap: 8px; }
+.fy-bline > span:first-child { overflow: hidden; text-overflow: ellipsis; }
+.fy-bline .num { font-size: 14px; flex: none; font-variant-numeric: tabular-nums; }
+.fy-bline .of { color: var(--text-3); font-weight: 600; }
+.fy-linkish { border: 0; background: none; padding: 0; font: inherit; color: inherit; cursor: pointer; text-align: left; }
+.fy-linkish b { text-decoration: underline; text-decoration-color: color-mix(in srgb, var(--primary) 45%, transparent); text-underline-offset: 3px; }
+/* FINNY-80/81: reports */
+.fy-report { display: grid; gap: 12px; grid-template-columns: minmax(0, 1fr); }
+@media (min-width: 900px) { .fy-report { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; } }
+.fy-key { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 700; color: var(--text-2); }
+.fy-key i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-left: 4px; }
+.fy-stats3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 8px; }
+.fy-trow { min-height: 48px; gap: 10px; }
+.fy-trow .car { width: 22px; height: 22px; flex: none; display: grid; place-items: center; color: var(--text-3); border: 0; background: none; padding: 0; cursor: pointer; }
+.fy-trow .main .t { white-space: normal; line-height: 1.25; }
+.fy-trow .fy-amt { font-size: 14px; min-width: 84px; text-align: right; }
+.fy-trow .avg { min-width: 52px; text-align: right; font-size: 13px; font-weight: 700; color: var(--text-3); font-variant-numeric: tabular-nums; }
+.fy-3col { display: grid; grid-template-columns: 66px 66px 66px; gap: 4px; text-align: right; font-size: 13.5px; font-weight: 700; font-variant-numeric: tabular-nums; }
+/* FINNY-88: debts */
+.fy-billnote { margin-top: 12px; display: flex; gap: 10px; align-items: flex-start; background: var(--peach-s); color: var(--peach-i); }
+.fy-billnote svg { flex: none; margin-top: 2px; }
+.fy-billnote .h { font-weight: 800; }
+.fy-billnote .b { font-size: 13px; font-weight: 600; margin-top: 2px; }
+/* FINNY-96: assets */
+.fy-alloc { display: flex; height: 12px; border-radius: 99px; overflow: hidden; margin: 6px 0 8px; background: var(--surface-3); }
+.fy-alloc i { display: block; height: 100%; }
+.fy-key span { display: inline-flex; align-items: center; gap: 4px; }
+/* Sprint 9: the emergency fund's target options and the source ticks */
+.fy-opt { display: block; width: 100%; text-align: left; border: 2px solid var(--border); background: var(--surface); border-radius: 14px; padding: 10px 14px; margin-bottom: 8px; cursor: pointer; color: var(--text); font: inherit; }
+.fy-opt b { display: block; font-weight: 800; font-size: 15px; font-variant-numeric: tabular-nums; }
+.fy-opt span { display: block; font-size: 12.5px; font-weight: 600; color: var(--text-2); }
+.fy-opt.on { border-color: var(--primary); background: color-mix(in srgb, var(--primary) 8%, var(--surface)); }
+.fy-check { width: 26px; height: 26px; flex: none; border-radius: 8px; border: 2px solid var(--border-2, var(--border)); background: var(--surface); display: inline-grid; place-items: center; cursor: pointer; color: var(--primary-ink); padding: 0; }
+.fy-check.on { background: var(--primary); border-color: var(--primary); }
+/* Sprint 10: the month-end review */
+.fy-rv-step { padding: 12px 14px; margin-bottom: 10px; }
+.fy-rv-tick { width: 24px; height: 24px; border-radius: 99px; display: inline-grid; place-items: center; flex: none; border: 2px solid var(--border-strong); color: #fff; }
+.fy-rv-tick.on { background: var(--income); border-color: var(--income); }
+.fy-rv-line { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 8px 0; border-top: 1px solid var(--border); font-size: 13.5px; }
+.fy-rv-line > span:first-child { min-width: 0; }
+.fy-rv-line small { display: block; font-size: 12px; color: var(--text-3); font-weight: 600; }
+.fy-rv-line .num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.fy-rv-nudge { display: flex; gap: 10px; align-items: center; padding: 14px 16px; margin-bottom: 12px; border: 2px solid var(--primary-2); background: var(--primary-soft); color: var(--text); text-decoration: none; }
+.fy-rv-warn { display: flex; gap: 8px; align-items: center; background: var(--rose-s); color: var(--rose-i); border-radius: 12px; padding: 8px 10px; font-weight: 700; font-size: 13px; margin-bottom: 10px; }
+/* Sprint 11: goals */
+.fy-goal { display: block; padding: 12px 14px; margin-bottom: 10px; color: var(--text); text-decoration: none; }
+.fy-goal-foot { display: flex; justify-content: space-between; gap: 8px; font-size: 12.5px; font-weight: 700; color: var(--text-2); }
+.fy-goal-legend { display: flex; gap: 12px; flex-wrap: wrap; font-size: 12px; font-weight: 700; color: var(--text-2); margin-top: 4px; }
+.fy-goal-legend i { display: inline-block; width: 14px; height: 3px; vertical-align: middle; margin-right: 4px; border-radius: 2px; }
+.fy-goal-legend i.dash { height: 0; border-top: 2.5px dashed; background: none; }
+.fy-goal-legend i.dot { height: 0; border-top: 2.5px dotted; background: none; }
+.fy-rv-goals { padding: 8px 0; border-top: 1px solid var(--border); font-size: 13.5px; }
+.fy-rv-goals > b { display: block; margin-bottom: 4px; }
+.fy-rv-goals a { display: flex; justify-content: space-between; gap: 8px; padding: 3px 0; color: var(--text); text-decoration: none; }
+/* Sprint 12: the workbook match check */
+.fy-mt-mark { width: 22px; height: 22px; border-radius: 99px; display: inline-grid; place-items: center; flex: none; color: #fff; }
+.fy-mt-mark.ok { background: var(--income); } .fy-mt-mark.no { background: var(--spend); }
+.fy-mt-acc + .fy-mt-acc { border-top: 1px solid var(--sep); }
+.fy-rv-done { margin-top: 10px; background: var(--mint-s); color: var(--mint-i); border-radius: 12px; padding: 8px 10px; font-weight: 800; font-size: 13px; }
+/* Sprint 13 (FINNY-134): every small text link and button gets a 44 x 44 px tap area without changing its look;
+   amber warning text has its own token with AA contrast in both themes. */
+:root { --warn-text: #92400e; }
+@media (prefers-color-scheme: dark) { :root { --warn-text: #fcd34d; } }
+/* z-index: the tap area sits above a card that follows (a section title's Edit above its list). */
+.fy-more, .fy-linkish:not(.fy-row):not(.fy-card):not(.fy-btn), .fy-rv-line a, .fy-tap { position: relative; z-index: 1; }
+.fy-more::after, .fy-linkish:not(.fy-row):not(.fy-card):not(.fy-btn)::after, .fy-rv-line a::after, .fy-tap::after {
+  content: ""; position: absolute; left: 50%; top: 50%; width: max(100%, 44px); height: max(100%, 44px); transform: translate(-50%, -50%);
+}
+/* FINNY-135: single-column pages stay readable on a wide screen. */
+.fy-narrow { max-width: 720px; margin: 0 auto; }
+/* Sprint 14: recurring transactions */
+.fy-rc-due { padding: 12px 0 4px; margin-bottom: 12px; border: 2px solid var(--primary-2); }
+.fy-rc-head { display: flex; justify-content: space-between; align-items: center; padding: 0 16px 6px; }
+.fy-rc-head b { display: flex; gap: 6px; align-items: center; }
+.fy-rc-acts { display: flex; gap: 6px; justify-content: flex-end; margin-top: 6px; }
+.fy-rc-acts .fy-chip { min-height: 36px; padding: 0 12px; }
+.fy-rc-spot { margin-top: 16px; border: 2px dashed var(--primary-2); }
+.fy-switch[data-on="true"] { background: linear-gradient(135deg, var(--primary-2), var(--primary)); } .fy-switch[data-on="true"] i { left: 21px; }
+/* Sprint 15: offline */
+.fy-offline, .fy-online { display: flex; gap: 8px; align-items: center; border-radius: 12px; padding: 8px 12px; font-weight: 800; font-size: 13px; margin-bottom: 10px; }
+.fy-offline { background: var(--lemon-s); color: var(--warn-text); }
+.fy-online { background: var(--mint-s); color: var(--mint-i); }
+.fy-waiting { display: flex; gap: 4px; align-items: center; justify-content: flex-end; color: var(--warn-text); font-size: 12px; font-weight: 800; }
+.fy-offline-note { background: var(--lemon-s); color: var(--warn-text); border-radius: 12px; padding: 8px 12px; font-weight: 700; font-size: 13px; margin: 12px 0 0; }
+
+.pv{padding:36px 40px;width:max-content;background:#f3ecf7} .pv h1.t{font-size:26px;margin:0 0 4px} .pv p.t{margin:0 0 22px;color:#6f6280}
+.rw{display:flex;flex-direction:column;gap:30px} figure{margin:0} figcaption{margin-top:10px;font-weight:800;color:#4b3a6e;font-size:17px}
+.win{width:1200px;border-radius:14px;overflow:hidden;box-shadow:0 20px 50px rgba(60,30,90,.18);background:var(--bg);border:1px solid #e5d9ef}
+.tabs{display:flex;gap:4px;background:#e9e0f0;padding:8px 10px 0} .tab{padding:8px 16px;border-radius:10px 10px 0 0;font-size:13px;font-weight:700;color:#6f6280;display:flex;gap:6px;align-items:center} .tab.on{background:var(--bg);color:#2b1a38}
+.vp{position:relative;overflow:hidden} .fy-topbar .in{display:flex} .fy-wrap{max-width:1040px}
+.tb{width:100%;border-collapse:collapse;font-size:14px}.tb th{text-align:left;font-size:12.5px;color:var(--text-2);font-weight:800;padding:10px 12px;border-bottom:1px solid var(--border);white-space:nowrap}
+.tb td{padding:10px 12px;border-bottom:1px solid var(--border);vertical-align:middle}.tb td.dt{white-space:nowrap;color:var(--text-2);font-weight:700}.tb .am{text-align:right;white-space:nowrap}.tb td.src{color:var(--text-3);font-size:12.5px;font-weight:700}
+.tb td.act span{display:inline-grid;place-items:center;width:30px;height:30px;border-radius:9px;color:var(--text-3)} .tb b{font-weight:700}
+.cb{display:inline-grid;place-items:center;width:18px;height:18px;border-radius:6px;border:2px solid var(--border-strong);vertical-align:middle}.cb.on{background:var(--primary);border-color:var(--primary);color:#fff}
+.fy-input.sel{display:flex;gap:6px;align-items:center;width:auto;font-weight:700;color:var(--text-2)} .tb .fy-pill{font-size:11px;padding:2px 8px;display:inline-flex;gap:4px;align-items:center}
+.phone{width:390px;border-radius:40px;border:10px solid #2b1a38;overflow:hidden;background:var(--bg)}</style></head><body><div class="pv"><h1 class="t">Finny · Every transaction, to check (design preview)</h1><p class="t">Drawn with Finny's own stylesheet. Names and numbers are made up. For your approval before anything is built.</p><div class="rw">
+<figure><div class="win"><div class="tabs"><span class="tab on">Transactions · Finny</span></div><div class="vp"><header class="fy-topbar" style="position:relative"><div class="in"><a class="brand"><span style="width:30px;height:30px;border-radius:9px;background:linear-gradient(135deg,#f472b6,#a78bfa);display:grid;place-items:center;color:#fff;font-weight:900">F</span>Finny</a><a class="nav "><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>Home</a><a class="nav on"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h.01"/><path d="M3 18h.01"/><path d="M3 6h.01"/><path d="M8 12h13"/><path d="M8 18h13"/><path d="M8 6h13"/></svg>Transactions</a><a class="nav "><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12c.552 0 1.005-.449.95-.998a10 10 0 0 0-8.953-8.951c-.55-.055-.998.398-.998.95v8a1 1 0 0 0 1 1z"/><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/></svg>Budget</a><a class="nav "><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" x2="21" y1="22" y2="22"/><line x1="6" x2="6" y1="18" y2="11"/><line x1="10" x2="10" y1="18" y2="11"/><line x1="14" x2="14" y1="18" y2="11"/><line x1="18" x2="18" y1="18" y2="11"/><polygon points="12 2 20 7 4 7"/></svg>Accounts</a><a class="nav "><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v16a2 2 0 0 0 2 2h16"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>Reports</a><a class="nav "><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12l4 6-10 13L2 9Z"/><path d="M11 3 8 9l4 13 4-13-3-6"/><path d="M2 9h20"/></svg>Assets</a><a class="nav "><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>Settings</a><span style="flex:1"></span><span class="fy-btn primary small"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>Add</span></div></header><main class="fy-wrap" style="padding-bottom:20px"><div class="fy-large"><div><div class="sub">Every record, to check</div><h1>Transactions</h1></div><span class="fy-btn small"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/></svg> Download CSV</span></div><div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
+<div class="fy-input" style="flex:1;min-width:220px;display:flex;gap:8px;align-items:center;color:var(--text-3)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg> Search description, place, note</div>
+<div class="fy-input sel">November 2026 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></div><div class="fy-input sel">All accounts <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></div><div class="fy-input sel">All categories <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></div><div class="fy-input sel">All kinds <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></div></div>
+<div class="fy-chips" style="margin-bottom:12px"><span class="fy-chip on">All 62</span><span class="fy-chip"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg> Needs a look 3</span><span class="fy-chip">Typed 51</span><span class="fy-chip">From a statement 8</span><span class="fy-chip">From the workbook 3</span></div><div class="fy-card" style="overflow:hidden"><table class="tb"><thead><tr><th><span class="cb"></span></th><th>Date <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></th><th>Description</th><th>Category</th><th>Account</th><th>From</th><th class="am">Amount</th><th></th></tr></thead><tbody><tr><td><span class="cb "></span></td><td class="dt">24 Nov</td><td><b>Token listrik</b> </td><td>Biaya Listrik</td><td>Mandiri</td><td class="src">Typed</td><td class="am fy-amt spend">−423.000</td><td class="act"><span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/></svg></span><span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg></span></td></tr><tr style="background:color-mix(in srgb,#f59e0b 7%,transparent)"><td><span class="cb "></span></td><td class="dt">23 Nov</td><td><b>Belanja mingguan</b> <span class="fy-pill" style="background:var(--lemon-s);color:var(--lemon-i)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg> Twice?</span></td><td>Belanja Dapur dan Rumah Tangga</td><td>CC Mandiri</td><td class="src">Statement</td><td class="am fy-amt spend">−667.000</td><td class="act"><span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/></svg></span><span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg></span></td></tr><tr style="background:color-mix(in srgb,#f59e0b 7%,transparent)"><td><span class="cb "></span></td><td class="dt">23 Nov</td><td><b>Belanja mingguan</b> <span class="fy-pill" style="background:var(--lemon-s);color:var(--lemon-i)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg> Twice?</span></td><td>Belanja Dapur dan Rumah Tangga</td><td>CC Mandiri</td><td class="src">Typed</td><td class="am fy-amt spend">−667.000</td><td class="act"><span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/></svg></span><span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg></span></td></tr><tr><td><span class="cb "></span></td><td class="dt">20 Nov</td><td><b>Kopi</b> </td><td>Beli Kopi</td><td>BCA</td><td class="src">Typed</td><td class="am fy-amt spend">−65.000</td><td class="act"><span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/></svg></span><span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg></span></td></tr><tr style="background:color-mix(in srgb,#f59e0b 7%,transparent)"><td><span class="cb "></span></td><td class="dt">18 Nov</td><td><b>Makan malam</b> <span class="fy-pill" style="background:var(--lemon-s);color:var(--lemon-i)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg> 10× usual</span></td><td>Makan di Luar</td><td>GoPay</td><td class="src">Typed</td><td class="am fy-amt spend">−1.310.000</td><td class="act"><span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/></svg></span><span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg></span></td></tr><tr><td><span class="cb "></span></td><td class="dt">17 Nov</td><td><b>Bayar kartu</b> </td><td>BCA → CC Mandiri</td><td>Transfer</td><td class="src">Typed</td><td class="am fy-amt ">2.000.000</td><td class="act"><span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/></svg></span><span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg></span></td></tr><tr><td><span class="cb "></span></td><td class="dt">14 Nov</td><td><b>Bensin</b> </td><td>Biaya Bensin</td><td>Tunai</td><td class="src">Workbook</td><td class="am fy-amt spend">−164.000</td><td class="act"><span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/></svg></span><span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg></span></td></tr><tr><td><span class="cb "></span></td><td class="dt">1 Nov</td><td><b>Gaji</b> </td><td>Gaji</td><td>BCA</td><td class="src">Typed</td><td class="am fy-amt income">+15.000.000</td><td class="act"><span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/></svg></span><span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg></span></td></tr></tbody></table>
+<div style="display:flex;justify-content:space-between;padding:12px 16px;border-top:1px solid var(--border);font-weight:700;color:var(--text-2);font-size:13.5px"><span>62 transactions · showing 1–50</span><span>Out Rp 9.812.000 · In Rp 15.000.000</span></div></div></main></div></div><figcaption>1 · Transactions on a laptop: a real table, sortable, filtered by month, account, category, kind and where it came from; edit or delete on every row</figcaption></figure>
+<figure><div class="win"><div class="tabs"><span class="tab on">Transactions · Finny</span></div><div class="vp"><header class="fy-topbar" style="position:relative"><div class="in"><a class="brand"><span style="width:30px;height:30px;border-radius:9px;background:linear-gradient(135deg,#f472b6,#a78bfa);display:grid;place-items:center;color:#fff;font-weight:900">F</span>Finny</a><a class="nav "><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>Home</a><a class="nav on"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h.01"/><path d="M3 18h.01"/><path d="M3 6h.01"/><path d="M8 12h13"/><path d="M8 18h13"/><path d="M8 6h13"/></svg>Transactions</a><a class="nav "><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12c.552 0 1.005-.449.95-.998a10 10 0 0 0-8.953-8.951c-.55-.055-.998.398-.998.95v8a1 1 0 0 0 1 1z"/><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/></svg>Budget</a><a class="nav "><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" x2="21" y1="22" y2="22"/><line x1="6" x2="6" y1="18" y2="11"/><line x1="10" x2="10" y1="18" y2="11"/><line x1="14" x2="14" y1="18" y2="11"/><line x1="18" x2="18" y1="18" y2="11"/><polygon points="12 2 20 7 4 7"/></svg>Accounts</a><a class="nav "><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v16a2 2 0 0 0 2 2h16"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>Reports</a><a class="nav "><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12l4 6-10 13L2 9Z"/><path d="M11 3 8 9l4 13 4-13-3-6"/><path d="M2 9h20"/></svg>Assets</a><a class="nav "><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>Settings</a><span style="flex:1"></span><span class="fy-btn primary small"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>Add</span></div></header><main class="fy-wrap" style="padding-bottom:20px"><div class="fy-large"><div><div class="sub">Every record, to check</div><h1>Transactions</h1></div></div>
+<div class="fy-chips" style="margin-bottom:12px"><span class="fy-chip">All 62</span><span class="fy-chip on"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg> Needs a look 3</span></div>
+<div class="fy-note" style="margin-bottom:12px">Finny's guesses at mistakes: the <b>same amount twice</b> on one day and account, or an amount <b>far above</b> what that category usually is. Fix it, delete it, or mark it fine.</div>
+<div class="fy-card" style="overflow:hidden"><table class="tb"><thead><tr><th><span class="cb"></span></th><th>Date <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></th><th>Description</th><th>Category</th><th>Account</th><th>From</th><th class="am">Amount</th><th></th></tr></thead><tbody><tr style="background:color-mix(in srgb,var(--primary) 7%,transparent)"><td><span class="cb on"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span></td><td class="dt">23 Nov</td><td><b>Belanja mingguan</b> <span class="fy-pill" style="background:var(--lemon-s);color:var(--lemon-i)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg> Twice?</span></td><td>Belanja Dapur dan Rumah Tangga</td><td>CC Mandiri</td><td class="src">Statement</td><td class="am fy-amt spend">−667.000</td><td class="act"><span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/></svg></span><span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg></span></td></tr><tr style="background:color-mix(in srgb,var(--primary) 7%,transparent)"><td><span class="cb on"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span></td><td class="dt">23 Nov</td><td><b>Belanja mingguan</b> <span class="fy-pill" style="background:var(--lemon-s);color:var(--lemon-i)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg> Twice?</span></td><td>Belanja Dapur dan Rumah Tangga</td><td>CC Mandiri</td><td class="src">Typed</td><td class="am fy-amt spend">−667.000</td><td class="act"><span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/></svg></span><span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg></span></td></tr><tr style="background:color-mix(in srgb,#f59e0b 7%,transparent)"><td><span class="cb "></span></td><td class="dt">18 Nov</td><td><b>Makan malam</b> <span class="fy-pill" style="background:var(--lemon-s);color:var(--lemon-i)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg> 10× usual</span></td><td>Makan di Luar</td><td>GoPay</td><td class="src">Typed</td><td class="am fy-amt spend">−1.310.000</td><td class="act"><span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/></svg></span><span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg></span></td></tr></tbody></table>
+<div style="display:flex;justify-content:space-between;padding:12px 16px;border-top:1px solid var(--border);font-weight:700;color:var(--text-2);font-size:13.5px"><span>3 to look at</span><span>Out Rp 2.644.000</span></div></div>
+<div style="position:sticky;bottom:12px;margin-top:14px;display:flex;gap:10px;align-items:center;background:var(--text);color:var(--bg);border-radius:18px;padding:10px 12px 10px 18px;box-shadow:var(--shadow-lg)">
+<b style="flex:1">2 selected · −Rp 1.334.000</b><span class="fy-btn small" style="background:transparent;color:inherit;border-color:rgba(255,255,255,.3)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z"/><circle cx="7.5" cy="7.5" r=".5"/></svg> Change category</span><span class="fy-btn small" style="background:#e11d48;color:#fff;border:0"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg> Delete 2</span><span style="opacity:.7;margin-left:4px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></span></div></main></div></div><figcaption>2 · "Needs a look": possible mistakes first; tick several to delete them or change their category together</figcaption></figure>
+<figure><div style="display:flex;gap:40px;align-items:flex-start"><div class="phone"><div class="fy-wrap" style="padding:14px 16px 20px;max-width:390px"><div class="fy-large"><div><div class="sub">Every record, to check</div><h1>Transactions</h1></div><span class="fy-btn small">Select</span></div>
+<div class="fy-input" style="display:flex;gap:8px;align-items:center;color:var(--text-3);margin-bottom:8px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg> Search</div>
+<div class="fy-chips" style="margin-bottom:10px"><span class="fy-chip">Nov 2026</span><span class="fy-chip on"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg> Needs a look 3</span><span class="fy-chip">Filters</span></div>
+<div class="fy-list"><div class="fy-row" style="background:color-mix(in srgb,#f59e0b 7%,transparent)"><div class="main"><div class="t">Belanja mingguan <span class="fy-pill" style="background:var(--lemon-s);color:var(--lemon-i)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg> Twice?</span></div><div class="s">23 Nov · Belanja Dapur · CC Mandiri · Statement</div></div><span class="fy-amt spend">−667.000</span></div><div class="fy-row" style="background:color-mix(in srgb,#f59e0b 7%,transparent)"><div class="main"><div class="t">Belanja mingguan <span class="fy-pill" style="background:var(--lemon-s);color:var(--lemon-i)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg> Twice?</span></div><div class="s">23 Nov · Belanja Dapur · CC Mandiri · Typed</div></div><span class="fy-amt spend">−667.000</span></div><div class="fy-row" style="background:color-mix(in srgb,#f59e0b 7%,transparent)"><div class="main"><div class="t">Makan malam <span class="fy-pill" style="background:var(--lemon-s);color:var(--lemon-i)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg> 10× usual</span></div><div class="s">18 Nov · Makan di Luar · GoPay</div></div><span class="fy-amt spend">−1.310.000</span></div></div>
+<div class="fy-hint" style="margin-top:10px">Tap a row to fix or delete it.</div></div></div><div style="max-width:560px;font-size:15px;line-height:1.5;color:#4b3a6e"><b>3 · On the phone</b><br>The same list and filters as rows; "Select" for several at once; tap a row to fix or delete it.<br><br><b>Where it lives</b><br>Laptop: <i>Transactions</i> in the top bar. Phone: "See every transaction" under Home's list, and in Settings › Your data.</div></div><figcaption></figcaption></figure>
+</div></div></body></html>
