@@ -242,3 +242,42 @@ export const goalSources = pgTable("goal_sources", {
   accountId: uuid("account_id").notNull().references(() => moneyAccounts.id, { onDelete: "cascade" }),
   partSen: bigint("part_sen", { mode: "number" }), // null = all of it
 }, (t) => [uniqueIndex("goal_sources_one").on(t.goalId, t.accountId), check("goal_sources_part", sql`${t.partSen} is null or ${t.partSen} >= 0`)]);
+
+// ---- FINNY-140: recurring transactions. An item repeats monthly on its anchor's day (the last day of a shorter month),
+// weekly on its weekday, or yearly on its date; amount null = it changes each time. A day is done once: added (txn_id)
+// or skipped. Same shape rules as transactions.
+export const recurring = pgTable("recurring", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  kind: text("kind", { enum: TXN_KINDS }).notNull(),
+  amountSen: bigint("amount_sen", { mode: "number" }),
+  accountId: uuid("account_id").notNull().references(() => moneyAccounts.id, { onDelete: "cascade" }),
+  toAccountId: uuid("to_account_id").references(() => moneyAccounts.id, { onDelete: "cascade" }),
+  categoryId: uuid("category_id").references(() => categories.id, { onDelete: "cascade" }),
+  every: text("every", { enum: ["month", "week", "year"] }).notNull(),
+  anchorOn: date("anchor_on", { mode: "string" }).notNull(),
+  endOn: date("end_on", { mode: "string" }),
+  createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
+}, (t) => [
+  index("recurring_user").on(t.userId),
+  check("recurring_amount", sql`${t.amountSen} is null or ${t.amountSen} > 0`),
+  check("recurring_name", sql`length(${t.name}) between 1 and 60`),
+  check("recurring_end", sql`${t.endOn} is null or ${t.endOn} >= ${t.anchorOn}`),
+  check("recurring_shape", sql`(${t.kind} = 'transfer' and ${t.toAccountId} is not null and ${t.toAccountId} <> ${t.accountId} and ${t.categoryId} is null)
+    or (${t.kind} <> 'transfer' and ${t.toAccountId} is null and ${t.categoryId} is not null)`),
+]);
+
+export const recurringRuns = pgTable("recurring_runs", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  recurringId: uuid("recurring_id").notNull().references(() => recurring.id, { onDelete: "cascade" }),
+  dueOn: date("due_on", { mode: "string" }).notNull(),
+  txnId: uuid("txn_id").references(() => transactions.id, { onDelete: "set null" }),
+  skipped: boolean("skipped").notNull().default(false),
+  createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
+}, (t) => [uniqueIndex("recurring_runs_one").on(t.recurringId, t.dueOn)]);
+
+export const recurringDismissed = pgTable("recurring_dismissed", {
+  userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  key: text("key").notNull(),
+}, (t) => [primaryKey({ columns: [t.userId, t.key] })]);

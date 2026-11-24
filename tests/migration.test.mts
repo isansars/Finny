@@ -14,7 +14,7 @@ await migrate(drizzle(pg), { migrationsFolder: folder });
 const tables = async () => (await pg.query<{ t: string }>("select table_name as t from information_schema.tables where table_schema = 'public' order by 1")).rows.map((r) => r.t);
 const up = await tables();
 console.log("up:", up.join(", "));
-for (const want of ["users", "sessions", "auth_accounts", "verification_tokens", "money_accounts", "categories", "entities", "transactions", "import_batches", "budgets", "income_plans", "debt_plans", "account_values", "things", "emergency_funds", "emergency_sources", "month_reviews", "goals", "goal_sources"]) assert.ok(up.includes(want), `missing ${want}`);
+for (const want of ["users", "sessions", "auth_accounts", "verification_tokens", "money_accounts", "categories", "entities", "transactions", "import_batches", "budgets", "income_plans", "debt_plans", "account_values", "things", "emergency_funds", "emergency_sources", "month_reviews", "goals", "goal_sources", "recurring", "recurring_runs", "recurring_dismissed"]) assert.ok(up.includes(want), `missing ${want}`);
 
 // FINNY-26: the database itself refuses a malformed transaction (amounts in sen, transfers between two accounts, no category).
 await pg.exec(`insert into users (id, email) values ('u1', 'owner@finny.test');
@@ -91,6 +91,19 @@ await refused("the same account twice in a goal", pg.exec(`insert into goal_sour
 await pg.exec(`delete from goals`);
 assert.equal((await pg.query("select count(*)::int as n from goal_sources")).rows[0].n, 0, "sources go with their goal");
 console.log("✓ goals and their sources keep their shape");
+await pg.exec(`insert into recurring (id, user_id, name, kind, amount_sen, account_id, category_id, every, anchor_on) values ('00000000-0000-0000-0000-0000000000f1', 'u1', 'Netflix', 'spend', 5490000, ${A}, ${K}, 'month', '2026-11-01')`);
+await refused("a transfer with a category", pg.exec(`insert into recurring (user_id, name, kind, amount_sen, account_id, to_account_id, category_id, every, anchor_on) values ('u1', 'x', 'transfer', 1, ${A}, ${B}, ${K}, 'month', '2026-11-01')`));
+await refused("a spend without a category", pg.exec(`insert into recurring (user_id, name, kind, account_id, every, anchor_on) values ('u1', 'x', 'spend', ${A}, 'month', '2026-11-01')`));
+await refused("an end before the start", pg.exec(`insert into recurring (user_id, name, kind, account_id, category_id, every, anchor_on, end_on) values ('u1', 'x', 'spend', ${A}, ${K}, 'month', '2026-11-01', '2026-10-01')`));
+await pg.exec(`insert into recurring (user_id, name, kind, account_id, category_id, every, anchor_on) values ('u1', 'Token', 'spend', ${A}, ${K}, 'month', '2026-11-01')`); // an amount that changes
+await pg.exec(`insert into recurring_runs (recurring_id, due_on, skipped) values ('00000000-0000-0000-0000-0000000000f1', '2026-11-01', true)`);
+await refused("a day done twice", pg.exec(`insert into recurring_runs (recurring_id, due_on) values ('00000000-0000-0000-0000-0000000000f1', '2026-11-01')`));
+await pg.exec(`insert into recurring_dismissed (user_id, key) values ('u1', 'kopi|a|100')`);
+await refused("a suggestion dismissed twice", pg.exec(`insert into recurring_dismissed (user_id, key) values ('u1', 'kopi|a|100')`));
+await pg.exec("delete from recurring");
+assert.equal((await pg.query("select count(*)::int as n from recurring_runs")).rows[0].n, 0, "runs go with their item");
+await pg.exec("delete from recurring_dismissed");
+console.log("✓ recurring items, their days and dismissed suggestions keep their shape");
 await pg.exec("delete from month_reviews;");
 await pg.exec("delete from emergency_sources; delete from emergency_funds;");
 await pg.exec("delete from account_values; delete from things;");

@@ -7,7 +7,7 @@ import { zip } from "@/lib/zip";
 import { todayIn } from "@/lib/dates";
 
 export const GET = () => withMe(async (me) => {
-  const { accs, cats, ents, txns, buds, plans, vals, thingRows, reviews, goalRows } = await exportRows(me.id);
+  const { accs, cats, ents, txns, buds, plans, vals, thingRows, reviews, goalRows, recRows } = await exportRows(me.id);
   const accName = new Map(accs.map((a) => [a.id, a.name])), catName = new Map(cats.map((c) => [c.id, c.name])), entName = new Map(ents.map((e) => [e.id, e.name]));
   const files = {
     "accounts.csv": toCsv(["id", "name", "type", "opening_rupiah", "opening_on", "limit_rupiah", "statement_day", "archived"],
@@ -28,6 +28,9 @@ export const GET = () => withMe(async (me) => {
       reviews.map((r) => ({ month: r.month, budget_done: r.budgetDone, wealth_done: r.wealthDone, closed_at: r.closedAt ? r.closedAt.toISOString() : "", note: r.note ?? "", summary_json: r.summary ? JSON.stringify(r.summary) : "", match_json: r.matchSummary ? JSON.stringify(r.matchSummary) : "" }))),
     // FINNY-117: goals.
     "goals.csv": toCsv(["name", "kind", "target_rupiah", "by_month"], goalRows.map((g) => ({ name: g.name, kind: g.kind, target_rupiah: senToPlain(g.targetSen), by_month: g.byMonth ?? "" }))),
+    // FINNY-140: recurring transactions.
+    "recurring.csv": toCsv(["name", "kind", "amount_rupiah", "account", "to_account", "category", "every", "from", "until"],
+      recRows.map((r) => ({ name: r.name, kind: r.kind, amount_rupiah: r.amountSen == null ? "changes" : senToPlain(r.amountSen), account: accName.get(r.accountId), to_account: r.toAccountId ? accName.get(r.toAccountId) : "", category: r.categoryId ? catName.get(r.categoryId) : "", every: r.every, from: r.anchorOn, until: r.endOn ?? "" }))),
   };
   return new NextResponse(Buffer.from(zip(files)), { headers: { "content-type": "application/zip", "content-disposition": `attachment; filename="finny-export-${todayIn()}.zip"`, "cache-control": "no-store" } });
 });
