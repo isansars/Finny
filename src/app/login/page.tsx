@@ -4,6 +4,7 @@ import { signIn, googleEnabled } from "@/auth";
 import { getMe } from "@/lib/session";
 import { devLoginEnabled } from "@/lib/allow-rule";
 import { safeFrom } from "@/lib/safe-from";
+export const metadata = { title: "Sign in" };
 export const dynamic = "force-dynamic";
 
 export default async function Login({ searchParams }: { searchParams: Promise<{ from?: string }> }) {

@@ -5,6 +5,7 @@ import { requireMe } from "@/lib/session";
 import { signOut } from "@/auth";
 import { DeleteEverything } from "@/components/DeleteEverything";
 export const dynamic = "force-dynamic";
+export const metadata = { title: "Settings" };
 export default async function Page() {
   const me = await requireMe("/settings");
   return (

@@ -3,7 +3,7 @@
 // moved into Settings), a top bar on desktop.
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ChartPie, House, Landmark, Plus, Settings } from "lucide-react";
+import { ChartColumn, ChartPie, Gem, House, Landmark, Plus, Settings } from "lucide-react";
 import { Lockup } from "./Logo";
 import { FinnyProvider, useFinny } from "./store";
 import { PhoneSync } from "./Phone";
@@ -16,21 +16,27 @@ const NAV = [
   { href: "/accounts", label: "Accounts", Icon: Landmark },
   { href: "/settings", label: "Settings", Icon: Settings },
 ];
+// FINNY-163: a laptop has room for Reports and Assets (Debts, goals and the emergency fund live under Assets).
+const NAV_WIDE = [NAV[0], NAV[1], NAV[2], { href: "/reports", label: "Reports", Icon: ChartColumn }, { href: "/assets", label: "Assets", Icon: Gem }, NAV[3]];
 
 function Frame({ children }: { children: React.ReactNode }) {
   const path = usePathname();
   const { editing, openAdd, closeAdd } = useFinny();
-  const on = (h: string) => (h === "/" ? path === "/" || path.startsWith("/reports") : path.startsWith(h) || (h === "/settings" && (path.startsWith("/categories") || path.startsWith("/import"))));
+  const settings = (h: string) => h === "/settings" && (path.startsWith("/categories") || path.startsWith("/import"));
+  // Phones: four tabs, Home also for reports and reviews. Laptops: Reports and Assets have their own.
+  const on = (h: string) => (h === "/" ? path === "/" || path.startsWith("/reports") || path.startsWith("/review") : path.startsWith(h) || settings(h));
+  const onWide = (h: string) => (h === "/" ? path === "/" || path.startsWith("/review") : h === "/assets" ? path.startsWith("/assets") || path.startsWith("/debts") : path.startsWith(h) || settings(h));
   const tab = (n: (typeof NAV)[number]) => <Link key={n.href} href={n.href} className={on(n.href) ? "on" : ""} aria-current={on(n.href) ? "page" : undefined}><n.Icon size={22} strokeWidth={on(n.href) ? 2.3 : 1.9} />{n.label}</Link>;
   return (
     <>
+      <a className="fy-skip" href="#main">Skip to content</a>
       <header className="fy-topbar"><div className="in">
         <Link href="/" className="brand" aria-label="Finny, home"><Lockup size={30} /></Link>
-        {NAV.map((n) => <Link key={n.href} href={n.href} className={`nav ${on(n.href) ? "on" : ""}`} aria-current={on(n.href) ? "page" : undefined}><n.Icon size={18} />{n.label}</Link>)}
+        <nav aria-label="Main" className="links">{NAV_WIDE.map((n) => <Link key={n.href} href={n.href} className={`nav ${onWide(n.href) ? "on" : ""}`} aria-current={onWide(n.href) ? "page" : undefined}><n.Icon size={18} />{n.label}</Link>)}</nav>
         <span className="grow" />
         <button className="fy-btn primary small" aria-label="Add a transaction" onClick={() => openAdd()}><Plus size={17} />Add</button>
       </div></header>
-      <main className="fy-wrap">{children}</main>
+      <main className="fy-wrap" id="main" tabIndex={-1}>{children}</main>
       <nav className="fy-tabbar" aria-label="Main">
         {NAV.slice(0, 2).map(tab)}
         <button className="add" aria-label="Add a transaction" onClick={() => openAdd()}><span><Plus size={24} strokeWidth={2.4} /></span></button>

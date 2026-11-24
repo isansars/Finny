@@ -132,6 +132,7 @@ button.fy-row, .fy-row.tap { cursor: pointer; } button.fy-row:hover, .fy-row.tap
   .fy-topbar { display: block; position: sticky; top: 0; z-index: 40; background: color-mix(in srgb, var(--surface) 75%, transparent); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border-bottom: 1px solid var(--border); }
   .fy-topbar .in { max-width: 1040px; margin: 0 auto; padding: 10px 20px; display: flex; align-items: center; gap: 6px; }
   .fy-topbar .brand { font-weight: 800; font-size: 18px; margin-right: 18px; display: flex; align-items: center; gap: 8px; color: var(--text); }
+  .fy-topbar .links { display: flex; align-items: center; gap: 4px; }
   .fy-topbar a.nav { display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; border-radius: 14px; color: var(--text-2); font-weight: 700; }
   .fy-topbar a.nav:hover { background: var(--surface-3); color: var(--text); } .fy-topbar a.nav.on { background: var(--primary-soft); color: var(--primary-text); }
   .fy-topbar .grow { flex: 1; }
@@ -346,3 +347,8 @@ button.fy-row, .fy-row.tap { cursor: pointer; } button.fy-row:hover, .fy-row.tap
 .fy-online { background: var(--mint-s); color: var(--mint-i); }
 .fy-waiting { display: flex; gap: 4px; align-items: center; justify-content: flex-end; color: var(--warn-text); font-size: 12px; font-weight: 800; }
 .fy-offline-note { background: var(--lemon-s); color: var(--warn-text); border-radius: 12px; padding: 8px 12px; font-weight: 700; font-size: 13px; margin: 12px 0 0; }
+
+/* FINNY-163: the first Tab stop on every page, shown only when it has focus. */
+.fy-skip { position: fixed; left: 12px; top: -60px; z-index: 100; background: var(--surface); color: var(--primary-text); font-weight: 800; padding: 10px 16px; border-radius: 12px; box-shadow: var(--shadow-lg); }
+.fy-skip:focus { top: 12px; outline: 2px solid var(--primary); outline-offset: 2px; }
+main.fy-wrap:focus { outline: none; }

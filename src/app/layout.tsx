@@ -3,7 +3,7 @@ import "@fontsource-variable/nunito";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Finny",
+  title: { default: "Finny", template: "%s · Finny" }, // FINNY-163: every tab says which page it is
   description: "Your money, in one place.",
   robots: { index: false, follow: false }, // personal data: never indexed
   appleWebApp: { capable: true, title: "Finny", statusBarStyle: "default" },

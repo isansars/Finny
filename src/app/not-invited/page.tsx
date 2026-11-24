@@ -1,4 +1,5 @@
 import { Lock, CircleAlert } from "lucide-react";
+export const metadata = { title: "Not invited" };
 export default async function NotInvited({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
   const error = (await searchParams).error;
   const denied = !error || error === "AccessDenied";
