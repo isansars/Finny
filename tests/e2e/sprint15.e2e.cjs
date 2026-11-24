@@ -59,10 +59,11 @@ module.exports = async ({ base, shots }) => {
     await page.getByTestId("waiting").waitFor();
     ok(/Kopi Tuku Beli Kopi · BCA −38\.000 new, waiting/.test(await text("waiting")), await text("waiting"));
     await page.screenshot({ path: require("node:path").join(shots, "s15-01-offline-home-375.png") });
-    // Editing needs a connection.
+    // Since v0.21.0 (FINNY-191) a change waits on the phone too; here the sheet only says so and is closed unchanged.
     await page.getByRole("button", { name: "Edit Kopi kemarin" }).click();
-    const e = page.getByRole("dialog"); ok(await e.getByRole("button", { name: "Save changes" }).isDisabled(), "editing offline");
-    await page.keyboard.press("Escape");
+    const e = page.getByRole("dialog"); await e.waitFor();
+    ok(await e.getByRole("button", { name: "Save changes" }).isEnabled() && (await e.innerText()).includes("this change waits on this phone"), "editing offline");
+    await page.keyboard.press("Escape"); await e.waitFor({ state: "detached" });
   });
 
   await s.check("FINNY-146.4 back online: sent once, \"Back online · 1 entry sent\"", async () => {

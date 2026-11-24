@@ -151,7 +151,7 @@ module.exports = async ({ base, shots }) => {
   await s.check("Settings › Finny on your phone counts changes too; signing out clears what waits", async () => {
     await ctx.setOffline(true); await page.reload(); await page.getByTestId("offline-banner").waitFor();
     await editOffline("Makan siang", "39.000");
-    await ctx.setOffline(false); await page.route("**/api/transactions/**", (r) => r.abort()); // keep it waiting
+    await page.route("**/api/transactions/**", (r) => r.abort()); await ctx.setOffline(false); // keep it waiting
     await page.goto(base + "/settings/phone"); await page.waitForTimeout(500); ok((await text("waiting-count")) === "1", `${await text("waiting-count")} waiting`);
     ok((await find("Makan siang"))[0].amountSen === 38_000_00, "the waiting change wasn't sent");
     // Signing out (which also ends the other browser's session: same owner) clears the phone's outbox first.
