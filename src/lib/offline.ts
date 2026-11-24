@@ -61,9 +61,11 @@ export function useOutbox() {
 /** FINNY-194: a change made without a connection. A waiting new entry is simply rewritten; a transaction already in
  *  Finny keeps the base it was first changed from (so a second change still checks against Finny's version). */
 export async function queueEdit(t: Seen & { id: string; waitingRef?: string }, body: Record<string, unknown>) {
-  if (t.waitingRef) { const w = await outbox.get(t.waitingRef); if (w) { await outbox.add({ ...w, body, conflict: undefined }); return; } }
+  // FINNY-201: a change of only some fields (a category, "looks fine") merges into what already waits.
+  if (t.waitingRef) { const w = await outbox.get(t.waitingRef); if (w) { await outbox.add({ ...w, body: { ...w.body, ...body }, conflict: undefined }); return; } }
   const ref = `txn:${t.id}`, prev = await outbox.get(ref);
-  await outbox.add({ clientRef: ref, op: "edit", id: t.id, base: prev?.base ?? seenOf(t), body, savedAt: prev?.savedAt ?? new Date().toISOString() });
+  if (prev?.op === "delete") return; // already waiting to be deleted: a change to it means nothing
+  await outbox.add({ clientRef: ref, op: "edit", id: t.id, base: prev?.base ?? seenOf(t), body: { ...prev?.body, ...body }, savedAt: prev?.savedAt ?? new Date().toISOString() });
 }
 /** A delete made without a connection. A waiting new entry is just dropped; a waiting change becomes a delete. */
 export async function queueDelete(t: Seen & { id: string; waitingRef?: string }) {

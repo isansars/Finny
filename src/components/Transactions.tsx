@@ -6,6 +6,8 @@ import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "reac
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { ArrowDown, ArrowUp, Check, CircleAlert, Download, Pencil, Search, Tag, Trash2, Undo2, X } from "lucide-react";
 import { api, useFinny, type Txn } from "./store";
+import { Conflicts, WaitingList } from "./Phone";
+import { OfflineError, outbox, queueDelete, queueEdit, useOutbox } from "@/lib/offline";
 import { CategoryOptions, Money, Sheet } from "./ui";
 import { formatRupiah } from "@/lib/money";
 import { flagLabel, type Flag } from "@/lib/check-rule";
@@ -49,7 +51,8 @@ export function Transactions() {
   const [q, setQ] = useState(filter.q);
   // FINNY-187: undo a delete, as approved in "Sprint 20 · Design notes (Undo a delete)". `undo` is the bar right after a
   // delete (30 s); `back` the mint line after an undo; `last` the latest delete that can still be brought back (a day).
-  type Undo = { undoId: string; n: number; outSen: number; inSen: number };
+  // FINNY-201: offline, `refs` are the waiting items on this phone; Undo just cancels them.
+  type Undo = { undoId: string; n: number; outSen: number; inSen: number; refs?: string[] };
   const [undo, setUndo] = useState<Undo | null>(null);
   const [back, setBack] = useState(0);
   const [last, setLast] = useState<(Undo & { deletedAt: string }) | null>(null);
@@ -61,6 +64,7 @@ export function Transactions() {
   const deleted = (r: Undo) => { setBack(0); setLast(null); setUndo(r); };
   async function bringBack(u: Undo) {
     setUndoing(true); setErr("");
+    if (u.refs) { for (const ref of u.refs) await outbox.remove(ref); setUndo(null); setBack(u.n); setUndoing(false); return; }
     try { const r = await api<{ restored: number }>("transactions/undo", { method: "POST", json: { undoId: u.undoId } }); setUndo(null); setLast(null); setBack(r.restored); await reload(); }
     catch (e) { setUndo(null); setErr((e as Error).message); checkLast(); } finally { setUndoing(false); }
   }
@@ -78,7 +82,10 @@ export function Transactions() {
 
   const acc = useMemo(() => new Map(accounts.map((a) => [a.id, a.name])), [accounts]);
   const cat = useMemo(() => new Map(categories.map((c) => [c.id, c.name])), [categories]);
-  const items = data?.items ?? [];
+  // FINNY-202: rows changed or deleted on this phone show in Waiting to send above, not twice.
+  const waiting = useOutbox();
+  const waitingIds = useMemo(() => new Set(waiting.map((w) => w.id).filter(Boolean)), [waiting]);
+  const items = (data?.items ?? []).filter((r) => !waitingIds.has(r.id));
   const pickedRows = items.filter((r) => picked.has(r.id));
   const toggle = (id: string) => setPicked((p) => { const n = new Set(p); if (n.has(id)) n.delete(id); else n.add(id); return n; });
   const allOn = items.length > 0 && items.every((r) => picked.has(r.id));
@@ -94,11 +101,31 @@ export function Transactions() {
       if (action === "delete" && r.undoId) deleted({ undoId: r.undoId, n: r.changed, outSen: r.outSen ?? 0, inSen: r.inSen ?? 0 });
       if (r.skipped) setErr(`${r.skipped} of them kept their category: a transfer has none, and income and spending can't share one.`);
       setPicked(new Set()); setRecat(false); setSelecting(false); await reload();
-    } catch (e) { setErr((e as Error).message); } finally { setBusy(false); }
+    } catch (e) {
+      if (!(e instanceof OfflineError)) setErr((e as Error).message);
+      else await offlineBulk(rows, action, categoryId);
+    } finally { setBusy(false); }
+  }
+  /** FINNY-201: no connection: each row waits on this phone (as one change does since v0.21.0), checked against Finny's
+   *  version when sent. A category goes only to rows whose kind fits it, as online. */
+  async function offlineBulk(rows: Row[], action: "delete" | "category" | "fine", categoryId?: string) {
+    if (action === "delete") {
+      for (const r of rows) await queueDelete(r);
+      deleted({ undoId: "", n: rows.length, outSen: rows.filter((r) => r.kind === "spend").reduce((n, r) => n + r.amountSen, 0), inSen: rows.filter((r) => r.kind === "income").reduce((n, r) => n + r.amountSen, 0), refs: rows.map((r) => `txn:${r.id}`) });
+    } else if (action === "fine") {
+      for (const r of rows) await queueEdit(r, { looksOk: true });
+    } else {
+      const c = categories.find((x) => x.id === categoryId);
+      const fits = rows.filter((r) => (c?.kind === "income" ? r.kind === "income" : r.kind === "spend"));
+      for (const r of fits) await queueEdit(r, { categoryId });
+      if (fits.length < rows.length) setErr(`${rows.length - fits.length} of them kept their category: a transfer has none, and income and spending can't share one.`);
+    }
+    setPicked(new Set()); setRecat(false); setSelecting(false);
   }
   async function removeOne(r: Row) {
     if (!confirm(`Delete "${name(r)}" (${money(signed([r]))}, ${shortDay(r.on)})?`)) return;
-    try { const d = await api<Undo & { changed: number }>(`transactions/${r.id}?undo=1`, { method: "DELETE" }); deleted({ undoId: d.undoId, n: d.changed, outSen: d.outSen, inSen: d.inSen }); await reload(); } catch (e) { setErr((e as Error).message); }
+    try { const d = await api<Undo & { changed: number }>(`transactions/${r.id}?undo=1`, { method: "DELETE" }); deleted({ undoId: d.undoId, n: d.changed, outSen: d.outSen, inSen: d.inSen }); await reload(); }
+    catch (e) { if (!(e instanceof OfflineError)) { setErr((e as Error).message); return; } await offlineBulk([r], "delete"); }
   }
 
   const monthOptions = useMemo(() => { const out: string[] = []; const [y, m] = todayIn().slice(0, 7).split("-").map(Number); for (let i = 0; i < 24; i++) { const d = new Date(Date.UTC(y, m - 1 - i, 1)); out.push(d.toISOString().slice(0, 7)); } if (month !== "all" && !out.includes(month)) out.unshift(month); return out; }, [month]);
@@ -144,6 +171,8 @@ export function Transactions() {
       </div>
       {filter.look === "1" && <div className="fy-note" style={{ marginBottom: 12 }}>Finny&apos;s guesses at mistakes: the <b>same amount twice</b> on one day and account, or a spend <b>far above</b> what that category usually is. Fix it, delete it, or mark it as looking fine.</div>}
       {err && <div className="fy-err" role="alert" style={{ marginBottom: 10 }}>{err}</div>}
+      <Conflicts />
+      <WaitingList />
       {!undo && !back && last && <button className="fy-chip fy-undo-later" onClick={() => bringBack(last)} disabled={undoing} data-testid="bring-back"><Undo2 size={14} />Bring back {last.n} deleted · {whenShort(last.deletedAt)}</button>}
 
       {data && !items.length && <div className="fy-card fy-empty" data-testid="tx-empty">{filter.look ? <><b>Nothing needs a look</b>No doubled amounts or unusual spends here.</> : <><b>No transactions</b>Nothing matches these filters.</>}</div>}
@@ -201,10 +230,10 @@ export function Transactions() {
       )}
       <div className="fy-undo" aria-live="polite">
         {undo && <div className="fy-undo-in" data-testid="undo-bar">
-          <div className="bar"><Trash2 size={16} aria-hidden="true" /><b>Deleted {undo.n} · <span className="amt">{undoMoney(undo)}</span></b>
+          <div className="bar"><Trash2 size={16} aria-hidden="true" /><b>Deleted {undo.n} · <span className="amt">{undoMoney(undo)}</span>{undo.refs && <span className="sub">waits on this phone</span>}</b>
             <button className="fy-btn small primary" onClick={() => bringBack(undo)} disabled={undoing}><Undo2 size={15} />Undo</button>
             <button className="x" aria-label="Close" onClick={() => { setUndo(null); checkLast(); }}><X size={18} /></button></div>
-          <div className="line" aria-hidden="true"><i key={undo.undoId} /></div>
+          {!undo.refs && <div className="line" aria-hidden="true"><i key={undo.undoId} /></div>}
         </div>}
         {back > 0 && <div className="fy-undo-in"><div className="bar done" role="status"><Check size={16} aria-hidden="true" />{back} transaction{back === 1 ? "" : "s"} back</div></div>}
       </div>

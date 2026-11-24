@@ -396,7 +396,7 @@ main.fy-wrap:focus { outline: none; }
 .fy-undo { position: fixed; left: 0; right: 0; bottom: calc(92px + env(safe-area-inset-bottom)); z-index: 45; display: flex; justify-content: center; padding: 0 16px; pointer-events: none; }
 .fy-undo-in { width: 100%; max-width: 520px; pointer-events: auto; animation: fy-up .2s ease; }
 .fy-undo .bar { display: flex; gap: 10px; align-items: center; background: var(--text); color: var(--bg); border-radius: 18px; padding: 8px 8px 8px 16px; box-shadow: var(--shadow-lg); }
-.fy-undo .bar b { flex: 1; min-width: 0; font-weight: 800; } .fy-undo .bar .amt { white-space: nowrap; }
+.fy-undo .bar b { flex: 1; min-width: 0; font-weight: 800; } .fy-undo .bar .amt { white-space: nowrap; } .fy-undo .bar .sub { display: block; font-weight: 600; font-size: 13px; opacity: .8; } /* FINNY-201 */
 .fy-undo .bar .x { border: 0; background: none; color: inherit; opacity: .75; width: 44px; height: 44px; display: grid; place-items: center; cursor: pointer; border-radius: 12px; }
 .fy-undo .bar.done { background: var(--mint-s); color: var(--mint-i); padding: 14px 16px; font-weight: 800; }
 .fy-undo .line { height: 3px; border-radius: 3px; background: color-mix(in srgb, var(--text) 20%, transparent); margin: 6px 18px 0; overflow: hidden; }

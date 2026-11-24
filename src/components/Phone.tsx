@@ -76,7 +76,11 @@ export function WaitingList() {
         const t = asTxn(w), op = w.op ?? "add";
         const c = categories.find((x) => x.id === t.categoryId), a = accounts.find((x) => x.id === t.accountId)?.name ?? "";
         const name = t.description || c?.name || "Transfer";
-        const sub = [op !== "add" && shortDay(t.on), c?.name, a].filter(Boolean).join(" · ") + (op === "edit" && w.base && w.base.amountSen !== t.amountSen ? ` · was ${formatRupiah(w.base.amountSen, { prefix: false })}` : "");
+        // FINNY-202: a new category shows "old → new"; "looks fine" is said.
+        const was = op === "edit" && w.base && w.base.categoryId !== t.categoryId ? categories.find((x) => x.id === w.base!.categoryId)?.name : undefined;
+        const sub = [op !== "add" && shortDay(t.on), was ? `${was} → ${c?.name ?? "—"}` : c?.name, a].filter(Boolean).join(" · ")
+          + (op === "edit" && w.base && w.base.amountSen !== t.amountSen ? ` · was ${formatRupiah(w.base.amountSen, { prefix: false })}` : "")
+          + ((w.body as { looksOk?: boolean }).looksOk ? " · looks fine" : "");
         const amt = <div className={`fy-amt ${t.kind === "income" ? "income" : t.kind === "spend" ? "spend" : ""}`}>{op === "delete" ? <s>{sign(t.kind)}{formatRupiah(t.amountSen, { prefix: false })}</s> : <>{sign(t.kind)}{formatRupiah(t.amountSen, { prefix: false })}</>}</div>;
         const tag = <div className="fy-waiting"><Clock size={12} /> {op === "add" ? "new, waiting" : op === "edit" ? "change waiting" : "delete waiting"}</div>;
         const tile = c ? <CatTile c={c} /> : <Tile icon="arrow-left-right" color="lavender" />;
