@@ -12,7 +12,6 @@ module.exports = async ({ base, shots }) => {
   const errors = []; page.on("pageerror", (e) => errors.push(e.message));
   const json = async (p, o = {}) => { const r = await page.request.fetch(`${base}/api/${p}`, { ...o, headers: { "content-type": "application/json" }, data: o.data }); return { status: r.status(), body: await r.json().catch(() => ({})) }; };
   const text = async (id) => (await page.getByTestId(id).innerText()).replace(/\s+/g, " ");
-  const waitText = (id, t) => page.waitForFunction(([i, x]) => document.querySelector(`[data-testid="${i}"]`)?.textContent?.includes(x), [id, t]);
   const txns = async () => (await json("transactions?limit=500")).body.items;
   const cacheKeys = () => page.evaluate(async () => { const out = []; for (const k of await caches.keys()) for (const r of await (await caches.open(k)).keys()) out.push(`${k} ${new URL(r.url).pathname}`); return out; });
 
