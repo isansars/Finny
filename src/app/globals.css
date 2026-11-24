@@ -395,3 +395,13 @@ main.fy-wrap:focus { outline: none; }
 @media (min-width: 760px) { .fy-bulk { bottom: 16px; } }
 /* FINNY-172: seven places in the bar: on a small laptop only the current one keeps its label (each keeps its name and a tooltip). */
 @media (min-width: 760px) and (max-width: 1199px) { .fy-topbar a.nav { padding: 8px 10px; } .fy-topbar a.nav:not(.on) .lbl { display: none; } .fy-topbar .brand { margin-right: 8px; } }
+/* FINNY-178: on a phone. Fields are 16 px (an iPhone zooms the page into anything smaller). A sheet fits the visible screen
+   (above the on-screen keyboard): its title row stays at the top, its buttons at the bottom, the form scrolls between. */
+@media (max-width: 759px) {
+  .fy-input, input.fy-input, select.fy-input, textarea.fy-input, .fy-search input { font-size: 16px; }
+  .fy-sheet-bg { top: var(--vvt, 0px); bottom: auto; height: var(--vvh, 100%); }
+  .fy-sheet { max-height: calc(var(--vvh, 100dvh) - 16px); padding-bottom: 0; }
+  .fy-sheet > .fy-sheet-h { position: sticky; top: -8px; z-index: 3; background: var(--surface); margin: 0 -16px 12px; padding: 4px 16px 0; }
+  .fy-sheet .fy-sheet-foot { position: sticky; bottom: 0; z-index: 3; background: var(--surface); margin: 14px -16px 0; padding: 12px 16px calc(12px + env(safe-area-inset-bottom)); border-top: 1px solid var(--border); }
+  .fy-sheet > :last-child:not(.fy-sheet-foot):not(form), .fy-sheet > form:last-child > :last-child:not(.fy-sheet-foot) { margin-bottom: calc(16px + env(safe-area-inset-bottom)); }
+}

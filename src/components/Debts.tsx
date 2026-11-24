@@ -157,7 +157,7 @@ function TermsSheet({ id, name, type, t, onClose, onSaved }: { id: string; name:
       <div className="fy-subhead"><span>Kind</span></div>
       <div className="fy-seg" role="radiogroup" aria-label="Kind" style={{ marginBottom: 14 }}>{[["", "Not set"], ["consumptive", "Consumptive"], ["productive", "Productive"]].map(([v, l]) => <button key={v} type="button" role="radio" aria-checked={purpose === v} className={purpose === v ? "on" : ""} onClick={() => setPurpose(v)}>{l}</button>)}</div>
       {err && <div className="fy-err" role="alert">{err}</div>}
-      <button className="fy-btn primary block" onClick={save}>Save terms</button>
+      <div className="fy-sheet-foot"><button className="fy-btn primary block" onClick={save}>Save terms</button></div>
     </Sheet>
   );
 }

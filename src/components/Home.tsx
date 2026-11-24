@@ -14,7 +14,7 @@ import { BudgetCard } from "./Budget";
 import { BillsCard } from "./Debts";
 import { PastReviews, ReviewNudge } from "./Review";
 import { DueToday } from "./Recurring";
-import { OfflineBanner, WaitingList } from "./Phone";
+import { WaitingList } from "./Phone";
 import { dayLabel, monthLabel, shiftMonth, todayIn } from "@/lib/dates";
 
 type Dash = { month: string; days: number; totals: { incomeSen: number; spendSen: number; savedSen: number; investedSen: number };
@@ -93,7 +93,6 @@ export function Home() {
           </div>
         </div>
 
-        <OfflineBanner />
         {month === today.slice(0, 7) && <WaitingList />}
         {month === today.slice(0, 7) && <DueToday />}
         <ReviewNudge />
@@ -152,10 +151,10 @@ export function Home() {
         <div style={{ display: "grid", gap: 8, gridTemplateColumns: "1fr", marginBottom: 10 }}>
           <label className="fy-search"><Search size={16} /><input className="fy-input" type="search" placeholder="Search" aria-label="Search transactions" value={q} onChange={(e) => setQ(e.target.value)} /></label>
           <div style={{ display: "grid", gap: 8, gridTemplateColumns: "1fr 1fr" }}>
-            <select className="fy-input" style={{ minHeight: 40, fontSize: 14 }} aria-label="Filter by account" value={accountF} onChange={(e) => setAccountF(e.target.value)}>
+            <select className="fy-input" style={{ minHeight: 40 }} aria-label="Filter by account" value={accountF} onChange={(e) => setAccountF(e.target.value)}>
               <option value="">All accounts</option>{accounts.map((a) => <option key={a.id} value={a.id}>{a.name}{a.archived ? " (closed)" : ""}</option>)}
             </select>
-            <select className="fy-input" style={{ minHeight: 40, fontSize: 14 }} aria-label="Filter by category" value={categoryF} onChange={(e) => setCategoryF(e.target.value)}>
+            <select className="fy-input" style={{ minHeight: 40 }} aria-label="Filter by category" value={categoryF} onChange={(e) => setCategoryF(e.target.value)}>
               <option value="">All categories</option><CategoryOptions cats={categories} kinds={["expense", "income", "saving", "investment"]} includeOff />
             </select>
           </div>

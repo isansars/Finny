@@ -42,7 +42,7 @@ function CategorySheet({ c, kind, onDone }: { c: Category | null; kind: string; 
             {flattenTree(parents, kind).filter((x) => x.depth < 2).map((x) => <option key={x.id} value={x.id}>{"  ".repeat(x.depth)}{x.name}</option>)}
           </select>
         </label>
-        <button className="fy-btn primary block" disabled={busy}>{c ? "Save" : "Add category"}</button>
+        <div className="fy-sheet-foot"><button className="fy-btn primary block" disabled={busy}>{c ? "Save" : "Add category"}</button></div>
       </form>
       {c && (<>
         <div className="fy-section"><span>More</span></div>

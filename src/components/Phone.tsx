@@ -25,9 +25,13 @@ export function PhoneSync() {
       finally { busy.current = false; }
     };
     send();
+    // FINNY-178: the visible part of the screen (the on-screen keyboard shrinks it), so a sheet on a phone fits above it.
+    const vv = window.visualViewport;
+    const fit = () => { if (!vv) return; const r = document.documentElement.style; r.setProperty("--vvh", `${Math.round(vv.height)}px`); r.setProperty("--vvt", `${Math.round(vv.offsetTop)}px`); };
+    fit(); vv?.addEventListener("resize", fit); vv?.addEventListener("scroll", fit);
     window.addEventListener("online", send);
     const t = setInterval(send, 30000);
-    return () => { window.removeEventListener("online", send); clearInterval(t); };
+    return () => { window.removeEventListener("online", send); clearInterval(t); vv?.removeEventListener("resize", fit); vv?.removeEventListener("scroll", fit); };
   }, [reload]);
   return null;
 }

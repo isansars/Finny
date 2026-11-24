@@ -154,7 +154,7 @@ function BudgetSheet({ month, categoryId, data, categories, onClose, onSaved }: 
         </> : null}
         <ScopeSeg month={month} scope={scope} setScope={setScope} />
         {err && <div className="fy-err" role="alert">{err}</div>}
-        <button className="fy-btn primary block" disabled={!sen || busy} onClick={() => save()}>Save budget</button>
+        <div className="fy-sheet-foot"><button className="fy-btn primary block" disabled={!sen || busy} onClick={() => save()}>Save budget</button></div>
         {line && <button className="fy-btn block danger" style={{ marginTop: 8 }} disabled={busy} onClick={() => save(true)}>Remove budget</button>}
       </>}
     </Sheet>
@@ -175,7 +175,7 @@ function IncomeSheet({ month, data, onClose, onSaved }: { month: string; data: B
       <div className="fy-amount" style={{ margin: "10px 0 12px" }}><small>Rp</small><AmountInput value={amount} onChange={setAmount} label="Expected income" autoFocus className="" /></div>
       <ScopeSeg month={month} scope={scope} setScope={setScope} />
       {err && <div className="fy-err" role="alert">{err}</div>}
-      <button className="fy-btn primary block" disabled={sen === null} onClick={save}>Save expected income</button>
+      <div className="fy-sheet-foot"><button className="fy-btn primary block" disabled={sen === null} onClick={save}>Save expected income</button></div>
     </Sheet>
   );
 }

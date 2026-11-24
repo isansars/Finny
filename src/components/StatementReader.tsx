@@ -205,7 +205,7 @@ export function StatementReader() {
               </label>
               {pwWrong && <div className="fy-err" role="alert">That password didn&apos;t open it. Try again.</div>}
               <div className="fy-hint fy-iconnote" style={{ background: "none", padding: 0, margin: "-4px 0 16px" }}><ShieldCheck size={16} /><span>Used once on this device, then forgotten. Never saved, never sent.</span></div>
-              <button className="fy-btn primary block" disabled={!password}>Open statement</button>
+              <div className="fy-sheet-foot"><button className="fy-btn primary block" disabled={!password}>Open statement</button></div>
             </form>
           </Sheet>
         )}
@@ -318,8 +318,8 @@ function LineSheet({ r, c, accounts, account, categories, bank, onClose, onSave 
           <option value="">Pick an account…</option>{others.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
         </select></label>}
       {(x.status === "new" || x.status === "xfer") && <label className="fy-field"><span className="fy-label">Note</span><input className="fy-input" value={x.note} maxLength={120} placeholder="Optional" onChange={(e) => setX({ ...x, note: e.target.value })} /></label>}
-      <button className="fy-btn primary block" disabled={(x.status === "new" && !x.categoryId) || (x.status === "xfer" && !x.otherAccountId)} onClick={() => onSave(x)}>
-        {x.status === "new" ? "Keep as new" : x.status === "xfer" ? "Keep as transfer" : x.status === "in" ? "Mark as already in" : "Skip this line"}</button>
+      <div className="fy-sheet-foot"><button className="fy-btn primary block" disabled={(x.status === "new" && !x.categoryId) || (x.status === "xfer" && !x.otherAccountId)} onClick={() => onSave(x)}>
+        {x.status === "new" ? "Keep as new" : x.status === "xfer" ? "Keep as transfer" : x.status === "in" ? "Mark as already in" : "Skip this line"}</button></div>
       {x.status === "xfer" && <button className="fy-btn block" style={{ marginTop: 8 }} onClick={() => setX({ ...x, status: "new", categoryId: x.categoryId ?? r.categoryId })}>Not a transfer: it&apos;s {l.amountSen < 0 ? "spending" : "income"}</button>}
       {x.status === "new" && <button className="fy-btn block" style={{ marginTop: 8 }} onClick={() => setX({ ...x, status: "xfer" })}>It&apos;s a transfer between my accounts</button>}
     </Sheet>

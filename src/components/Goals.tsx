@@ -132,7 +132,7 @@ export function GoalSheet({ goal, candidates, onClose, onSaved, onDeleted }: { g
       </>}
       {need != null && need > 0 && <div className="fy-note" style={{ marginBottom: 10 }} data-testid="goal-need">Needs Rp {plain(need)} a month to reach it by {mon(by)}.</div>}
       {err && <div className="fy-err" role="alert">{err}</div>}
-      <button className="fy-btn primary block" onClick={save}>Save goal</button>
+      <div className="fy-sheet-foot"><button className="fy-btn primary block" onClick={save}>Save goal</button></div>
       {goal && <button className="fy-btn block" style={{ marginTop: 8, color: "var(--spend)" }} onClick={del}>Delete goal</button>}
     </Sheet>
   );

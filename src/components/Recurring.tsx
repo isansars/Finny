@@ -141,7 +141,7 @@ export function RecurringSheet({ item, draft, onClose, onSaved }: { item?: Item;
       <label className="fy-field"><span className="fy-label">{every === "month" ? "First day (it repeats on this day of the month)" : every === "week" ? "First day (it repeats on this weekday)" : "First day (it repeats on this date)"}</span>
         <input className="fy-input" type="date" value={anchorOn} onChange={(e) => setAnchor(e.target.value)} aria-label="First day" /></label>
       {err && <div className="fy-err" role="alert">{err}</div>}
-      <button className="fy-btn primary block" onClick={save}>Save{next ? ` · ${next === today ? "due today" : `next on ${shortDate(next).replace(/ \d{4}$/, "")}`}` : ""}</button>
+      <div className="fy-sheet-foot"><button className="fy-btn primary block" onClick={save}>Save{next ? ` · ${next === today ? "due today" : `next on ${shortDate(next).replace(/ \d{4}$/, "")}`}` : ""}</button></div>
       {item && <button className="fy-btn block" style={{ marginTop: 8, color: "var(--spend)" }} onClick={remove}>Delete recurring</button>}
     </Sheet>
   );

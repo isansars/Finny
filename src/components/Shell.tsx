@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import { ChartColumn, ChartPie, Gem, House, Landmark, List, Plus, Settings } from "lucide-react";
 import { Lockup } from "./Logo";
 import { FinnyProvider, useFinny } from "./store";
-import { PhoneSync } from "./Phone";
+import { OfflineBanner, PhoneSync } from "./Phone";
 import { QuickAddForm } from "./QuickAdd";
 import { Sheet } from "./ui";
 
@@ -42,7 +42,7 @@ function Frame({ children }: { children: React.ReactNode }) {
         <span className="grow" />
         <button className="fy-btn primary small" aria-label="Add a transaction" onClick={addWide}><Plus size={17} />Add</button>
       </div></header>
-      <main className="fy-wrap" id="main" tabIndex={-1}>{children}</main>
+      <main className="fy-wrap" id="main" tabIndex={-1}><OfflineBanner />{children}</main>
       <nav className="fy-tabbar" aria-label="Main">
         {NAV.slice(0, 2).map(tab)}
         <button className="add" aria-label="Add a transaction" onClick={() => openAdd()}><span><Plus size={24} strokeWidth={2.4} /></span></button>

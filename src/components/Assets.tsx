@@ -149,7 +149,7 @@ function UpdateValues({ holdings, onClose, onSaved }: { holdings: Holding[]; onC
       </div>
       <label className="fy-field"><span className="fy-label">Valued on</span><DateField value={on} onChange={setOn} label="Valued on" /></label>
       {err && <div className="fy-err" role="alert">{err}</div>}
-      <button className="fy-btn primary block" disabled={!n} onClick={save}>Save {n} value{n === 1 ? "" : "s"}</button>
+      <div className="fy-sheet-foot"><button className="fy-btn primary block" disabled={!n} onClick={save}>Save {n} value{n === 1 ? "" : "s"}</button></div>
     </Sheet>
   );
 }
@@ -172,7 +172,7 @@ function HoldingSheet({ h, onClose, onSaved }: { h: Holding; onClose: () => void
         <label className="fy-field"><span className="fy-label">Rate a year (%)</span><input className="fy-input" inputMode="decimal" value={rate} onChange={(e) => setRate(e.target.value)} placeholder="6,5" aria-label="Rate a year" /></label>
         <label className="fy-field"><span className="fy-label">Matures</span><input className="fy-input" type="date" value={maturity} onChange={(e) => setMaturity(e.target.value)} aria-label="Matures" /></label></div>}
       {err && <div className="fy-err" role="alert">{err}</div>}
-      <button className="fy-btn primary block" onClick={save}><Settings2 size={16} />Save</button>
+      <div className="fy-sheet-foot"><button className="fy-btn primary block" onClick={save}><Settings2 size={16} />Save</button></div>
     </Sheet>
   );
 }
@@ -242,9 +242,9 @@ function ThingSheet({ t, onClose, onSaved }: { t: Partial<Thing>; onClose: () =>
         <label className="fy-field"><span className="fy-label">{kind === "business" ? "Whole business worth (Rp)" : "Worth (Rp)"}</span><input className="fy-input" inputMode="decimal" value={value} onChange={(e) => setValue(e.target.value)} placeholder="Optional" aria-label="Worth" /></label>
         <label className="fy-field"><span className="fy-label">On</span><DateField value={valueOn} onChange={setValueOn} label="Worth on" /></label></div>
       {err && <div className="fy-err" role="alert">{err}</div>}
-      <button className="fy-btn primary block" onClick={() => save()}>{isNew ? "Add" : "Save"}</button>
+      <div className="fy-sheet-foot"><button className="fy-btn primary block" onClick={() => save()}>{isNew ? "Add" : "Save"}</button>
       {!isNew && !t.soldOn && <button className="fy-btn block" style={{ marginTop: 8 }} onClick={() => save({ soldOn: todayIn() })}>Mark sold today</button>}
-      {!isNew && <button className="fy-btn danger block" style={{ marginTop: 8 }} onClick={remove}>Delete</button>}
+      {!isNew && <button className="fy-btn danger block" style={{ marginTop: 8 }} onClick={remove}>Delete</button>}</div>
     </Sheet>
   );
 }

@@ -54,7 +54,7 @@ function AccountForm({ a, onDone }: { a: Account | null; onDone: () => void }) {
           {type === "card" && <label className="fy-field"><span className="fy-label">Statement day</span><input className="fy-input" type="number" min={1} max={31} value={statementDay} onChange={(e) => setStatementDay(e.target.value)} placeholder="25" /></label>}
         </div>
       )}
-      <button className="fy-btn primary block" disabled={busy}>{a ? "Save changes" : "Add account"}</button>
+      <div className="fy-sheet-foot"><button className="fy-btn primary block" disabled={busy}>{a ? "Save changes" : "Add account"}</button></div>
       {a && <button type="button" className="fy-btn block" style={{ marginTop: 8 }} disabled={busy} onClick={() => archive(!a.archived)}>{a.archived ? "Reopen account" : "Close account (keeps its history)"}</button>}
     </form>
   );

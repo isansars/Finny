@@ -130,7 +130,7 @@ function TargetSheet({ f, onClose, onSaved }: { f: Fund; onClose: () => void; on
       </div>
       {target === "own" && <input className="fy-input" inputMode="decimal" value={own} onChange={(e) => setOwn(e.target.value)} placeholder="Rp" aria-label="My own target" style={{ marginBottom: 10, fontWeight: 800 }} />}
       {err && <div className="fy-err" role="alert">{err}</div>}
-      <button className="fy-btn primary block" onClick={save}>Save target</button>
+      <div className="fy-sheet-foot"><button className="fy-btn primary block" onClick={save}>Save target</button></div>
     </Sheet>
   );
 }
@@ -160,7 +160,7 @@ function WhereSheet({ f, onClose, onSaved }: { f: Fund; onClose: () => void; onS
           </div>); })}
       </div>
       {err && <div className="fy-err" role="alert">{err}</div>}
-      <button className="fy-btn primary block" onClick={save}>Save · {formatRupiah(total)}</button>
+      <div className="fy-sheet-foot"><button className="fy-btn primary block" onClick={save}>Save · {formatRupiah(total)}</button></div>
     </Sheet>
   );
 }
