@@ -416,3 +416,11 @@ main.fy-wrap:focus { outline: none; }
 .fy-chip { position: relative; } .fy-chip::after { content: ""; position: absolute; left: 0; right: 0; top: 50%; height: max(100%, 44px); transform: translateY(-50%); }
 .fy-trow a.t::after { content: ""; position: absolute; inset: 0; }
 .fy-trow .car { position: relative; z-index: 2; width: 44px; height: 44px; margin: -11px; }
+
+/* FINNY-178/180 (found by the phone suite): quick add's "What for" and its hidden date input are 16 px too; segmented
+   controls and the review's goal lines are 44 px tall on a phone. */
+@media (max-width: 759px) {
+  .fy-what input, .fy-datefield input { font-size: 16px; }
+  .fy-seg button { min-height: 44px; }
+}
+.fy-rv-goals a { min-height: 44px; align-items: center; padding: 0; }

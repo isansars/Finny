@@ -170,7 +170,7 @@ export function QuickAddForm({ existing, onDone, inline }: { existing?: Txn | nu
         <button type="button" className={`fy-chip ${on === yesterday ? "on" : ""}`} onClick={() => setOn(yesterday)}>Yesterday</button>
         <label className={`fy-chip ${isDate ? "on" : ""}`} style={{ position: "relative" }}>{isDate ? shortDate(on) : "Pick a date"}
           <input type="date" aria-label="Date" value={on} onChange={(e) => e.target.value && setOn(e.target.value)} required
-            style={{ position: "absolute", inset: 0, opacity: 0, cursor: "pointer", width: "100%" }} />
+            style={{ position: "absolute", inset: 0, opacity: 0, cursor: "pointer", width: "100%", fontSize: 16 }} />
         </label>
       </div>
       {more ? (<div style={{ marginTop: 12 }}>
