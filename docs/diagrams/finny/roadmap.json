@@ -1,7 +1,7 @@
 {
   "type": "board",
   "title": "Finny · Roadmap",
-  "subtitle": "Replace the two workbooks: record every day, read the bank each month, then plan, report and grow. Current as of the v0.14.0 release, 24 Nov 2026.",
+  "subtitle": "Replace the two workbooks: record every day, read the bank each month, then plan, report and grow. Current as of Sprint 15 planning, 24 Nov 2026.",
   "footer": "🐰 Poppy · Finny · Product · 24 Nov 2026 · planned on the FINNY board",
   "badge": "💸 The owner's own product · FINNY board · isansars/Finny",
   "width": 1700,
@@ -30,14 +30,19 @@
       ]
     },
     {
-      "name": "Now · the owner's month",
+      "name": "Now · Sprint 15",
       "icon": "🏃",
       "tone": "orange",
-      "sub": "a month in Finny only",
+      "sub": "24 Nov – 7 Dec · v0.15.0",
       "focus": true,
       "items": [
         [
-          "Use Finny alone for a month, close it with the review, check it against the workbook",
+          "Finny on your home screen: opens offline, quick add waits and is sent once",
+          "dev",
+          "FINNY-146"
+        ],
+        [
+          "Alongside: the owner's month in Finny only",
           "planned",
           "the owner: the done-when check"
         ]
