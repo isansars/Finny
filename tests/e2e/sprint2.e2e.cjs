@@ -48,7 +48,8 @@ module.exports = async ({ base, shots }) => {
     await noSideScroll("Home"); await shot(page, shots, "s2-01-home-375");
   });
   await s.check("FINNY-43.2 tapping a day shows only that day's transactions", async () => {
-    await page.getByRole("button", { name: new RegExp(`^2 ${["January","February","March","April","May","June","July","August","September","October","November","December"][+month.slice(5) - 1]} `) }).press("Enter");
+    // FINNY-162: the chart is one slider for the keyboard: Home is day 1, → is day 2.
+    const chart = page.getByTestId("day-chart"); await chart.focus(); await page.keyboard.press("Home"); await page.keyboard.press("ArrowRight");
     await page.waitForTimeout(300); const t = await text('[data-testid="txn-list"]');
     ok(t.includes("Bensin") && !t.includes("Belanja mingguan"), "day filter"); await page.getByRole("button", { name: "Show all days" }).click();
   });

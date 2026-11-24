@@ -71,7 +71,7 @@ button, input, textarea, select { font: inherit; color: inherit; }
 
 /* ---------- Apple layout */
 .fy-wrap { max-width: 720px; margin: 0 auto; padding: 8px 16px calc(110px + env(safe-area-inset-bottom)); }
-.fy-large { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; margin: 10px 2px 14px; }
+.fy-large { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px; margin: 10px 2px 14px; } /* FINNY-165: longer button labels drop under the title on a narrow phone */
 .fy-large h1 { font-size: 30px; font-weight: 800; letter-spacing: -.01em; margin: 0; line-height: 1.1; }
 .fy-large .sub { color: var(--text-2); font-size: 14px; font-weight: 600; margin-bottom: 2px; }
 .fy-section { font-size: 13px; font-weight: 700; color: var(--text-2); margin: 22px 6px 8px; display: flex; justify-content: space-between; align-items: baseline; }
