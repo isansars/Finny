@@ -1,0 +1,1 @@
+ALTER TABLE "transactions" ADD COLUMN "looks_ok" boolean DEFAULT false NOT NULL;

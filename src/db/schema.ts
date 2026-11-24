@@ -130,6 +130,8 @@ export const transactions = pgTable("transactions", {
   importBatchId: uuid("import_batch_id"),
   // FINNY-148: set by the phone for an entry saved offline, so a resend is recognised (unique per owner when set).
   clientRef: text("client_ref"),
+  // FINNY-170: the owner checked a flagged transaction and it looks fine; Finny stops guessing it is a mistake.
+  looksOk: boolean("looks_ok").notNull().default(false),
   createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
 }, (t) => [
   uniqueIndex("transactions_client_ref").on(t.userId, t.clientRef).where(sql`${t.clientRef} is not null`),

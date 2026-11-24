@@ -108,6 +108,11 @@ await pg.exec(`insert into transactions (user_id, "on", kind, amount_sen, accoun
 await refused("the same client reference twice", pg.exec(`insert into transactions (user_id, "on", kind, amount_sen, account_id, category_id, client_ref) values ('u1', '2026-11-24', 'spend', 3800000, ${A}, ${K}, '6f1c0b2e-1111-4a2b-9c3d-000000000001')`));
 await pg.exec(`insert into transactions (user_id, "on", kind, amount_sen, account_id, category_id) values ('u1', '2026-11-24', 'spend', 100, ${A}, ${K}), ('u1', '2026-11-24', 'spend', 100, ${A}, ${K})`);
 console.log("✓ a client reference is used once; rows without one are unaffected");
+const lo = await pg.query<{ looks_ok: boolean }>("select distinct looks_ok from transactions");
+assert.deepEqual(lo.rows.map((r) => r.looks_ok), [false], "existing rows don't look fine by default");
+await pg.exec("update transactions set looks_ok = true where amount_sen = 100");
+await refused("looks_ok left empty", pg.exec("update transactions set looks_ok = null"));
+console.log("✓ a transaction can be marked as looking fine; existing rows aren't");
 await pg.exec("delete from month_reviews;");
 await pg.exec("delete from emergency_sources; delete from emergency_funds;");
 await pg.exec("delete from account_values; delete from things;");
