@@ -70,7 +70,7 @@ module.exports = async ({ base, shots }) => {
     const w = await text(page, "waiting");
     ok((w.match(/Biaya Bensin → Listrik/g) ?? []).length === 2 && (w.match(/change waiting/g) ?? []).length === 2, w);
     ok((await page.getByRole("button", { name: /^Edit Gaji,/ }).count()) === 1, "Gaji untouched, still listed");
-    await page.evaluate(() => window.scrollTo(0, 0)); await page.screenshot({ path: path.join(shots, "s22-03-category-offline.png") });
+    await page.getByTestId("waiting").screenshot({ path: path.join(shots, "s22-03-category-offline.png") });
   });
 
   await s.check("FINNY-199.2 Looks fine offline waits too; changing a waiting row again merges", async () => {
