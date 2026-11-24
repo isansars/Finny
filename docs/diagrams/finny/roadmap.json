@@ -1,7 +1,7 @@
 {
   "type": "board",
   "title": "Finny · Roadmap",
-  "subtitle": "Replace the two workbooks: record every day, read the bank each month, then plan, report and grow. Current as of Sprint 21 planning, 24 Nov 2026.",
+  "subtitle": "Replace the two workbooks: record every day, read the bank each month, then plan, report and grow. Current as of v0.21.0, 24 Nov 2026.",
   "footer": "🐰 Poppy · Finny · Product · 24 Nov 2026 · planned on the FINNY board",
   "badge": "💸 The owner's own product · FINNY board · isansars/Finny",
   "width": 1700,
@@ -13,36 +13,31 @@
       "sub": "latest three releases",
       "items": [
         [
+          "Fix and delete offline: changes wait on the phone, nothing overwritten without asking",
+          "live",
+          "v0.21.0 · FINNY-191"
+        ],
+        [
+          "The BRI × Tokopedia card bill read again, with its interest and due date",
+          "live",
+          "v0.20.1 · FINNY-198"
+        ],
+        [
           "Undo a delete: right away or for a day, exactly as it was",
           "live",
           "v0.20.0 · FINNY-183"
-        ],
-        [
-          "Edge to edge on the iPhone, a bigger tab bar (the owner's report)",
-          "live",
-          "v0.19.1 · FINNY-190"
-        ],
-        [
-          "Finny on the phone: the 10 findings of the phone audit fixed",
-          "live",
-          "v0.19.0 · FINNY-176"
         ]
       ]
     },
     {
-      "name": "Now · Sprint 21",
+      "name": "Now",
       "icon": "🏃",
       "tone": "orange",
-      "sub": "25 Nov – 8 Dec · v0.21.0",
+      "sub": "Sprint 22: the owner's pick",
       "focus": true,
       "items": [
         [
-          "Fix and delete offline: changes wait on the phone, nothing overwritten without asking",
-          "dev",
-          "FINNY-191"
-        ],
-        [
-          "Alongside: the owner's month in Finny only",
+          "The owner's month in Finny only, checked against the workbook",
           "planned",
           "the owner: the done-when check"
         ]
