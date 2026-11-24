@@ -52,7 +52,7 @@ module.exports = async ({ base, shots }) => {
     await page.getByTestId("see-all").click(); await page.waitForURL(new RegExp(`/transactions\\?month=${P}`)); await settle();
     ok((await page.title()) === "Transactions · Finny", await page.title());
     ok((await page.locator(".fy-topbar a[aria-current=page]").innerText()) === "Transactions", "bar");
-    ok((await page.getByLabel("Month").inputValue()) === P, `month ${await page.getByLabel("Month").inputValue()}`);
+    ok((await page.getByLabel("Month", { exact: true }).inputValue()) === P, `month ${await page.getByLabel("Month", { exact: true }).inputValue()}`);
     const heads = await page.locator("[data-testid=tx-table] thead th").allInnerTexts();
     ok(["Date", "Description", "Category", "Account", "From", "Amount"].every((h) => heads.some((x) => x.startsWith(h))), heads.join("|"));
     await waitFoot("7 transactions"); ok((await foot()).includes("Out Rp 1.472.000 · In Rp 15.000.000"), await foot());
@@ -66,11 +66,11 @@ module.exports = async ({ base, shots }) => {
   await s.check("FINNY-168.2 filters, search, source chips and sort, against hand-worked totals; kept in the URL", async () => {
     await page.goto(`${base}/transactions?month=${P}`); await waitFoot("7 transactions");
     ok((await chip("all")) === "All 7" && (await chip("look")) === "Needs a look 3" && (await chip("typed")) === "Typed 6" && (await chip("statement")) === "From a statement 1" && (await chip("workbook")) === "From the workbook 0", `${await chip("all")} ${await chip("look")} ${await chip("typed")}`);
-    await page.getByLabel("Kind").selectOption("spend"); await waitFoot("5 transactions"); ok((await foot()).includes("Out Rp 1.472.000 · In Rp 0"), await foot());
-    await page.getByLabel("Kind").selectOption(""); await page.getByLabel("Account").selectOption(A.cash.id); await waitFoot("2 transactions");
+    await page.getByLabel("Kind", { exact: true }).selectOption("spend"); await waitFoot("5 transactions"); ok((await foot()).includes("Out Rp 1.472.000 · In Rp 0"), await foot());
+    await page.getByLabel("Kind", { exact: true }).selectOption(""); await page.getByLabel("Account", { exact: true }).selectOption(A.cash.id); await waitFoot("2 transactions");
     ok((await foot()).includes("Out Rp 1.350.000"), await foot());
-    await page.getByLabel("Account").selectOption(""); await page.getByLabel("Category").selectOption(kopi.id); await waitFoot("3 transactions");
-    await page.getByLabel("Category").selectOption(""); await page.getByLabel("Search transactions").fill("kedai"); await waitFoot("1 transaction ");
+    await page.getByLabel("Account", { exact: true }).selectOption(""); await page.getByLabel("Category", { exact: true }).selectOption(kopi.id); await waitFoot("3 transactions");
+    await page.getByLabel("Category", { exact: true }).selectOption(""); await page.getByLabel("Search transactions").fill("kedai"); await waitFoot("1 transaction ");
     ok(page.url().includes("q=kedai"), page.url()); await page.reload(); await waitFoot("1 transaction "); ok((await page.getByLabel("Search transactions").inputValue()) === "kedai", "search kept after a reload");
     await page.getByLabel("Search transactions").fill(""); await waitFoot("7 transactions");
     await page.getByTestId("chip-statement").click(); await waitFoot("1 transaction "); await page.getByTestId("chip-all").click(); await waitFoot("7 transactions");
@@ -79,7 +79,7 @@ module.exports = async ({ base, shots }) => {
     await page.getByRole("button", { name: /^Amount/ }).click(); await settle();
     ok((await rows().first().innerText()).includes("Kedai Kopi"), `smallest first: ${await rows().first().innerText()}`);
     ok((await page.locator("th[aria-sort]").getAttribute("aria-sort")) === "ascending", "aria-sort");
-    await page.getByLabel("Month").selectOption("all"); await waitFoot("10 transactions");
+    await page.getByLabel("Month", { exact: true }).selectOption("all"); await waitFoot("10 transactions");
   });
 
   await s.check("FINNY-168.4 Needs a look: Twice? on both Kopi, 10× usual on Makan malam; Looks fine clears one for good", async () => {
