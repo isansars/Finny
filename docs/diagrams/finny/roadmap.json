@@ -1,8 +1,8 @@
 {
   "type": "board",
   "title": "Finny · Roadmap",
-  "subtitle": "Replace the two workbooks: record every day, read the bank each month, then plan, report and grow. Current as of v0.22.0, 25 Nov 2026.",
-  "footer": "🐰 Poppy · Finny · Product · 24 Nov 2026 · planned on the FINNY board",
+  "subtitle": "Replace the two workbooks: record every day, read the bank each month, then plan, report and grow. Current as of v0.22.1, 25 Nov 2026.",
+  "footer": "🐰 Poppy · Finny · Product · 25 Nov 2026 · planned on the FINNY board",
   "badge": "💸 The owner's own product · FINNY board · isansars/Finny",
   "width": 1700,
   "columns": [
@@ -13,6 +13,11 @@
       "sub": "latest three releases",
       "items": [
         [
+          "Jump to any month: tap the month name on Home, Budget and Reports",
+          "live",
+          "v0.22.1 · FINNY-206"
+        ],
+        [
           "Several at once, offline: delete, category and looks fine without a signal",
           "live",
           "v0.22.0 · FINNY-199"
@@ -21,11 +26,6 @@
           "Fix and delete offline: changes wait on the phone, nothing overwritten without asking",
           "live",
           "v0.21.0 · FINNY-191"
-        ],
-        [
-          "The BRI × Tokopedia card bill read again, with its interest and due date",
-          "live",
-          "v0.20.1 · FINNY-198"
         ]
       ]
     },
@@ -33,18 +33,18 @@
       "name": "Now",
       "icon": "🏃",
       "tone": "orange",
-      "sub": "Your data audit (25 Nov)",
+      "sub": "Your data, cleaned (25 Nov)",
       "focus": true,
       "items": [
         [
-          "Clean the doubles the audit found: card bill payments, transfers seen by two banks",
+          "Import the audited, clean workbook (every bank balance matches its statements)",
           "planned",
-          "the owner, with the audit's list"
+          "the owner: Delete everything, then Import"
         ],
         [
-          "Read the combined Mandiri statement (account and card)",
+          "Sprint 23 · Balances you can trust: owes-me accounts, card bills and transfers matched, the Mandiri card bill read",
           "planned",
-          "needs a sample PDF"
+          "approved; Mochi's design first"
         ]
       ]
     },
@@ -55,9 +55,9 @@
       "sub": "",
       "items": [
         [
-          "What the month turns up",
+          "A month in Finny only, checked against the workbook",
           "planned",
-          "Poppy, after the owner's month"
+          "the owner: the done-when check"
         ]
       ]
     },
