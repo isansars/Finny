@@ -257,7 +257,7 @@ export function StatementReader() {
                   : c.status === "new" ? `${r.line.type ? `${r.line.type} · ` : ""}${cat ? cat.name + (choices[r.i] ? "" : r.hint ? " (suggested)" : "") : "Pick a category"}`
                   : c.status === "skip" ? "Won't be saved" : r.hint;
                 return (
-                  <button className="fy-row" key={r.i} style={{ opacity: faded ? 0.6 : 1 }} onClick={() => setOpen(r.i)} data-testid="stmt-line" data-status={c.status}>
+                  <button className={`fy-row${faded ? " fy-faded" : ""}`} key={r.i} onClick={() => setOpen(r.i)} data-testid="stmt-line" data-status={c.status}>
                     {c.status === "xfer" ? <span className="fy-tile" data-color="lavender" style={{ width: 32, height: 32, borderRadius: 10 }}><ArrowLeftRight size={18} /></span>
                       : c.status === "check" ? <span className="fy-tile" data-color="lemon" style={{ width: 32, height: 32, borderRadius: 10 }}><CircleAlert size={18} /></span>
                       : cat ? <CatTile c={cat} /> : <span className="fy-tile" data-color="slate" style={{ width: 32, height: 32, borderRadius: 10 }}><FileText size={18} /></span>}

@@ -235,6 +235,8 @@ button.fy-row, .fy-row.tap { cursor: pointer; } button.fy-row:hover, .fy-row.tap
 .fy-drop { text-align: center; display: flex; flex-direction: column; align-items: center; border: 2px dashed color-mix(in srgb, var(--primary) 35%, transparent); }
 .fy-iconnote { display: flex; gap: 8px; align-items: flex-start; margin-top: 12px; }
 .fy-iconnote svg { flex: none; margin-top: 1px; }
+.fy-faded .fy-tile { opacity: .55; } /* a line already in Finny: quieter, its words still readable (FINNY-157) */
+.fy-faded .main .t, .fy-faded .fy-amt { color: var(--text-2); }
 .fy-eye { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); width: 36px; height: 36px; display: grid; place-items: center; border: 0; background: none; color: var(--text-3); cursor: pointer; border-radius: 10px; }
 .fy-gap { background: var(--lemon-s); color: var(--lemon-i); margin-bottom: 4px; }
 .fy-gap .h { display: flex; gap: 8px; align-items: center; font-weight: 800; }
