@@ -392,6 +392,19 @@ main.fy-wrap:focus { outline: none; }
 .fy-tx-foot.phone { border: 0; padding: 10px 4px 0; }
 .fy-tx-row.flag { background: color-mix(in srgb, #f59e0b 8%, transparent); } .fy-tx-row.on { background: color-mix(in srgb, var(--primary) 9%, transparent); }
 .fy-tx-row .main .t { white-space: normal; }
+/* FINNY-187: the undo bar after a delete (above the tab bar on a phone), and the "Bring back" chip. */
+.fy-undo { position: fixed; left: 0; right: 0; bottom: calc(92px + env(safe-area-inset-bottom)); z-index: 45; display: flex; justify-content: center; padding: 0 16px; pointer-events: none; }
+.fy-undo-in { width: 100%; max-width: 520px; pointer-events: auto; animation: fy-up .2s ease; }
+.fy-undo .bar { display: flex; gap: 10px; align-items: center; background: var(--text); color: var(--bg); border-radius: 18px; padding: 8px 8px 8px 16px; box-shadow: var(--shadow-lg); }
+.fy-undo .bar b { flex: 1; min-width: 0; font-weight: 800; } .fy-undo .bar .amt { white-space: nowrap; }
+.fy-undo .bar .x { border: 0; background: none; color: inherit; opacity: .75; width: 44px; height: 44px; display: grid; place-items: center; cursor: pointer; border-radius: 12px; }
+.fy-undo .bar.done { background: var(--mint-s); color: var(--mint-i); padding: 14px 16px; font-weight: 800; }
+.fy-undo .line { height: 3px; border-radius: 3px; background: color-mix(in srgb, var(--text) 20%, transparent); margin: 6px 18px 0; overflow: hidden; }
+.fy-undo .line i { display: block; height: 100%; background: var(--primary); animation: fy-undo-run 30s linear forwards; }
+@keyframes fy-undo-run { from { width: 100%; } to { width: 0; } }
+@media (prefers-reduced-motion: reduce) { .fy-undo .line i { animation: none; width: 100%; } }
+@media (min-width: 760px) { .fy-undo { bottom: 24px; } }
+.fy-undo-later { margin: 0 0 12px; display: inline-flex; gap: 6px; align-items: center; }
 .fy-bulk { position: sticky; bottom: calc(106px + env(safe-area-inset-bottom)); z-index: 30; margin-top: 14px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; background: var(--text); color: var(--bg); border-radius: 18px; padding: 10px 10px 10px 16px; box-shadow: var(--shadow-lg); }
 .fy-bulk b { flex: 1 1 140px; }
 .fy-bulk .fy-btn.ghost { background: transparent; color: inherit; border-color: color-mix(in srgb, var(--bg) 35%, transparent); }

@@ -4,7 +4,7 @@
 // fixing or deleting one or several at once.
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { ArrowDown, ArrowUp, Check, CircleAlert, Download, Pencil, Search, Tag, Trash2, X } from "lucide-react";
+import { ArrowDown, ArrowUp, Check, CircleAlert, Download, Pencil, Search, Tag, Trash2, Undo2, X } from "lucide-react";
 import { api, useFinny, type Txn } from "./store";
 import { CategoryOptions, Money, Sheet } from "./ui";
 import { formatRupiah } from "@/lib/money";
@@ -16,6 +16,9 @@ type Page = { items: Row[]; count: number; outSen: number; inSen: number; counts
 const SOURCE: Record<Row["source"], string> = { typed: "Typed", statement: "Statement", workbook: "Workbook" };
 const PAGE = 50;
 const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+const UNDO_BAR_MS = 30_000;
+const undoMoney = (u: { outSen: number; inSen: number }) => [u.outSen ? `−${formatRupiah(u.outSen)}` : "", u.inSen ? `+${formatRupiah(u.inSen)}` : ""].filter(Boolean).join(" ") || "transfers";
+const whenShort = (iso: string) => { const d = new Date(iso), f = (o: Intl.DateTimeFormatOptions) => new Intl.DateTimeFormat("en-GB", { timeZone: "Asia/Jakarta", ...o }).format(d); return `${f({ day: "numeric", month: "short" })}, ${f({ hour: "2-digit", minute: "2-digit", hour12: false })}`; };
 const shortDay = (d: string) => `${Number(d.slice(8))} ${MONTHS[Number(d.slice(5, 7)) - 1].slice(0, 3)}${d.slice(0, 4) !== todayIn().slice(0, 4) ? ` ${d.slice(0, 4)}` : ""}`;
 const wideQuery = () => window.matchMedia("(min-width: 760px)");
 const useWide = () => useSyncExternalStore((l) => { const m = wideQuery(); m.addEventListener("change", l); return () => m.removeEventListener("change", l); }, () => wideQuery().matches, () => true);
@@ -44,6 +47,23 @@ export function Transactions() {
   const [selecting, setSelecting] = useState(false);
   const [recat, setRecat] = useState(false);
   const [q, setQ] = useState(filter.q);
+  // FINNY-187: undo a delete, as approved in "Sprint 20 · Design notes (Undo a delete)". `undo` is the bar right after a
+  // delete (30 s); `back` the mint line after an undo; `last` the latest delete that can still be brought back (a day).
+  type Undo = { undoId: string; n: number; outSen: number; inSen: number };
+  const [undo, setUndo] = useState<Undo | null>(null);
+  const [back, setBack] = useState(0);
+  const [last, setLast] = useState<(Undo & { deletedAt: string }) | null>(null);
+  const [undoing, setUndoing] = useState(false);
+  const checkLast = () => api<{ last: (Undo & { deletedAt: string }) | null }>("transactions/undo").then((r) => setLast(r.last)).catch(() => {});
+  useEffect(() => { checkLast(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { if (!undo) return; const t = setTimeout(() => { setUndo(null); checkLast(); }, UNDO_BAR_MS); return () => clearTimeout(t); }, [undo]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { if (!back) return; const t = setTimeout(() => setBack(0), 5000); return () => clearTimeout(t); }, [back]);
+  const deleted = (r: Undo) => { setBack(0); setLast(null); setUndo(r); };
+  async function bringBack(u: Undo) {
+    setUndoing(true); setErr("");
+    try { const r = await api<{ restored: number }>("transactions/undo", { method: "POST", json: { undoId: u.undoId } }); setUndo(null); setLast(null); setBack(r.restored); await reload(); }
+    catch (e) { setUndo(null); setErr((e as Error).message); checkLast(); } finally { setUndoing(false); }
+  }
   useEffect(() => { setQ(filter.q); }, [filter.q]); // eslint-disable-line react-hooks/set-state-in-effect
   useEffect(() => { const t = setTimeout(() => { if (q !== filter.q) set("q", q.trim()); }, 300); return () => clearTimeout(t); });
 
@@ -67,17 +87,18 @@ export function Transactions() {
 
   async function bulk(action: "delete" | "category" | "fine", categoryId?: string) {
     const rows = pickedRows; if (!rows.length) return;
-    if (action === "delete" && !confirm(`Delete ${rows.length} transaction${rows.length > 1 ? "s" : ""} (${money(signed(rows))})? This can't be undone.`)) return;
+    if (action === "delete" && !confirm(`Delete ${rows.length} transaction${rows.length > 1 ? "s" : ""} (${money(signed(rows))})? You can undo it for a day.`)) return;
     setBusy(true); setErr("");
     try {
-      const r = await api<{ changed: number; skipped: number }>("transactions/bulk", { method: "POST", json: { ids: rows.map((x) => x.id), action, categoryId } });
+      const r = await api<{ changed: number; skipped: number; undoId?: string; outSen?: number; inSen?: number }>("transactions/bulk", { method: "POST", json: { ids: rows.map((x) => x.id), action, categoryId } });
+      if (action === "delete" && r.undoId) deleted({ undoId: r.undoId, n: r.changed, outSen: r.outSen ?? 0, inSen: r.inSen ?? 0 });
       if (r.skipped) setErr(`${r.skipped} of them kept their category: a transfer has none, and income and spending can't share one.`);
       setPicked(new Set()); setRecat(false); setSelecting(false); await reload();
     } catch (e) { setErr((e as Error).message); } finally { setBusy(false); }
   }
   async function removeOne(r: Row) {
     if (!confirm(`Delete "${name(r)}" (${money(signed([r]))}, ${shortDay(r.on)})?`)) return;
-    try { await api(`transactions/${r.id}`, { method: "DELETE" }); await reload(); } catch (e) { setErr((e as Error).message); }
+    try { const d = await api<Undo & { changed: number }>(`transactions/${r.id}?undo=1`, { method: "DELETE" }); deleted({ undoId: d.undoId, n: d.changed, outSen: d.outSen, inSen: d.inSen }); await reload(); } catch (e) { setErr((e as Error).message); }
   }
 
   const monthOptions = useMemo(() => { const out: string[] = []; const [y, m] = todayIn().slice(0, 7).split("-").map(Number); for (let i = 0; i < 24; i++) { const d = new Date(Date.UTC(y, m - 1 - i, 1)); out.push(d.toISOString().slice(0, 7)); } if (month !== "all" && !out.includes(month)) out.unshift(month); return out; }, [month]);
@@ -123,6 +144,7 @@ export function Transactions() {
       </div>
       {filter.look === "1" && <div className="fy-note" style={{ marginBottom: 12 }}>Finny&apos;s guesses at mistakes: the <b>same amount twice</b> on one day and account, or a spend <b>far above</b> what that category usually is. Fix it, delete it, or mark it as looking fine.</div>}
       {err && <div className="fy-err" role="alert" style={{ marginBottom: 10 }}>{err}</div>}
+      {!undo && !back && last && <button className="fy-chip fy-undo-later" onClick={() => bringBack(last)} disabled={undoing} data-testid="bring-back"><Undo2 size={14} />Bring back {last.n} deleted · {whenShort(last.deletedAt)}</button>}
 
       {data && !items.length && <div className="fy-card fy-empty" data-testid="tx-empty">{filter.look ? <><b>Nothing needs a look</b>No doubled amounts or unusual spends here.</> : <><b>No transactions</b>Nothing matches these filters.</>}</div>}
       {!data && loaded && !err && <div className="fy-card fy-empty">Loading…</div>}
@@ -177,6 +199,15 @@ export function Transactions() {
           <button className="fy-icon-btn" aria-label="Clear the selection" onClick={() => setPicked(new Set())}><X size={18} /></button>
         </div>
       )}
+      <div className="fy-undo" aria-live="polite">
+        {undo && <div className="fy-undo-in" data-testid="undo-bar">
+          <div className="bar"><Trash2 size={16} aria-hidden="true" /><b>Deleted {undo.n} · <span className="amt">{undoMoney(undo)}</span></b>
+            <button className="fy-btn small primary" onClick={() => bringBack(undo)} disabled={undoing}><Undo2 size={15} />Undo</button>
+            <button className="x" aria-label="Close" onClick={() => { setUndo(null); checkLast(); }}><X size={18} /></button></div>
+          <div className="line" aria-hidden="true"><i key={undo.undoId} /></div>
+        </div>}
+        {back > 0 && <div className="fy-undo-in"><div className="bar done" role="status"><Check size={16} aria-hidden="true" />{back} transaction{back === 1 ? "" : "s"} back</div></div>}
+      </div>
       {recat && <RecategoriseSheet count={pickedRows.length} kinds={[...new Set(pickedRows.map((r) => r.kind))]} onClose={() => setRecat(false)} onPick={(id) => bulk("category", id)} busy={busy} />}
     </>
   );
