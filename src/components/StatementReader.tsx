@@ -4,7 +4,7 @@
 // uploaded; only the confirmed lines are sent.
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { ArrowLeftRight, Check, ChevronLeft, CircleAlert, CreditCard, Eye, EyeOff, FileText, Landmark, LoaderCircle, Lock, ShieldCheck, Smartphone, Undo2, Upload } from "lucide-react";
+import { ArrowLeftRight, CalendarDays, Check, ChevronLeft, CircleAlert, CreditCard, Eye, EyeOff, FileText, Landmark, LoaderCircle, Lock, ShieldCheck, Smartphone, Undo2, Upload } from "lucide-react";
 import { api, remember, useFinny, type Account, type Category } from "./store";
 import { CatTile } from "./icons";
 import { CategoryOptions, Money, Sheet } from "./ui";
@@ -21,6 +21,7 @@ type Step = "start" | "reading" | "password" | "check";
 
 const BANK_LOOK: Record<Bank, { color: string; card?: boolean; sub: string }> = {
   bca: { color: "sky", sub: "Tahapan savings · monthly mutasi" },
+  "bca-card": { color: "pink", card: true, sub: "Monthly bill · every BCA card on it" },
   mandiri: { color: "peach", sub: "Consolidated statement · savings" },
   krom: { color: "mint", sub: "Monthly statement · main account" },
   "bri-card": { color: "lavender", card: true, sub: "Billing statement · locked PDF" },
@@ -28,6 +29,7 @@ const BANK_LOOK: Record<Bank, { color: string; card?: boolean; sub: string }> = 
 const PILL: Record<Status | "skip", { label: string; color: string }> = {
   new: { label: "New", color: "pink" }, in: { label: "Already in", color: "mint" }, xfer: { label: "Transfer", color: "lavender" }, check: { label: "Check", color: "lemon" }, skip: { label: "Skip", color: "slate" },
 };
+const dayMonth = (iso: string) => new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short", timeZone: "UTC" }).format(new Date(iso + "T00:00:00Z"));
 const monthName = (iso: string) => new Intl.DateTimeFormat("en-GB", { month: "long", timeZone: "UTC" }).format(new Date(iso + "T00:00:00Z"));
 const monthYear = (iso: string) => new Intl.DateTimeFormat("en-GB", { month: "long", year: "numeric", timeZone: "UTC" }).format(new Date(iso + "T00:00:00Z"));
 const dayHead = (iso: string) => new Intl.DateTimeFormat("en-GB", { weekday: "short", day: "numeric", month: "short", timeZone: "UTC" }).format(new Date(iso + "T00:00:00Z"));
@@ -37,8 +39,8 @@ function guessAccount(st: Statement, accounts: Account[]): string {
   const live = accounts.filter((a) => !a.archived);
   const saved = remember.get(`stmt.${st.bank}.${st.accountDigits}`);
   if (saved && live.some((a) => a.id === saved)) return saved;
-  const word = st.bank === "bri-card" ? "bri" : st.bank;
-  const card = st.bank === "bri-card";
+  const word = st.bank.replace(/-card$/, "");
+  const card = st.bank.endsWith("-card");
   const named = live.filter((a) => a.name.toLowerCase().includes(word) && (card ? a.type === "card" : a.type !== "card"));
   return (named.find((a) => a.name.includes(st.accountDigits)) ?? named[0] ?? live.find((a) => (card ? a.type === "card" : a.type === "bank")))?.id ?? "";
 }
@@ -168,7 +170,7 @@ export function StatementReader() {
           </label>
         </div>
         <div className="fy-note fy-iconnote"><Smartphone size={16} /><span>Read on this device. The PDF and its password never leave it; only the lines you confirm are saved.</span></div>
-        <div className="fy-section"><span>Works with</span><span>4 banks</span></div>
+        <div className="fy-section"><span>Works with</span><span>{Object.keys(BANK_LOOK).length} statements</span></div>
         <div className="fy-list" data-testid="banks">
           {(Object.keys(BANK_LOOK) as Bank[]).map((b) => (
             <div className="fy-row" key={b}><span className="fy-tile" data-color={BANK_LOOK[b].color} style={{ width: 32, height: 32, borderRadius: 10 }}>{BANK_LOOK[b].card ? <CreditCard size={18} /> : <Landmark size={18} />}</span>
@@ -212,7 +214,7 @@ export function StatementReader() {
   }
 
   // ---------------------------------------------------------------- check
-  const card = account?.type === "card" || st.bank === "bri-card";
+  const card = account?.type === "card" || st.bank.endsWith("-card");
   const shown = [...rows].filter((r) => {
     const s = pick(r).status;
     return filter === "all" || (filter === "new" && saving_(pick(r))) || (filter === "in" && (s === "in" || s === "skip")) || (filter === "check" && s === "check");
@@ -238,6 +240,7 @@ export function StatementReader() {
         ? <div className="fy-ok" data-testid="balance"><Check size={16} /> {card ? `Bill ${formatRupiah(bal.statementSen)} matches Finny` : `Ending balance ${formatRupiah(bal.statementSen)} matches Finny on ${shortDate(st.periodTo)}`}</div>
         : <div className="fy-card fy-pad fy-gap" data-testid="balance"><div className="h"><CircleAlert size={18} /> {formatRupiah(Math.abs(bal.gapSen))} apart</div>
           <div className="b">{card ? `The bank's bill is ${formatRupiah(bal.statementSen)}; Finny has ${formatRupiah(bal.finnySen)} for this card` : `The statement ends at ${formatRupiah(bal.statementSen)}; Finny would have ${formatRupiah(bal.finnySen)} on ${shortDate(st.periodTo)}`} after saving.{counts.check ? ` ${counts.check} line${counts.check > 1 ? "s" : ""} marked Check need${counts.check > 1 ? "" : "s"} a look.` : ""}</div></div>)}
+      {st.dueOn && <div className="fy-note fy-iconnote" data-testid="due" style={{ marginTop: 8 }}><CalendarDays size={16} /><span>Due {dayMonth(st.dueOn)}{st.minimumSen !== undefined ? ` · minimum ${formatRupiah(st.minimumSen)}` : ""}</span></div>}
       {accountId && ctx && <>
         <div className="fy-seg" role="tablist" aria-label="Show" style={{ margin: "10px 0 2px" }}>
           {(["all", "new", "in", "check"] as const).map((f) => <button key={f} role="tab" aria-selected={filter === f} className={filter === f ? "on" : ""} onClick={() => setFilter(f)}>{{ all: "All", new: "New", in: "In", check: "Check" }[f]} {counts[f]}</button>)}
@@ -258,7 +261,7 @@ export function StatementReader() {
                     {c.status === "xfer" ? <span className="fy-tile" data-color="lavender" style={{ width: 32, height: 32, borderRadius: 10 }}><ArrowLeftRight size={18} /></span>
                       : c.status === "check" ? <span className="fy-tile" data-color="lemon" style={{ width: 32, height: 32, borderRadius: 10 }}><CircleAlert size={18} /></span>
                       : cat ? <CatTile c={cat} /> : <span className="fy-tile" data-color="slate" style={{ width: 32, height: 32, borderRadius: 10 }}><FileText size={18} /></span>}
-                    <div className="main"><div className="t">{r.line.description || r.line.type || "Line"}</div><div className="s">{r.line.instalment ? `${r.line.instalment} · ` : ""}{r.line.currency ? `${r.line.currency} ${r.line.foreignAmount} · ` : ""}{sub}</div></div>
+                    <div className="main"><div className="t">{r.line.description || r.line.type || "Line"}</div><div className="s">{r.line.card ? `${r.line.card} · ` : ""}{r.line.instalment ? `${r.line.instalment} · ` : ""}{r.line.currency ? `${r.line.currency} ${r.line.foreignAmount} · ` : ""}{sub}</div></div>
                     <div style={{ textAlign: "right", flex: "none" }}><Money sen={Math.abs(r.line.amountSen)} kind={c.status === "xfer" ? "transfer" : r.line.amountSen < 0 ? "spend" : "income"} /><div style={{ marginTop: 3 }}><Pill s={c.status} /></div></div>
                   </button>
                 );
@@ -289,7 +292,7 @@ function LineSheet({ r, c, accounts, account, categories, bank, onClose, onSave 
   const cat = categories.find((k) => k.id === x.categoryId);
   const others = accounts.filter((a) => a.id !== account.id && !a.archived);
   const options: { s: Choice["status"]; label: string }[] = [{ s: transfer ? "xfer" : "new", label: transfer ? "Transfer" : "New" }, { s: "in", label: "Already in" }, { s: "skip", label: "Skip" }];
-  const when = `${shortDate(l.on)}${l.time ? `, ${l.time.replace(":", ".")}` : ""}${l.type ? ` · ${l.type}` : ""} · ${BANK_NAMES[bank]}`;
+  const when = `${shortDate(l.on)}${l.time ? `, ${l.time.replace(":", ".")}` : ""}${l.card ? ` · ${l.card}` : ""}${l.type ? ` · ${l.type}` : ""} · ${BANK_NAMES[bank]}`;
   return (
     <Sheet title="Statement line" onClose={onClose}>
       <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 6 }}>
