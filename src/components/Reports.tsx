@@ -10,6 +10,7 @@ import { Tile, CatTile } from "./icons";
 import { TYPE_LOOK } from "./ui";
 import { formatCompact, formatRupiah } from "@/lib/money";
 import { monthLabel, shiftMonth, shortDate, todayIn } from "@/lib/dates";
+import { MonthNav } from "./MonthPicker";
 import type { TreeNode } from "@/lib/report-rule";
 
 type View = "cashflow" | "balance" | "pace";
@@ -41,12 +42,7 @@ function useJson<T>(path: string | null, version: number) {
 }
 
 function MonthSwitch({ month, setMonth }: { month: string; setMonth: (m: string) => void }) {
-  return (
-    <div className="fy-month" aria-label="Month">
-      <button aria-label="Previous month" onClick={() => setMonth(shiftMonth(month, -1))}><ChevronLeft size={18} /></button>
-      <button aria-label="Next month" onClick={() => setMonth(shiftMonth(month, 1))}><ChevronRight size={18} /></button>
-    </div>
-  );
+  return <MonthNav month={month} setMonth={setMonth} />; // FINNY-206
 }
 const csvLink = (path: string, label = "Download this report (CSV)") => <a className="fy-btn block" style={{ marginTop: 12 }} href={`/api/${path}${path.includes("?") ? "&" : "?"}format=csv`} download><Download size={17} />{label}</a>;
 

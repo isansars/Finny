@@ -3,7 +3,7 @@ import Link from "next/link";
 // Home = the month at a glance (FINNY-12/43): the balance card, spending by category (donut), by day (tap a day to filter
 // the list), top places and biggest spends, then the month's transactions grouped by day, Apple-style.
 import { useEffect, useMemo, useState } from "react";
-import { ArrowLeftRight, ChevronLeft, ChevronRight, Search, X, TableProperties } from "lucide-react";
+import { ArrowLeftRight, Search, X, TableProperties } from "lucide-react";
 import { api, useFinny, type Txn } from "./store";
 import { Money, CategoryOptions } from "./ui";
 import { CatTile, Tile } from "./icons";
@@ -15,8 +15,9 @@ import { BillsCard } from "./Debts";
 import { PastReviews, ReviewNudge } from "./Review";
 import { DueToday } from "./Recurring";
 import { Conflicts, WaitingList } from "./Phone";
+import { MonthNav, MonthTitle } from "./MonthPicker";
 import { useOutbox } from "@/lib/offline";
-import { dayLabel, monthLabel, shiftMonth, todayIn } from "@/lib/dates";
+import { dayLabel, monthLabel, todayIn } from "@/lib/dates";
 
 type Dash = { month: string; days: number; totals: { incomeSen: number; spendSen: number; savedSen: number; investedSen: number };
   byCategory: { categoryId: string; sen: number }[]; byDay: number[]; topSpends: { id: string; on: string; sen: number; description: string; categoryId: string | null }[]; topPlaces: { name: string; sen: number }[] };
@@ -90,11 +91,8 @@ export function Home() {
     <div className="fy-home">
       <section>
         <div className="fy-large">
-          <div><div className="sub">Overview</div><h1 data-testid="month">{monthLabel(month)}</h1></div>
-          <div className="fy-month" aria-label="Month">
-            <button aria-label="Previous month" onClick={() => { setMonth(shiftMonth(month, -1)); setDay(null); }}><ChevronLeft size={18} /></button>
-            <button aria-label="Next month" onClick={() => { setMonth(shiftMonth(month, 1)); setDay(null); }}><ChevronRight size={18} /></button>
-          </div>
+          <div><div className="sub">Overview</div><MonthTitle month={month} setMonth={(m) => { setMonth(m); setDay(null); }} /></div>
+          <MonthNav month={month} setMonth={(m) => { setMonth(m); setDay(null); }} label={false} />
         </div>
 
         <Conflicts />

@@ -2,13 +2,14 @@
 // The month's budget (FINNY-63), as approved in "Sprint 5 · Design notes (budget)": planned, spent so far, left to plan,
 // expected income, and every budgeted category with a bar (green, amber from 90%, red over). Tap one to change it.
 import { useEffect, useMemo, useState } from "react";
-import { ChevronLeft, ChevronRight, FileSpreadsheet, Plus, Wand2, Copy } from "lucide-react";
+import { FileSpreadsheet, Plus, Wand2, Copy } from "lucide-react";
 import { BudgetWarning } from "./Review";
 import { api, useFinny, type Category } from "./store";
 import { CatTile, Tile } from "./icons";
 import { AmountInput, CategoryOptions, Sheet } from "./ui";
 import { formatRupiah, parseRupiah } from "@/lib/money";
-import { monthLabel, shiftMonth, todayIn } from "@/lib/dates";
+import { monthLabel, todayIn } from "@/lib/dates";
+import { MonthNav } from "./MonthPicker";
 import type { Line, State } from "@/lib/budget-rule";
 
 export type BudgetMonth = { month: string; daysLeft: number; lines: Line[]; totals: { plannedSen: number; spentSen: number; incomePlanSen: number; leftToPlanSen: number; over: number; close: number; pct: number }; incomeSen: number; incomeEvery: boolean };
@@ -46,10 +47,7 @@ export function Budget() {
     <>
       <div className="fy-large">
         <div><div className="sub" data-testid="budget-sub">{sub}</div><h1>Budget</h1></div>
-        <div className="fy-month" aria-label="Month">
-          <button aria-label="Previous month" onClick={() => setMonth(shiftMonth(month, -1))}><ChevronLeft size={18} /></button>
-          <button aria-label="Next month" onClick={() => setMonth(shiftMonth(month, 1))}><ChevronRight size={18} /></button>
-        </div>
+        <MonthNav month={month} setMonth={setMonth} />
       </div>
       {err && <div className="fy-err" role="alert">{err}</div>}
       <div className="fy-hero" data-testid="budget-hero">
