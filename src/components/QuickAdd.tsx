@@ -4,6 +4,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ChevronDown, Sparkles, Search, PenLine } from "lucide-react";
 import { api, remember, useFinny, type Category, type Txn } from "./store";
+import { OfflineError, outbox, useNet } from "@/lib/offline";
 import { CatTile, Tile } from "./icons";
 import { TYPE_LOOK } from "./ui";
 import { formatRupiah, parseRupiah } from "@/lib/money";
@@ -53,6 +54,7 @@ export function AccountChips({ label, accounts, value, onPick }: { label: string
 export function QuickAddForm({ existing, onDone, inline }: { existing?: Txn | null; onDone?: () => void; inline?: boolean }) {
   // FINNY-89: a transaction without an id is a draft to fill in (e.g. "Mark paid"), not one to edit.
   const isEdit = Boolean(existing?.id);
+  const { offline } = useNet();
   const { accounts, categories, reload } = useFinny();
   const usable = accounts.filter((a) => !a.archived || a.id === existing?.accountId || a.id === existing?.toAccountId);
   const today = todayIn(), yesterday = dayBefore(today);
@@ -100,10 +102,17 @@ export function QuickAddForm({ existing, onDone, inline }: { existing?: Txn | nu
     if (!account) { setErr("Add an account first."); return; }
     const body = { kind, amount, on, accountId: account.id, toAccountId: kind === "transfer" ? toAccountId : null, categoryId: kind === "transfer" ? null : (catOk ? categoryId : ""), description, entity, note };
     setBusy(true);
+    // FINNY-151: a new entry carries its own id; with no connection it waits on this phone and is sent once later.
+    const clientRef = isEdit ? null : crypto.randomUUID();
     try {
-      await api(isEdit ? `transactions/${existing!.id}` : "transactions", { method: isEdit ? "PATCH" : "POST", json: body });
+      try {
+        await api(isEdit ? `transactions/${existing!.id}` : "transactions", { method: isEdit ? "PATCH" : "POST", json: clientRef ? { ...body, clientRef } : body });
+      } catch (x) {
+        if (!(x instanceof OfflineError) || isEdit) throw x;
+        await outbox.add({ clientRef: clientRef!, body, savedAt: new Date().toISOString() });
+      }
       remember.set("lastAccount", account.id);
-      await reload();
+      await reload().catch(() => {}); // offline: the kept copy, or nothing new yet
       if (isEdit || !inline) onDone?.();
       else { setAmount(""); setDescription(""); setEntity(""); setNote(""); setPicked(false); setCategoryId(""); setSuggested(null); setBusy(false); amountRef.current?.focus(); }
     } catch (x) { setErr((x as Error).message); setBusy(false); }
@@ -167,7 +176,9 @@ export function QuickAddForm({ existing, onDone, inline }: { existing?: Txn | nu
         <label className="fy-field"><span className="fy-label">Note</span><textarea className="fy-input" rows={2} value={note} onChange={(e) => setNote(e.target.value)} maxLength={1000} /></label>
       </div>) : <button type="button" className="fy-more" onClick={() => setMore(true)}><ChevronDown size={16} />Paid to, note</button>}
       {kind === "transfer" && <p className="fy-note" style={{ margin: "8px 0 0" }}>A transfer moves money between your own accounts. It isn&apos;t spending or income.</p>}
-      <button className="fy-btn primary block" style={{ marginTop: 14 }} disabled={busy}>{busy ? "Saving…" : isEdit ? "Save changes" : "Save"}</button>
+      {offline && !isEdit && <p className="fy-offline-note" role="status">No connection: this is kept on your phone and sent when you&apos;re back online.</p>}
+      {offline && isEdit && <p className="fy-offline-note" role="status">No connection: changes need a connection. Try again when you&apos;re back online.</p>}
+      <button className="fy-btn primary block" style={{ marginTop: 14 }} disabled={busy || (offline && isEdit)}>{busy ? "Saving…" : isEdit ? "Save changes" : offline ? "Save on this phone" : "Save"}</button>
       {isEdit && existing && <a className="fy-btn block" style={{ marginTop: 8 }} data-testid="make-recurring"
         href={`/settings/recurring?new=1&${new URLSearchParams({ name: existing.description || "", kind: existing.kind, amount: String(existing.amountSen), account: existing.accountId, to: existing.toAccountId ?? "", category: existing.categoryId ?? "", on: existing.on })}`}>Make it recurring</a>}
       {isEdit && <button type="button" className="fy-btn danger block" style={{ marginTop: 8 }} onClick={remove} disabled={busy}>Delete</button>}
