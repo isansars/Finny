@@ -48,7 +48,7 @@ module.exports = async ({ base, shots }) => {
     await page.getByRole("button", { name: "Edit Kopi", exact: true }).click(); const d = dialog(); await d.waitFor();
     ok((await d.innerText()).includes("No connection: this change waits on this phone and is sent when you're back online."), "the note");
     ok(await d.getByRole("button", { name: "Save changes" }).isEnabled(), "Save enabled offline");
-    await d.getByLabel("Amount").fill("50.000");
+    await d.getByLabel("Amount").fill("50.000"); await page.waitForTimeout(400); // the sheet has finished sliding up
     await page.screenshot({ path: path.join(shots, "s21-01-edit-offline.png") });
     await d.getByRole("button", { name: "Save changes" }).click(); await d.waitFor({ state: "detached" });
     const w = await text("waiting"); ok(/Kopi .*Beli Kopi · BCA · was 45\.000 −50\.000 change waiting/.test(w), w);
@@ -97,7 +97,7 @@ module.exports = async ({ base, shots }) => {
     ok((await page.getByTestId("conflict").count()) === 2, `${await page.getByTestId("conflict").count()} conflicts`);
     ok((await page.locator('[data-testid="waiting"]').count()) === 0, "nothing else waits");
     await page.evaluate(() => window.scrollTo(0, 0));
-    await page.screenshot({ path: path.join(shots, "s21-03-back-online.png"), fullPage: true });
+    await page.screenshot({ path: path.join(shots, "s21-03-back-online.png") });
     // Another pass sends nothing twice.
     await page.evaluate(() => window.dispatchEvent(new Event("online"))); await page.waitForTimeout(1500);
     ok((await find("Makan siang")).length === 1 && (await find("Kopi")).length === 1, "still once");
