@@ -116,7 +116,7 @@ module.exports = async ({ base, shots }) => {
 
   await s.check("FINNY-138.5 Make it recurring from a transaction's edit sheet", async () => {
     const t = (await txns()).find((x) => x.description === "Sewa kos");
-    await page.goto(base + "/"); await page.getByText("Sewa kos").last().click();
+    await page.goto(base + "/"); await page.getByRole("button", { name: "Edit Sewa kos" }).click();
     const link = page.getByTestId("make-recurring"); await link.waitFor();
     const href = await link.getAttribute("href");
     ok(href.includes("new=1") && href.includes("name=Sewa+kos") && href.includes(`amount=${t.amountSen}`), href);
