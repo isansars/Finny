@@ -175,7 +175,7 @@ function PlanLine({ main, base }: { main: Plan; base: Plan }) {
     <svg width="100%" viewBox={`0 0 ${w} ${h + 18}`} role="img" aria-label="What you owe over time" style={{ display: "block" }}>
       <path d={path(base.line)} fill="none" stroke="#94a3b8" strokeWidth="2.5" strokeDasharray="4 6" strokeLinecap="round" />
       <path d={path(main.line)} fill="none" stroke="#ec4899" strokeWidth="3" strokeLinejoin="round" strokeLinecap="round" />
-      {ticks.map((i) => at(i) ? <text key={i} x={x(i)} y={h + 14} textAnchor={i === 0 ? "start" : i === n - 1 ? "end" : "middle"} fontSize="11" fontWeight="700" fill="var(--text-3)">{mon(at(i)!)}</text> : null)}
+      {ticks.map((i) => at(i) ? <text key={i} x={x(i)} y={h + 14} textAnchor={i === 0 ? "start" : i === n - 1 ? "end" : "middle"} fontSize="12" fontWeight="700" fill="var(--text-3)">{mon(at(i)!)}</text> : null)}
     </svg>
   );
 }

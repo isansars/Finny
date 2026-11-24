@@ -260,8 +260,8 @@ function WorthLine({ t, today }: { t: Thing; today: string }) {
     <svg width="100%" viewBox={`0 0 ${w} ${h + 18}`} role="img" aria-label="What it's worth over time" style={{ display: "block" }}>
       <path d={pts.map((p, i) => `${i ? "L" : "M"}${x(i).toFixed(1)},${y(p.v).toFixed(1)}`).join(" ")} fill="none" stroke="#f59e0b" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
       {nowI >= 0 && nowI <= n && <circle cx={x(nowI)} cy={y(pts[nowI].v)} r="5" fill="#f59e0b" stroke="#fff" strokeWidth="2" />}
-      <text x={8} y={h + 14} fontSize="11" fontWeight="700" fill="var(--text-3)">{shortDate(start)}</text>
-      <text x={w - 8} y={h + 14} textAnchor="end" fontSize="11" fontWeight="700" fill="var(--text-3)">{shortDate(end)}</text>
+      <text x={8} y={h + 14} fontSize="12" fontWeight="700" fill="var(--text-3)">{shortDate(start)}</text>
+      <text x={w - 8} y={h + 14} textAnchor="end" fontSize="12" fontWeight="700" fill="var(--text-3)">{shortDate(end)}</text>
     </svg>
   );
 }

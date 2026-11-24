@@ -161,7 +161,7 @@ button.fy-row, .fy-row.tap { cursor: pointer; } button.fy-row:hover, .fy-row.tap
 .fy-bars > span.on i { background: var(--primary-text); }
 .fy-bars:has(> span.on) > span:not(.on) i { opacity: .45; } /* a picked day stands out */
 .fy-bars:focus-visible { outline: 2px solid var(--primary); outline-offset: 4px; border-radius: 6px; }
-.fy-bars-axis { display: flex; justify-content: space-between; font-size: 11px; color: var(--text-3); font-weight: 600; margin-top: 4px; }
+.fy-bars-axis { display: flex; justify-content: space-between; font-size: 12px; color: var(--text-3); font-weight: 600; margin-top: 4px; }
 .fy-grid2 { display: grid; gap: 12px; }
 @media (min-width: 900px) { .fy-grid2 { grid-template-columns: 1fr 1fr; } .fy-home { display: grid; grid-template-columns: 1fr 380px; gap: 20px; align-items: start; } .fy-home .side { position: sticky; top: 76px; max-height: calc(100vh - 92px); overflow-y: auto; border-radius: var(--r-lg); scrollbar-width: thin; } /* FINNY-164: on a short laptop screen the form scrolls inside, Save never off-screen */ }
 .fy-side-only { display: none; } @media (min-width: 900px) { .fy-side-only { display: block; } }
@@ -409,3 +409,10 @@ main.fy-wrap:focus { outline: none; }
 
 /* FINNY-179: a chip row that scrolls sideways fades at its right edge, so a hidden chip is hinted at. */
 .fy-chips:not(.wrap) { -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 28px), transparent); mask-image: linear-gradient(90deg, #000 calc(100% - 28px), transparent); padding-right: 24px; }
+
+/* FINNY-180: thumb-sized on a phone. Back links, chips (Due today, Recurring's suggestions), the Reports tree's rows and fold
+   arrows reach 44 × 44 without changing how they look. */
+.fy-back { min-height: 44px; }
+.fy-chip { position: relative; } .fy-chip::after { content: ""; position: absolute; left: 0; right: 0; top: 50%; height: max(100%, 44px); transform: translateY(-50%); }
+.fy-trow a.t::after { content: ""; position: absolute; inset: 0; }
+.fy-trow .car { position: relative; z-index: 2; width: 44px; height: 44px; margin: -11px; }

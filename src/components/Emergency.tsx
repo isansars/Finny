@@ -185,11 +185,11 @@ export function EmergencyPlan() {
     return (
       <svg width="100%" viewBox={`0 0 ${w} ${h + 18}`} role="img" aria-label="Your emergency fund growing to its target" style={{ display: "block" }}>
         <line x1="8" x2={w - 8} y1={y(data.targetSen)} y2={y(data.targetSen)} stroke="#94a3b8" strokeDasharray="4 5" strokeWidth="2" />
-        <text x={w - 8} y={y(data.targetSen) - 6} textAnchor="end" fontSize="11" fontWeight="700" fill="var(--text-3)">target {formatCompact(data.targetSen)}</text>
+        <text x={w - 8} y={y(data.targetSen) - 6} textAnchor="end" fontSize="12" fontWeight="700" fill="var(--text-3)">target {formatCompact(data.targetSen)}</text>
         <path d={pts.map((v, i) => `${i ? "L" : "M"}${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(" ")} fill="none" stroke="#10b981" strokeWidth="3" strokeLinecap="round" />
         <circle cx={x(0)} cy={y(pts[0])} r="5" fill="#10b981" stroke="#fff" strokeWidth="2" />
-        <text x={8} y={h + 14} fontSize="11" fontWeight="700" fill="var(--text-3)">Now</text>
-        <text x={w - 8} y={h + 14} textAnchor="end" fontSize="11" fontWeight="700" fill="var(--text-3)">{mon(reached)}</text>
+        <text x={8} y={h + 14} fontSize="12" fontWeight="700" fill="var(--text-3)">Now</text>
+        <text x={w - 8} y={h + 14} textAnchor="end" fontSize="12" fontWeight="700" fill="var(--text-3)">{mon(reached)}</text>
       </svg>
     );
   };

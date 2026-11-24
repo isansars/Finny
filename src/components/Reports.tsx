@@ -82,7 +82,7 @@ function Bars({ months }: { months: Flow["months"] }) {
         return <g key={m.month}>
           <rect x={x} y={h - hi} width={bw} height={Math.max(hi, 1)} rx={Math.min(5, bw / 3)} fill="#34d399"><title>{`${monthLabel(m.month)}: in ${formatRupiah(m.inSen)}`}</title></rect>
           <rect x={x + bw + 3} y={h - ho} width={bw} height={Math.max(ho, 1)} rx={Math.min(5, bw / 3)} fill="#f472b6"><title>{`${monthLabel(m.month)}: out ${formatRupiah(m.outSen)}`}</title></rect>
-          {(months.length <= 6 || i % 2 === 0) && <text x={x + bw} y={h + 16} textAnchor="middle" fontSize="11" fontWeight="700" fill="var(--text-3)">{short(m.month)}</text>}
+          {(months.length <= 6 || i % 2 === 0) && <text x={x + bw} y={h + 16} textAnchor="middle" fontSize="12" fontWeight="700" fill="var(--text-3)">{short(m.month)}</text>}
         </g>;
       })}
     </svg>
@@ -162,7 +162,7 @@ function Line({ series }: { series: { month: string; netSen: number }[] }) {
       <path d={`${d} L${xs[xs.length - 1]},${h} L${xs[0]},${h} Z`} fill="url(#nw)" />
       <path d={d} fill="none" stroke="#ec4899" strokeWidth="3" strokeLinejoin="round" strokeLinecap="round" />
       <circle cx={xs[xs.length - 1]} cy={ys[ys.length - 1]} r="5" fill="#ec4899" stroke="#fff" strokeWidth="2" />
-      {series.map((s, i) => (i % 3 === 2 || i === 0 ? <text key={s.month} x={xs[i]} y={h + 14} textAnchor="middle" fontSize="11" fontWeight="700" fill="var(--text-3)">{short(s.month)}</text> : null))}
+      {series.map((s, i) => (i % 3 === 2 || i === 0 ? <text key={s.month} x={xs[i]} y={h + 14} textAnchor="middle" fontSize="12" fontWeight="700" fill="var(--text-3)">{short(s.month)}</text> : null))}
     </svg>
   );
 }
@@ -218,7 +218,7 @@ function PaceChart({ p }: { p: Pace }) {
       {last >= 0 && <path d={path(p.thisMonth)} fill="none" stroke="#ec4899" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />}
       {last >= 0 && p.daysGone < n && <path d={`M${x(last)},${y(p.thisMonth[last])} L${x(n - 1)},${y(p.projectedSen)}`} stroke="#ec4899" strokeWidth="3" strokeDasharray="6 6" strokeLinecap="round" fill="none" />}
       {last >= 0 && <circle cx={x(last)} cy={y(p.thisMonth[last])} r="5" fill="#ec4899" stroke="#fff" strokeWidth="2" />}
-      {[0, 9, 19, n - 1].map((d) => <text key={d} x={x(d)} y={h + 14} textAnchor="middle" fontSize="11" fontWeight="700" fill="var(--text-3)">{d + 1}</text>)}
+      {[0, 9, 19, n - 1].map((d) => <text key={d} x={x(d)} y={h + 14} textAnchor="middle" fontSize="12" fontWeight="700" fill="var(--text-3)">{d + 1}</text>)}
     </svg>
   );
 }
@@ -276,7 +276,7 @@ export function AccountReport({ id }: { id: string }) {
         {data && <svg width="100%" viewBox="0 0 340 108" role="img" aria-label="Money in and out per month" style={{ display: "block" }}>
           {data.months.map((m, i) => { const gap = 328 / data.months.length, x = 10 + i * gap + (gap - 38) / 2, hi = (m.inSen / max) * 88, ho = (m.outSen / max) * 88; return <g key={m.month}>
             <rect x={x} y={88 - hi} width="17" height={Math.max(hi, 1)} rx="4" fill="#34d399" /><rect x={x + 20} y={88 - ho} width="17" height={Math.max(ho, 1)} rx="4" fill="#f472b6" />
-            <text x={x + 18} y="104" textAnchor="middle" fontSize="11" fontWeight="700" fill="var(--text-3)">{short(m.month)}</text></g>; })}
+            <text x={x + 18} y="104" textAnchor="middle" fontSize="12" fontWeight="700" fill="var(--text-3)">{short(m.month)}</text></g>; })}
         </svg>}
       </div>
       <div className="fy-section"><span>Month by month</span><span>in · out · net</span></div>

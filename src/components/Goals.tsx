@@ -151,13 +151,13 @@ function Chart({ d }: { d: Detail }) {
     <figure style={{ margin: 0 }}>
       <svg width="100%" viewBox={`0 0 ${w} ${h + 18}`} role="img" aria-label={`${d.name}: saved over time, needed and your pace to the target`} style={{ display: "block" }}>
         <line x1="8" x2={w - 8} y1={y(d.targetSen)} y2={y(d.targetSen)} stroke="#94a3b8" strokeDasharray="4 5" strokeWidth="2" />
-        <text x={w - 8} y={y(d.targetSen) - 6} textAnchor="end" fontSize="11" fontWeight="700" fill="var(--text-3)">target {jt(d.targetSen)}</text>
+        <text x={w - 8} y={y(d.targetSen) - 6} textAnchor="end" fontSize="12" fontWeight="700" fill="var(--text-3)">target {jt(d.targetSen)}</text>
         {d.projection.needed.length > 1 && <path d={path(d.projection.needed)} fill="none" stroke="#10b981" strokeWidth="2.5" strokeDasharray="6 5" />}
         {d.projection.pace.length > 1 && <path d={path(d.projection.pace)} fill="none" stroke="#f59e0b" strokeWidth="2.5" strokeDasharray="2 5" strokeLinecap="round" />}
         <path d={path(d.history)} fill="none" stroke="#ec4899" strokeWidth="3" strokeLinecap="round" />
         <circle cx={x(now.month)} cy={y(now.sen)} r="5" fill="#ec4899" stroke="#fff" strokeWidth="2" />
-        <text x="8" y={h + 14} fontSize="11" fontWeight="700" fill="var(--text-3)">{mon(months[0])}</text>
-        <text x={w - 8} y={h + 14} textAnchor="end" fontSize="11" fontWeight="700" fill="var(--text-3)">{mon(months[months.length - 1])}</text>
+        <text x="8" y={h + 14} fontSize="12" fontWeight="700" fill="var(--text-3)">{mon(months[0])}</text>
+        <text x={w - 8} y={h + 14} textAnchor="end" fontSize="12" fontWeight="700" fill="var(--text-3)">{mon(months[months.length - 1])}</text>
       </svg>
       <figcaption className="fy-goal-legend"><span><i style={{ background: "#ec4899" }} />saved</span>{d.projection.needed.length > 1 && <span><i className="dash" style={{ borderColor: "#10b981" }} />needed</span>}{d.projection.pace.length > 1 && <span><i className="dot" style={{ borderColor: "#f59e0b" }} />your pace</span>}</figcaption>
     </figure>
@@ -182,7 +182,7 @@ export function GoalDetail({ id }: { id: string }) {
   return (
     <>
       <Link className="fy-back" href="/assets/goals"><ChevronLeft size={20} />Goals</Link>
-      <div className="fy-large"><div><div className="sub">Goals</div><h1>{d?.name ?? "…"}</h1></div>{d && <button className="fy-btn" style={{ minHeight: 36 }} onClick={() => setEdit(true)}>Edit</button>}</div>
+      <div className="fy-large"><div><div className="sub">Goals</div><h1>{d?.name ?? "…"}</h1></div>{d && <button className="fy-btn" onClick={() => setEdit(true)}>Edit</button>}</div>
       {err && <div className="fy-err" role="alert">{err}</div>}
       {d && s && <>
         <div className="fy-hero" style={{ padding: "14px 16px" }} data-testid="goal-hero">

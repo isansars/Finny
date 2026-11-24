@@ -94,7 +94,6 @@ export function Transactions() {
     <>
       <div className="fy-large"><div><div className="sub">Every record, to check</div><h1>Transactions</h1></div>
         <div style={{ display: "flex", gap: 8 }}>
-          {!wide && <button className="fy-btn small" onClick={() => { setSelecting(!selecting); setPicked(new Set()); }} aria-pressed={selecting}>{selecting ? "Done" : "Select"}</button>}
           {wide && <a className="fy-btn small" href={csv} download><Download size={15} />Download CSV</a>}
         </div>
       </div>
@@ -115,8 +114,12 @@ export function Transactions() {
           <option value="">All kinds</option><option value="spend">Spending</option><option value="income">Income</option><option value="transfer">Transfers</option>
         </select>
       </div>
-      <div className="fy-chips" role="group" aria-label="Show" style={{ margin: "10px 0 12px" }}>
-        {chips.map(([k, label, n]) => <button key={k} className={`fy-chip ${chipOn(k) ? "on" : ""}`} aria-pressed={chipOn(k)} onClick={() => chipSet(k)} data-testid={`chip-${k}`}>{k === "look" && <CircleAlert size={13} />}{label}{n !== undefined ? ` ${n}` : ""}</button>)}
+      {/* FINNY-180: on a phone, Select sits by the list (within a thumb's reach), not in the top corner. */}
+      <div style={{ display: "flex", gap: 8, alignItems: "center", margin: "10px 0 12px" }}>
+        <div className="fy-chips" role="group" aria-label="Show" style={{ flex: 1, minWidth: 0 }}>
+          {chips.map(([k, label, n]) => <button key={k} className={`fy-chip ${chipOn(k) ? "on" : ""}`} aria-pressed={chipOn(k)} onClick={() => chipSet(k)} data-testid={`chip-${k}`}>{k === "look" && <CircleAlert size={13} />}{label}{n !== undefined ? ` ${n}` : ""}</button>)}
+        </div>
+        {!wide && <button className="fy-btn small" style={{ flex: "none" }} onClick={() => { setSelecting(!selecting); setPicked(new Set()); }} aria-pressed={selecting}>{selecting ? "Done" : "Select"}</button>}
       </div>
       {filter.look === "1" && <div className="fy-note" style={{ marginBottom: 12 }}>Finny&apos;s guesses at mistakes: the <b>same amount twice</b> on one day and account, or a spend <b>far above</b> what that category usually is. Fix it, delete it, or mark it as looking fine.</div>}
       {err && <div className="fy-err" role="alert" style={{ marginBottom: 10 }}>{err}</div>}
