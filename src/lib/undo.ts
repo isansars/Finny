@@ -51,7 +51,7 @@ export async function undoDelete(userId: string, body: Record<string, unknown>, 
     const missingAcc = accIds.length - accs.length, missingCat = catIds.length - cats.length;
     if (missingAcc || missingCat) {
       const what = [missingAcc && `${missingAcc === 1 ? "an account" : `${missingAcc} accounts`}`, missingCat && `${missingCat === 1 ? "a category" : `${missingCat} categories`}`].filter(Boolean).join(" and ");
-      bad(`Can't bring ${rows.length === 1 ? "it" : "them"} back: ${what} ${missingAcc + missingCat === 1 ? "it used was" : "they used were"} deleted since.`, 409);
+      bad(`Can't bring ${rows.length === 1 ? "it" : "them"} back: ${what} ${rows.length === 1 ? "it" : "they"} used ${missingAcc + missingCat === 1 ? "was" : "were"} deleted since.`, 409);
     }
     const inUse = await tx.select({ id: transactions.id }).from(transactions).where(inArray(transactions.id, rows.map((r) => r.id)));
     if (inUse.length) bad("Can't bring them back: one of them is already back.", 409);
