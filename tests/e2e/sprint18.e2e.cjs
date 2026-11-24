@@ -46,7 +46,6 @@ module.exports = async ({ base, shots }) => {
   const st = await j("POST", "statements", { accountId: A.bca.id, bank: "bca", bankName: "BCA", periodFrom: `${P}-01`, periodTo: `${P}-28`, fileHash: "a".repeat(64),
     lines: [{ on: `${P}-07`, kind: "spend", sen: 3_200_000, accountId: A.bca.id, categoryId: kopi.id, description: "Kedai Kopi" }] });
   ok(st.status === 200 && st.body.added === 1, `statement ${st.status} ${JSON.stringify(st.body).slice(0, 120)}`);
-  const PL = `${MONTHS[Number(P.slice(5)) - 1]} ${P.slice(0, 4)}`;
 
   await s.check("FINNY-168.1 Transactions in the laptop bar and Settings; Home's \"See every transaction\" opens its month", async () => {
     await page.goto(base + "/"); await page.getByRole("button", { name: "Previous month" }).click(); await page.getByTestId("see-all").waitFor();
