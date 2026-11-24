@@ -1,7 +1,7 @@
 // Sprint 21 (v0.21.0) QA, 🐧 Bubbles: fix and delete offline (FINNY-191), on a production build with the service worker
 // running and Playwright's offline mode, as a phone (390 × 844). "Another device" is a second signed-in browser that
 // stays online. Made-up records only: today, on BCA: Kopi 45.000 ("with Dina"), Bensin 150.000, Makan 80.000, Roti 20.000.
-const { suite, ok, browser, shot } = require("./helpers.cjs");
+const { suite, ok, browser } = require("./helpers.cjs");
 const { default: AxeBuilder } = require("@axe-core/playwright");
 const path = require("node:path");
 
@@ -37,7 +37,7 @@ module.exports = async ({ base, shots }) => {
   const editOffline = async (name, amount, note) => {
     await page.getByRole("button", { name: `Edit ${name}`, exact: true }).click(); const d = dialog(); await d.waitFor();
     if (amount) await d.getByLabel("Amount").fill(amount);
-    if (note !== undefined) await d.getByLabel("Note").fill(note);
+    if (note !== undefined) { if (!(await d.getByLabel("Note").count())) await d.getByRole("button", { name: "Paid to, note" }).click(); await d.getByLabel("Note").fill(note); }
     await d.getByRole("button", { name: "Save changes" }).click(); await d.waitFor({ state: "detached" });
   };
   const deleteOffline = async (name) => { await page.getByRole("button", { name: `Edit ${name}`, exact: true }).click(); await dialog().getByRole("button", { name: "Delete" }).click(); await dialog().waitFor({ state: "detached" }); };
@@ -129,8 +129,9 @@ module.exports = async ({ base, shots }) => {
     ok((await api("DELETE", `transactions/${T.roti.id}`)).status === 200, "other device deletes Roti");
     await ctx.setOffline(false);
     const card = page.getByRole("region", { name: "Kopi changed somewhere else" }); await card.waitFor({ timeout: 40000 });
+    await page.locator('[data-testid="waiting"]').waitFor({ state: "detached", timeout: 15000 }).catch(() => {});
     ok((await page.getByTestId("conflict").count()) === 1, "only Kopi asks; the Roti delete just went");
-    ok((await page.locator('[data-testid="waiting"]').count()) === 0, "nothing waits");
+    ok((await page.locator('[data-testid="waiting"]').count()) === 0, `still waiting: ${await page.locator('[data-testid="waiting"]').innerText().catch(() => "")}`);
     await card.getByRole("button", { name: "Keep Finny's" }).click(); await card.waitFor({ state: "detached" });
     ok((await find("Kopi"))[0].note === "laptop note", "Finny's kept");
   });
@@ -151,17 +152,15 @@ module.exports = async ({ base, shots }) => {
     await ctx.setOffline(true); await page.reload(); await page.getByTestId("offline-banner").waitFor();
     await editOffline("Makan siang", "39.000");
     await ctx.setOffline(false); await page.route("**/api/transactions/**", (r) => r.abort()); // keep it waiting
-    await page.goto(base + "/settings/phone"); ok((await text("waiting-count")) === "1", await text("waiting-count"));
-    await page.unroute("**/api/transactions/**");
-    await page.evaluate(async () => { const { } = {}; }); // no-op
+    await page.goto(base + "/settings/phone"); await page.waitForTimeout(500); ok((await text("waiting-count")) === "1", `${await text("waiting-count")} waiting`);
+    ok((await find("Makan siang"))[0].amountSen === 38_000_00, "the waiting change wasn't sent");
+    // Signing out (which also ends the other browser's session: same owner) clears the phone's outbox first.
     await page.goto(base + "/settings"); await page.getByTestId("sign-out").click(); await page.waitForURL(/\/login/);
     const left = await page.evaluate(() => new Promise((res) => { const r = indexedDB.open("finny", 1); r.onsuccess = () => { const t = r.result.transaction("outbox", "readonly").objectStore("outbox").count(); t.onsuccess = () => res(t.result); }; r.onerror = () => res(-1); }));
     ok(left === 0, `left ${left}`);
-    ok((await find("Makan siang"))[0].amountSen === 38_000_00, "the waiting change wasn't sent");
   });
 
   await s.check("no page errors", async () => ok(!errors.filter((e) => !/Failed to fetch|NetworkError|net::/.test(e)).length, errors.join(" | ")));
-  await api("DELETE", "me/data", { confirm: "DELETE" });
   await other.close(); await b.close();
   s.done();
 };
