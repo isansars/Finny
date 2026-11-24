@@ -1,8 +1,8 @@
 {
   "type": "board",
   "title": "Finny · Roadmap",
-  "subtitle": "Replace the two workbooks: record every day, read the bank each month, then plan, report and grow. Current as of Sprint 13 planning, 23 Nov 2026.",
-  "footer": "🐰 Poppy · Finny · Product · 23 Nov 2026 · planned on the FINNY board",
+  "subtitle": "Replace the two workbooks: record every day, read the bank each month, then plan, report and grow. Current as of the v0.13.0 release, 24 Nov 2026.",
+  "footer": "🐰 Poppy · Finny · Product · 24 Nov 2026 · planned on the FINNY board",
   "badge": "💸 The owner's own product · FINNY board · isansars/Finny",
   "width": 1700,
   "columns": [
@@ -13,6 +13,11 @@
       "sub": "latest three releases",
       "items": [
         [
+          "Polish pass: the 8 fixes from the v0.12.0 audit",
+          "live",
+          "v0.13.0 · FINNY-131"
+        ],
+        [
           "Workbook match check: accounts and categories, workbook vs Finny",
           "live",
           "v0.12.0 · FINNY-123"
@@ -21,28 +26,18 @@
           "Net worth goals: needed a month vs your pace",
           "live",
           "v0.11.0 · FINNY-115"
-        ],
-        [
-          "Month-end review: statements, budget, net worth, close the month",
-          "live",
-          "v0.10.0 · FINNY-107"
         ]
       ]
     },
     {
-      "name": "Now · Sprint 13",
+      "name": "Now · the owner's month",
       "icon": "🏃",
       "tone": "orange",
-      "sub": "23 Nov – 6 Dec · v0.13.0",
+      "sub": "a month in Finny only",
       "focus": true,
       "items": [
         [
-          "Polish pass: the 8 fixes from the v0.12.0 audit",
-          "dev",
-          "FINNY-131"
-        ],
-        [
-          "Alongside: the owner's month in Finny only",
+          "Use Finny alone for a month, close it with the review, check it against the workbook",
           "planned",
           "the owner: the done-when check"
         ]
