@@ -156,8 +156,9 @@ button.fy-row, .fy-row.tap { cursor: pointer; } button.fy-row:hover, .fy-row.tap
 .fy-legend .r b { font-weight: 700; font-variant-numeric: tabular-nums; }
 .fy-bars { display: flex; align-items: flex-end; gap: 3px; height: 72px; }
 .fy-bars > span { flex: 1; height: 100%; display: flex; align-items: flex-end; }
-.fy-bars > span i { display: block; width: 100%; border-radius: 4px; background: color-mix(in srgb, var(--primary) 42%, var(--surface)); min-height: 3px; } /* FINNY-162: visible in both themes */
-.fy-bars > span.on i { background: var(--primary); }
+.fy-bars > span i { display: block; width: 100%; border-radius: 4px; background: var(--primary); min-height: 3px; } /* FINNY-162: 3:1 against the card in both themes */
+.fy-bars > span.on i { background: var(--primary-text); }
+.fy-bars:has(> span.on) > span:not(.on) i { opacity: .45; } /* a picked day stands out */
 .fy-bars:focus-visible { outline: 2px solid var(--primary); outline-offset: 4px; border-radius: 6px; }
 .fy-bars-axis { display: flex; justify-content: space-between; font-size: 11px; color: var(--text-3); font-weight: 600; margin-top: 4px; }
 .fy-grid2 { display: grid; gap: 12px; }
@@ -356,3 +357,6 @@ main.fy-wrap:focus { outline: none; }
 @media (min-width: 900px) { .fy-home .side .fy-sheet-foot { position: sticky; bottom: -16px; z-index: 2; background: var(--surface); margin: 14px -16px -16px; padding: 12px 16px 16px; border-top: 1px solid var(--border); } }
 /* FINNY-165: rows you can click react to the mouse (only where there is one). */
 @media (hover: hover) { a.fy-row:hover, button.fy-row:hover:not(:disabled), .fy-row.tap:hover { background: color-mix(in srgb, var(--primary) 6%, transparent); cursor: pointer; } }
+
+/* FINNY-165: the add form beside Home is narrower than a phone: four categories a row so long names fit. */
+@media (min-width: 900px) { .fy-home .side .fy-catgrid { grid-template-columns: repeat(4, 1fr); } }

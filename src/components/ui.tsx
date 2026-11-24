@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { formatRupiah, parseRupiah } from "@/lib/money";
 import { flattenTree } from "@/lib/category-rule";
 import type { Category } from "./store";
@@ -17,10 +17,11 @@ export function Money({ sen, kind, className = "" }: { sen: number; kind?: "spen
 const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
 export function Sheet({ title, onClose, children, label }: { title: string; onClose: () => void; children: React.ReactNode; label?: string }) {
   const box = useRef<HTMLDivElement>(null);
+  // What opened the sheet, read while it first renders: a field inside may take focus (autoFocus) before effects run.
+  const [opener] = useState(() => (typeof document !== "undefined" && document.activeElement instanceof HTMLElement && document.activeElement !== document.body ? document.activeElement : null));
   const close = useRef(onClose);
   useEffect(() => { close.current = onClose; }, [onClose]);
   useEffect(() => {
-    const opener = document.activeElement instanceof HTMLElement && document.activeElement !== document.body ? document.activeElement : null;
     const inside = () => [...(box.current?.querySelectorAll<HTMLElement>(FOCUSABLE) ?? [])].filter((e) => e.getClientRects().length > 0);
     // A field may focus itself (autoFocus); otherwise the first thing in the sheet takes focus.
     const t = setTimeout(() => { if (!box.current?.contains(document.activeElement)) (inside().find((e) => e.matches("input, select, textarea")) ?? inside()[0] ?? box.current)?.focus(); }, 30);
@@ -36,7 +37,7 @@ export function Sheet({ title, onClose, children, label }: { title: string; onCl
     addEventListener("keydown", k);
     const prev = document.body.style.overflow; document.body.style.overflow = "hidden";
     return () => { clearTimeout(t); removeEventListener("keydown", k); document.body.style.overflow = prev; if (opener?.isConnected) opener.focus(); };
-  }, []);
+  }, [opener]);
   return (
     <div className="fy-sheet-bg" onMouseDown={(e) => { if (e.target === e.currentTarget) close.current(); }}>
       <div className="fy-sheet" role="dialog" aria-modal="true" aria-label={label ?? title} ref={box} tabIndex={-1}>
