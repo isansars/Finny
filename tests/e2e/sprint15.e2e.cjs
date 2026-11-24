@@ -67,7 +67,7 @@ module.exports = async ({ base, shots }) => {
 
   await s.check("FINNY-146.4 back online: sent once, \"Back online · 1 entry sent\"", async () => {
     await ctx.setOffline(false);
-    await page.getByTestId("online-banner").waitFor({ timeout: 40000 });
+    await page.getByTestId("online-banner").waitFor({ timeout: 40000 }); await page.evaluate(() => scrollTo(0, 0));
     ok((await text("online-banner")).includes("Back online · 1 entry sent"), await text("online-banner"));
     await page.waitForFunction(() => !document.querySelector('[data-testid="waiting"]'));
     const t = (await txns()).filter((x) => x.description === "Kopi Tuku");
