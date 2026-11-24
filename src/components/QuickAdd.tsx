@@ -4,7 +4,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ChevronDown, Sparkles, Search, PenLine } from "lucide-react";
 import { api, remember, useFinny, type Category, type Txn } from "./store";
-import { OfflineError, outbox, useNet } from "@/lib/offline";
+import { OfflineError, outbox, queueDelete, queueEdit, useNet } from "@/lib/offline";
 import { CatTile, Tile } from "./icons";
 import { TYPE_LOOK } from "./ui";
 import { formatRupiah, parseRupiah } from "@/lib/money";
@@ -105,11 +105,14 @@ export function QuickAddForm({ existing, onDone, inline }: { existing?: Txn | nu
     // FINNY-151: a new entry carries its own id; with no connection it waits on this phone and is sent once later.
     const clientRef = isEdit ? null : crypto.randomUUID();
     try {
-      try {
+      // FINNY-194: something still waiting on this phone is changed there, never sent half-made.
+      if (existing?.waitingRef) await queueEdit(existing, body);
+      else try {
         await api(isEdit ? `transactions/${existing!.id}` : "transactions", { method: isEdit ? "PATCH" : "POST", json: clientRef ? { ...body, clientRef } : body });
       } catch (x) {
-        if (!(x instanceof OfflineError) || isEdit) throw x;
-        await outbox.add({ clientRef: clientRef!, body, savedAt: new Date().toISOString() });
+        if (!(x instanceof OfflineError)) throw x;
+        if (isEdit) await queueEdit(existing!, body); // a change without a connection waits too, checked against Finny's version when sent
+        else await outbox.add({ clientRef: clientRef!, body, savedAt: new Date().toISOString() });
       }
       remember.set("lastAccount", account.id);
       await reload().catch(() => {}); // offline: the kept copy, or nothing new yet
@@ -125,7 +128,12 @@ export function QuickAddForm({ existing, onDone, inline }: { existing?: Txn | nu
   async function remove() {
     if (!isEdit || !confirm("Delete this transaction?")) return;
     setBusy(true);
-    try { await api(`transactions/${existing!.id}`, { method: "DELETE" }); await reload(); onDone?.(); } catch (x) { setErr((x as Error).message); setBusy(false); }
+    try {
+      if (existing?.waitingRef) await queueDelete(existing);
+      else try { await api(`transactions/${existing!.id}`, { method: "DELETE" }); }
+      catch (x) { if (!(x instanceof OfflineError)) throw x; await queueDelete(existing!); }
+      await reload().catch(() => {}); onDone?.();
+    } catch (x) { setErr((x as Error).message); setBusy(false); }
   }
 
   if (!usable.some((a) => !a.archived) && !existing) {
@@ -182,12 +190,12 @@ export function QuickAddForm({ existing, onDone, inline }: { existing?: Txn | nu
       </div>) : <button type="button" className="fy-more" onClick={() => setMore(true)}><ChevronDown size={16} />Paid to, note</button>}
       {kind === "transfer" && <p className="fy-note" style={{ margin: "8px 0 0" }}>A transfer moves money between your own accounts. It isn&apos;t spending or income.</p>}
       {offline && !isEdit && <p className="fy-offline-note" role="status">No connection: this is kept on your phone and sent when you&apos;re back online.</p>}
-      {offline && isEdit && <p className="fy-offline-note" role="status">No connection: changes need a connection. Try again when you&apos;re back online.</p>}
+      {(offline || existing?.waitingRef) && isEdit && <p className="fy-offline-note" role="status">{existing?.waitingRef ? "Not sent yet: changing it here changes what this phone will send." : "No connection: this change waits on this phone and is sent when you're back online."}</p>}
       {isEdit && existing && <a className="fy-btn block" style={{ marginTop: 14 }} data-testid="make-recurring"
         href={`/settings/recurring?new=1&${new URLSearchParams({ name: existing.description || "", kind: existing.kind, amount: String(existing.amountSen), account: existing.accountId, to: existing.toAccountId ?? "", category: existing.categoryId ?? "", on: existing.on })}`}>Make it recurring</a>}
       {/* FINNY-164: in a sheet on a laptop these stay in view while the form scrolls (Delete left, Save right); on a phone Save comes first. */}
       <div className="fy-sheet-foot">
-        <button className="fy-btn primary block" disabled={busy || (offline && isEdit)}>{busy ? "Saving…" : isEdit ? "Save changes" : offline ? "Save on this phone" : "Save"}</button>
+        <button className="fy-btn primary block" disabled={busy}>{busy ? "Saving…" : isEdit ? "Save changes" : offline ? "Save on this phone" : "Save"}</button>
         {isEdit && <button type="button" className="fy-btn danger block" onClick={remove} disabled={busy}>Delete</button>}
         {isEdit && (existing as { flags?: unknown[] } | null)?.flags?.length ? <button type="button" className="fy-btn block" onClick={looksFine} disabled={busy}>Looks fine</button> : null}
       </div>

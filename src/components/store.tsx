@@ -6,7 +6,7 @@ import { markOffline, markOnline, OfflineError } from "@/lib/offline";
 
 export type Account = { id: string; name: string; type: string; emoji: string | null; openingSen: number; openingOn: string; limitSen: number | null; statementDay: number | null; archived: boolean; position: number; balanceSen: number; card?: { used: number; limit: number | null; available: number | null } };
 export type Category = { id: string; kind: string; name: string; emoji: string | null; icon: string | null; color: string | null; parentId: string | null; active: boolean; position: number; uses?: number };
-export type Txn = { id: string; on: string; kind: "spend" | "income" | "transfer"; amountSen: number; accountId: string; toAccountId: string | null; categoryId: string | null; entity: string | null; description: string; note: string | null };
+export type Txn = { waitingRef?: string; id: string; on: string; kind: "spend" | "income" | "transfer"; amountSen: number; accountId: string; toAccountId: string | null; categoryId: string | null; entity: string | null; description: string; note: string | null };
 
 type Ctx = { accounts: Account[]; categories: Category[]; loaded: boolean; version: number; reload: () => Promise<void>; openAdd: (t?: Txn) => void; editing: Txn | null | undefined; closeAdd: () => void };
 const C = createContext<Ctx | null>(null);

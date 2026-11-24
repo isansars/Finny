@@ -14,7 +14,8 @@ import { BudgetCard } from "./Budget";
 import { BillsCard } from "./Debts";
 import { PastReviews, ReviewNudge } from "./Review";
 import { DueToday } from "./Recurring";
-import { WaitingList } from "./Phone";
+import { Conflicts, WaitingList } from "./Phone";
+import { useOutbox } from "@/lib/offline";
 import { dayLabel, monthLabel, shiftMonth, todayIn } from "@/lib/dates";
 
 type Dash = { month: string; days: number; totals: { incomeSen: number; spendSen: number; savedSen: number; investedSen: number };
@@ -62,7 +63,10 @@ export function Home() {
   const acc = useMemo(() => new Map(accounts.map((a) => [a.id, a])), [accounts]);
   const cat = useMemo(() => new Map(categories.map((c) => [c.id, c])), [categories]);
   const net = accounts.filter((a) => !a.archived).reduce((s, a) => s + a.balanceSen, 0);
-  const items = (list?.items ?? []).filter((t) => !day || t.on === day);
+  // FINNY-194: a transaction changed or deleted on this phone is shown in Waiting to send, not twice.
+  const outboxItems = useOutbox();
+  const waitingIds = useMemo(() => new Set(outboxItems.map((w) => w.id).filter(Boolean)), [outboxItems]);
+  const items = (list?.items ?? []).filter((t) => (!day || t.on === day) && !waitingIds.has(t.id));
   const days = useMemo(() => { const m = new Map<string, Txn[]>(); for (const t of items) { const d = m.get(t.on) ?? []; d.push(t); m.set(t.on, d); } return [...m.entries()]; }, [items]);
   const slices = (dash?.byCategory ?? []).slice(0, 5).map((s, i) => ({ ...s, color: CHART[i], name: cat.get(s.categoryId)?.name ?? "Uncategorised" }));
   const other = (dash?.byCategory ?? []).slice(5).reduce((s, x) => s + x.sen, 0);
@@ -93,7 +97,8 @@ export function Home() {
           </div>
         </div>
 
-        {month === today.slice(0, 7) && <WaitingList />}
+        <Conflicts />
+        <WaitingList />
         {month === today.slice(0, 7) && <DueToday />}
         <ReviewNudge />
         <div className="fy-hero">

@@ -40,7 +40,7 @@ module.exports = async ({ base, shots }) => {
   await s.check("FINNY-146.2 opens offline: the last numbers, the time they're from", async () => {
     await ctx.setOffline(true);
     await page.reload(); await page.getByTestId("offline-banner").waitFor();
-    ok(/Offline · numbers as of \d\d:\d\d\. New entries wait on this phone\./.test(await text("offline-banner")), await text("offline-banner"));
+    ok(/Offline · numbers as of \d\d:\d\d\. Changes wait on this phone\./.test(await text("offline-banner")), await text("offline-banner"));
     await page.waitForFunction((v) => document.querySelector('[data-testid="net"]')?.textContent === v, netOnline);
     ok((await page.getByText("Kopi kemarin").count()) >= 1, "the kept transactions");
     const other = await ctx.newPage(); const r = await other.goto(base + "/reports?view=pace");
@@ -57,7 +57,7 @@ module.exports = async ({ base, shots }) => {
     await page.screenshot({ path: require("node:path").join(shots, "s15-02-add-offline-375.png") });
     await f.getByRole("button", { name: "Save on this phone" }).click(); await f.waitFor({ state: "detached" });
     await page.getByTestId("waiting").waitFor();
-    ok(/Kopi Tuku Beli Kopi · BCA −38\.000 waiting to send/.test(await text("waiting")), await text("waiting"));
+    ok(/Kopi Tuku Beli Kopi · BCA −38\.000 new, waiting/.test(await text("waiting")), await text("waiting"));
     await page.screenshot({ path: require("node:path").join(shots, "s15-01-offline-home-375.png") });
     // Editing needs a connection.
     await page.getByRole("button", { name: "Edit Kopi kemarin" }).click();

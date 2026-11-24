@@ -405,6 +405,7 @@ main.fy-wrap:focus { outline: none; }
 @media (prefers-reduced-motion: reduce) { .fy-undo .line i { animation: none; width: 100%; } }
 @media (min-width: 760px) { .fy-undo { bottom: 24px; } }
 .fy-undo-later { margin: 0 0 12px; display: inline-flex; gap: 6px; align-items: center; }
+.fy-conflict { border: 2px solid color-mix(in srgb, var(--warn-text) 55%, transparent); margin-bottom: 12px; } /* FINNY-195 */
 .fy-bulk { position: sticky; bottom: calc(106px + env(safe-area-inset-bottom)); z-index: 30; margin-top: 14px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; background: var(--text); color: var(--bg); border-radius: 18px; padding: 10px 10px 10px 16px; box-shadow: var(--shadow-lg); }
 .fy-bulk b { flex: 1 1 140px; }
 .fy-bulk .fy-btn.ghost { background: transparent; color: inherit; border-color: color-mix(in srgb, var(--bg) 35%, transparent); }
