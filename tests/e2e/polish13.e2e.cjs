@@ -76,7 +76,7 @@ module.exports = async ({ base, shots }) => {
   });
 
   await s.check("every screen at 390 px, dark: contrast", async () => {
-    const dark = await b.newContext({ viewport: { width: 390, height: 844 }, colorScheme: "dark", storageState: await ctx.storageState() });
+    const dark = await b.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, colorScheme: "dark", storageState: await ctx.storageState() });
     const pd = await dark.newPage(); const bad = [];
     for (const [name, path] of routes) { await pd.goto(base + path); await pd.waitForLoadState("networkidle"); await pd.waitForTimeout(250);
       const v = (await new AxeBuilder({ page: pd }).withRules(["color-contrast"]).analyze()).violations.map((x) => `${x.id} ${x.nodes[0]?.target.join(" ")}`); if (v.length) bad.push(`${name}: ${v.join(", ")}`); }
@@ -85,7 +85,7 @@ module.exports = async ({ base, shots }) => {
   });
 
   await s.check("every screen at 1280 px: nothing sideways; single-column pages at most 720 px (finding 6)", async () => {
-    const desk = await b.newContext({ viewport: { width: 1280, height: 860 }, storageState: await ctx.storageState() });
+    const desk = await b.newContext({ viewport: { width: 1280, height: 860 }, deviceScaleFactor: 2, storageState: await ctx.storageState() });
     const pk = await desk.newPage(); const bad = [];
     for (const [name, path] of routes) { await pk.goto(base + path); await pk.waitForLoadState("networkidle");
       if (await pk.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1)) bad.push(`${name}: sideways`);

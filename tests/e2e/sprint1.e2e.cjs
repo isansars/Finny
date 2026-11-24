@@ -237,7 +237,7 @@ module.exports = async ({ base, shots }) => {
   });
 
   // ---------- desktop
-  const desk = await b.newContext({ viewport: { width: 1280, height: 860 } });
+  const desk = await b.newContext({ viewport: { width: 1280, height: 860 }, deviceScaleFactor: 2 });
   await desk.addCookies(await phone.cookies());
   const dp = await desk.newPage();
   await s.check("Desktop: the quick-add form sits beside the list; the nav is on top", async () => {

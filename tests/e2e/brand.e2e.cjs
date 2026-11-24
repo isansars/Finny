@@ -19,7 +19,7 @@ module.exports = async ({ base, shots }) => {
   await s.check("FINNY-52.2 the sign-in screen and the top bar show the logo", async () => {
     ok(await page.getByRole("img", { name: "Finny" }).isVisible(), "no logo on sign-in"); await shot(page, shots, "brand-01-sign-in-375");
     await page.getByLabel("Email").fill("owner@finny.test"); await page.getByRole("button", { name: "Dev sign-in" }).click(); await page.waitForURL(base + "/");
-    const desk = await b.newContext({ viewport: { width: 1280, height: 800 } }); await desk.addCookies(await page.context().cookies()); const d = await desk.newPage();
+    const desk = await b.newContext({ viewport: { width: 1280, height: 800 }, deviceScaleFactor: 2 }); await desk.addCookies(await page.context().cookies()); const d = await desk.newPage();
     await d.goto(base + "/"); ok(await d.getByRole("link", { name: "Finny, home" }).locator("svg").count() === 1, "no mark in the top bar"); await shot(d, shots, "brand-02-topbar-desktop");
   });
   await b.close(); s.done();

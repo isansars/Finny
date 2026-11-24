@@ -107,7 +107,7 @@ module.exports = async ({ base, shots }) => {
     await shot(dp, shots, "s2-07-home-dark-375");
     await dp.getByRole("button", { name: "Add a transaction" }).first().click(); await dp.waitForTimeout(300); await shot(dp, shots, "s2-08-quick-add-dark-375");
   });
-  const desk = await b.newContext({ viewport: { width: 1280, height: 900 } }); await desk.addCookies(await ctx.cookies()); const kp = await desk.newPage();
+  const desk = await b.newContext({ viewport: { width: 1280, height: 900 }, deviceScaleFactor: 2 }); await desk.addCookies(await ctx.cookies()); const kp = await desk.newPage();
   await s.check("Desktop: top bar, dashboard beside the quick-add form", async () => {
     await kp.goto(base + "/"); await kp.getByTestId("by-category").waitFor(); ok(await kp.locator(".fy-topbar").isVisible() && await kp.locator("aside form").isVisible(), "layout");
     await shot(kp, shots, "s2-09-home-desktop");

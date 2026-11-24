@@ -80,12 +80,12 @@ module.exports = async ({ base, shots }) => {
   });
 
   await s.check("laptop: the title and the picker at 1280 px; nothing sideways at 360 px", async () => {
-    const lc = await b.newContext({ viewport: { width: 1280, height: 800 } }); await lc.addCookies(await ctx.cookies());
+    const lc = await b.newContext({ viewport: { width: 1280, height: 800 }, deviceScaleFactor: 2 }); await lc.addCookies(await ctx.cookies());
     const l = await lc.newPage(); await l.goto(base + "/"); await l.getByTestId("month").waitFor();
     await l.getByRole("button", { name: `${label(N)}, pick a month` }).click(); await l.getByRole("dialog", { name: "Pick a month" }).waitFor();
     await l.waitForTimeout(400); await l.screenshot({ path: require("node:path").join(shots, "p221-03-laptop.png") });
     let v = await axe(l); ok(!v.length, v.join(" | ")); await lc.close();
-    const dc = await b.newContext({ viewport: { width: 390, height: 844 }, colorScheme: "dark" }); await dc.addCookies(await ctx.cookies());
+    const dc = await b.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true, colorScheme: "dark" }); await dc.addCookies(await ctx.cookies());
     const dk = await dc.newPage(); await dk.goto(base + "/"); await dk.getByTestId("month").waitFor();
     await dk.getByRole("button", { name: `${label(N)}, pick a month` }).click(); await dk.getByRole("dialog", { name: "Pick a month" }).waitFor();
     await dk.waitForTimeout(400); await dk.screenshot({ path: require("node:path").join(shots, "p221-04-dark.png") });

@@ -114,7 +114,7 @@ module.exports = async ({ base, shots }) => {
   });
 
   await s.check("laptop: tick boxes, Delete offline waits and is sent; online several at once is one request as before", async () => {
-    const lc = await b.newContext({ viewport: { width: 1280, height: 800 }, serviceWorkers: "allow" }); await lc.addCookies(await ctx.cookies());
+    const lc = await b.newContext({ viewport: { width: 1280, height: 800 }, deviceScaleFactor: 2, serviceWorkers: "allow" }); await lc.addCookies(await ctx.cookies());
     const l = await lc.newPage(); l.on("dialog", (d) => d.accept()); l.on("pageerror", (e) => errors.push(`laptop ${e.message}`));
     await l.goto(base + "/"); await l.evaluate(() => navigator.serviceWorker.ready); await l.reload(); await l.waitForFunction(() => !!navigator.serviceWorker.controller);
     await tx(l); await l.waitForLoadState("networkidle");

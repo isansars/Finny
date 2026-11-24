@@ -94,7 +94,7 @@ module.exports = async ({ base, shots }) => {
     ok((await acc("GoPay")).balanceSen === -3500000, "GoPay back to its own lunch");
     const cats = (await json("categories")).body.map((c) => c.name); ok(JSON.stringify(cats) === JSON.stringify(["Makan di Luar"]), cats.join(","));
   });
-  const desk = await b.newContext({ viewport: { width: 1280, height: 900 } }); await desk.addCookies(await ctx.cookies()); const dp = await desk.newPage();
+  const desk = await b.newContext({ viewport: { width: 1280, height: 900 }, deviceScaleFactor: 2 }); await desk.addCookies(await ctx.cookies()); const dp = await desk.newPage();
   await s.check("Desktop: the check step", async () => {
     await dp.goto(base + "/import"); await dp.getByLabel("Choose a workbook").setInputFiles(files.books); await dp.getByTestId("sheets").waitFor();
     await dp.getByRole("button", { name: "Next: categories" }).click(); await dp.getByRole("button", { name: "Next: check and import" }).click(); await dp.getByTestId("checks").waitFor();

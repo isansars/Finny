@@ -104,7 +104,7 @@ module.exports = async ({ base, shots }) => {
   });
 
   await s.check("a laptop is unchanged: top bar, no tab bar, no strip", async () => {
-    const ctx = await b.newContext({ viewport: { width: 1280, height: 800 } }); await ctx.addCookies(await p.context().cookies());
+    const ctx = await b.newContext({ viewport: { width: 1280, height: 800 }, deviceScaleFactor: 2 }); await ctx.addCookies(await p.context().cookies());
     const w = await ctx.newPage(); await go(w, "/");
     ok(await w.locator(".fy-topbar").isVisible(), "top bar"); ok(!(await w.locator(".fy-tabbar").isVisible()), "tab bar shown");
     const h = await w.locator(".fy-statusbar").evaluate((e) => e.getBoundingClientRect().height); ok(h === 0, `strip ${h}`);

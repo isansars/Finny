@@ -34,7 +34,7 @@ module.exports = async ({ base, shots }) => {
     ok(total === 0, `${total} contrast failures`); await page.getByRole("button", { name: "Close", exact: true }).click();
   });
   await s.check("1 · no contrast failures in dark mode", async () => {
-    const dk = await b.newContext({ viewport: { width: 390, height: 844 }, colorScheme: "dark" }); await dk.addCookies(await ctx.cookies()); const d = await dk.newPage();
+    const dk = await b.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, colorScheme: "dark" }); await dk.addCookies(await ctx.cookies()); const d = await dk.newPage();
     let total = 0; for (const p of ["/", "/accounts", "/categories"]) { await d.goto(base + p); await d.waitForTimeout(700); total += await axeContrast(d); }
     ok(total === 0, `${total} contrast failures`); await d.goto(base + "/"); await d.getByTestId("by-category").waitFor(); await shot(d, shots, "polish-02-home-dark-375");
   });
