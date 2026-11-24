@@ -246,6 +246,12 @@ export async function deleteTransaction(userId: string, id: string) {
   return gone.length ? { ok: true } : bad("Transaction not found.");
 }
 
+/** FINNY-206: the months that have transactions ("2026-11"), oldest first, for the month picker's dots and year range. */
+export async function transactionMonths(userId: string) {
+  const rows = await db.selectDistinct({ m: sql<string>`substr(${transactions.on}::text, 1, 7)` }).from(transactions).where(eq(transactions.userId, userId));
+  return { months: rows.map((r) => r.m).sort() };
+}
+
 export type TxnFilter = { month?: string | null; accountId?: string | null; categoryId?: string | null; q?: string | null; limit?: number; offset?: number };
 export async function listTransactions(userId: string, f: TxnFilter) {
   const where = [eq(transactions.userId, userId)];

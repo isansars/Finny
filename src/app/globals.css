@@ -153,6 +153,19 @@ button.fy-row, .fy-row.tap { cursor: pointer; } button.fy-row:hover, .fy-row.tap
 .fy-stat b { font-size: 16px; font-weight: 800; font-variant-numeric: tabular-nums; }
 .fy-month { display: inline-flex; align-items: center; gap: 2px; background: var(--surface); border: 1px solid var(--border); border-radius: 999px; padding: 3px; box-shadow: var(--shadow-sm); }
 .fy-month button { border: 0; background: none; width: 34px; height: 34px; border-radius: 999px; display: grid; place-items: center; cursor: pointer; color: var(--text-2); }
+/* FINNY-206: jump to any month */
+.fy-month .fy-mp-pill { width: auto; padding: 0 10px; gap: 4px; display: inline-flex; font-weight: 800; font-size: 14px; color: var(--text); white-space: nowrap; }
+.fy-month-title { border: 0; background: none; padding: 0; margin: 0; font: inherit; color: inherit; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; text-align: left; white-space: nowrap; }
+.fy-large h1:has(.fy-month-title) { font-size: clamp(22px, 6.3vw, 30px); } /* a long month name keeps ‹ › beside it on a 360 px phone */
+.fy-month-title .chev { display: inline-grid; place-items: center; width: 24px; height: 24px; border-radius: 8px; background: var(--surface-3); color: var(--text-2); flex: none; }
+.fy-mp-year { display: flex; align-items: center; justify-content: space-between; margin: 4px 0 14px; }
+.fy-mp-year b { font-size: 20px; font-weight: 800; }
+.fy-mp-year .fy-btn { width: 44px; min-height: 44px; justify-content: center; padding: 0; }
+.fy-mp-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.fy-mp-m { position: relative; min-height: 52px; border: 1px solid var(--border); border-radius: 14px; background: var(--surface); color: var(--text); font: inherit; font-weight: 800; font-size: 15px; cursor: pointer; padding: 0 0 8px; }
+.fy-mp-m.dot::after { content: ""; position: absolute; left: 50%; bottom: 9px; width: 5px; height: 5px; margin-left: -2.5px; border-radius: 9px; background: currentColor; opacity: .5; }
+.fy-mp-m.on { background: var(--primary-text); border-color: var(--primary-text); color: var(--primary-ink); }
+.fy-mp-m:disabled { opacity: .35; cursor: default; }
 .fy-month button:hover { background: var(--surface-3); } .fy-month span { font-weight: 700; font-size: 14px; padding: 0 4px; min-width: 112px; text-align: center; }
 .fy-donut { display: flex; gap: 14px 18px; align-items: center; flex-wrap: wrap; justify-content: center; } /* FINNY-165: in a narrow card the legend goes under the donut, names whole */
 .fy-legend { flex: 1 1 180px; min-width: 0; }
