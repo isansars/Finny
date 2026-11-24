@@ -1,5 +1,5 @@
 "use client";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { formatRupiah, parseRupiah } from "@/lib/money";
 import { flattenTree } from "@/lib/category-rule";
 import type { Category } from "./store";
@@ -11,19 +11,37 @@ export function Money({ sen, kind, className = "" }: { sen: number; kind?: "spen
   return <span className={`fy-amt ${kind ?? ""} ${className}`}>{text}</span>;
 }
 
-/** A bottom sheet with a grabber and a centred title; Escape or a tap outside closes it. */
+/** A bottom sheet with a grabber and a centred title on phones; a centred dialog on wider screens (FINNY-164). Escape or a tap
+ *  outside closes it. FINNY-162: the keyboard stays inside while it's open (Tab and Shift+Tab wrap), and focus goes back
+ *  to whatever opened it when it closes. */
+const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
 export function Sheet({ title, onClose, children, label }: { title: string; onClose: () => void; children: React.ReactNode; label?: string }) {
+  const box = useRef<HTMLDivElement>(null);
+  const close = useRef(onClose);
+  useEffect(() => { close.current = onClose; }, [onClose]);
   useEffect(() => {
-    const k = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    const opener = document.activeElement instanceof HTMLElement && document.activeElement !== document.body ? document.activeElement : null;
+    const inside = () => [...(box.current?.querySelectorAll<HTMLElement>(FOCUSABLE) ?? [])].filter((e) => e.getClientRects().length > 0);
+    // A field may focus itself (autoFocus); otherwise the first thing in the sheet takes focus.
+    const t = setTimeout(() => { if (!box.current?.contains(document.activeElement)) (inside().find((e) => e.matches("input, select, textarea")) ?? inside()[0] ?? box.current)?.focus(); }, 30);
+    const k = (e: KeyboardEvent) => {
+      if (e.key === "Escape") { close.current(); return; }
+      if (e.key !== "Tab") return;
+      const f = inside(); if (!f.length) return;
+      const first = f[0], last = f[f.length - 1], at = document.activeElement;
+      if (!box.current?.contains(at)) { e.preventDefault(); (e.shiftKey ? last : first).focus(); }
+      else if (e.shiftKey && at === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && at === last) { e.preventDefault(); first.focus(); }
+    };
     addEventListener("keydown", k);
     const prev = document.body.style.overflow; document.body.style.overflow = "hidden";
-    return () => { removeEventListener("keydown", k); document.body.style.overflow = prev; };
-  }, [onClose]);
+    return () => { clearTimeout(t); removeEventListener("keydown", k); document.body.style.overflow = prev; if (opener?.isConnected) opener.focus(); };
+  }, []);
   return (
-    <div className="fy-sheet-bg" onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}>
-      <div className="fy-sheet" role="dialog" aria-modal="true" aria-label={label ?? title}>
+    <div className="fy-sheet-bg" onMouseDown={(e) => { if (e.target === e.currentTarget) close.current(); }}>
+      <div className="fy-sheet" role="dialog" aria-modal="true" aria-label={label ?? title} ref={box} tabIndex={-1}>
         <div className="fy-grab" />
-        <div className="fy-sheet-h"><button className="x" aria-label="Close" onClick={onClose}>Cancel</button><b>{title}</b><span /></div>
+        <div className="fy-sheet-h"><button className="x" aria-label="Close" onClick={() => close.current()}>Cancel</button><b>{title}</b><span /></div>
         {children}
       </div>
     </div>

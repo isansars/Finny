@@ -178,10 +178,13 @@ export function QuickAddForm({ existing, onDone, inline }: { existing?: Txn | nu
       {kind === "transfer" && <p className="fy-note" style={{ margin: "8px 0 0" }}>A transfer moves money between your own accounts. It isn&apos;t spending or income.</p>}
       {offline && !isEdit && <p className="fy-offline-note" role="status">No connection: this is kept on your phone and sent when you&apos;re back online.</p>}
       {offline && isEdit && <p className="fy-offline-note" role="status">No connection: changes need a connection. Try again when you&apos;re back online.</p>}
-      <button className="fy-btn primary block" style={{ marginTop: 14 }} disabled={busy || (offline && isEdit)}>{busy ? "Saving…" : isEdit ? "Save changes" : offline ? "Save on this phone" : "Save"}</button>
-      {isEdit && existing && <a className="fy-btn block" style={{ marginTop: 8 }} data-testid="make-recurring"
+      {isEdit && existing && <a className="fy-btn block" style={{ marginTop: 14 }} data-testid="make-recurring"
         href={`/settings/recurring?new=1&${new URLSearchParams({ name: existing.description || "", kind: existing.kind, amount: String(existing.amountSen), account: existing.accountId, to: existing.toAccountId ?? "", category: existing.categoryId ?? "", on: existing.on })}`}>Make it recurring</a>}
-      {isEdit && <button type="button" className="fy-btn danger block" style={{ marginTop: 8 }} onClick={remove} disabled={busy}>Delete</button>}
+      {/* FINNY-164: in a sheet on a laptop these stay in view while the form scrolls (Delete left, Save right); on a phone Save comes first. */}
+      <div className="fy-sheet-foot">
+        <button className="fy-btn primary block" disabled={busy || (offline && isEdit)}>{busy ? "Saving…" : isEdit ? "Save changes" : offline ? "Save on this phone" : "Save"}</button>
+        {isEdit && <button type="button" className="fy-btn danger block" onClick={remove} disabled={busy}>Delete</button>}
+      </div>
     </form>
   );
 }

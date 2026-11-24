@@ -82,7 +82,7 @@ export function Accounts() {
       <Tile icon={look.icon} color={look.color} />
       <div className="main"><div className="t">{a.name}</div><div className="s">{sub}</div>
         {a.card && a.card.limit ? <div className="fy-usage"><i style={{ width: `${Math.min(100, (a.card.used / a.card.limit) * 100)}%` }} /></div> : null}</div>
-      {a.card ? <span className="fy-amt fy-owed" data-testid="balance">{formatRupiah(a.card.used)}<small>{a.card.used ? "owed" : "nothing owed"}</small></span> : <Money sen={a.balanceSen} />}
+      {a.card ? <span className="fy-amt fy-owed" data-testid="balance">{formatRupiah(a.balanceSen > 0 ? a.balanceSen : a.card.used)}<small>{a.balanceSen > 0 ? "in credit" : a.card.used ? "owed" : "nothing owed"}</small></span> : <Money sen={a.balanceSen} />}
     </>);
     if (reorder && !a.archived) return (
       <div key={a.id} className="fy-row" data-testid={`account-${a.name}`}>{inner}

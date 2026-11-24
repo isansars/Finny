@@ -123,7 +123,20 @@ export function Home() {
           <div className="fy-card fy-pad" data-testid="by-day">
             <div className="fy-section" style={{ margin: "0 0 10px" }}><span>Spending by day</span><span>{day ? <button className="fy-more" style={{ padding: 0 }} onClick={() => setDay(null)}>Show all days</button> : "Tap a day"}</span></div>
             <div className="fy-bars-pick" aria-live="polite">{day ? `${dayLabel(day, today)} · ${formatRupiah(dash?.byDay[Number(day.slice(8)) - 1] ?? 0)}` : "\u00a0"}</div>
-            <div className="fy-bars" onPointerDown={pickDay} data-testid="day-chart">{(dash?.byDay ?? []).map((v, i) => { const d = `${month}-${String(i + 1).padStart(2, "0")}`; return <button key={i} tabIndex={0} className={day === d ? "on" : ""} aria-label={`${i + 1} ${monthLabel(month)}: ${formatRupiah(v)}`} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); pick(i + 1); } }} style={{ pointerEvents: "none" }}><i className={v ? "" : "z"} style={{ height: `${Math.max(4, (v / maxDay) * 100)}%` }} /></button>; })}</div>
+            {/* FINNY-162: one control for the keyboard (a slider: ← → move a day, Home / End, Escape shows all days) instead of a
+                6 px button per day; the mouse still picks the day under the pointer anywhere on the chart. */}
+            <div className="fy-bars" onPointerDown={pickDay} data-testid="day-chart" role="slider" tabIndex={0} aria-label="Spending by day"
+              aria-valuemin={1} aria-valuemax={dash?.byDay.length ?? 30} aria-valuenow={day ? Number(day.slice(8)) : undefined}
+              aria-valuetext={day ? `${Number(day.slice(8))} ${monthLabel(month)}: ${formatRupiah(dash?.byDay[Number(day.slice(8)) - 1] ?? 0)}` : "All days"}
+              onKeyDown={(e) => {
+                const n = dash?.byDay.length ?? 30, cur = day ? Number(day.slice(8)) : 0;
+                const to = (d: number) => { e.preventDefault(); setDay(`${month}-${String(Math.min(n, Math.max(1, d))).padStart(2, "0")}`); };
+                if (e.key === "ArrowRight" || e.key === "ArrowUp") to(cur ? cur + 1 : 1);
+                else if (e.key === "ArrowLeft" || e.key === "ArrowDown") to(cur ? cur - 1 : n);
+                else if (e.key === "Home") to(1);
+                else if (e.key === "End") to(n);
+                else if (e.key === "Escape" && day) { e.preventDefault(); setDay(null); }
+              }}>{(dash?.byDay ?? []).map((v, i) => { const d = `${month}-${String(i + 1).padStart(2, "0")}`; return <span key={i} className={day === d ? "on" : ""} aria-hidden="true"><i className={v ? "" : "z"} style={{ height: `${Math.max(4, (v / maxDay) * 100)}%` }} /></span>; })}</div>
             <div className="fy-bars-axis"><span>1</span><span>{Math.ceil((dash?.days ?? 30) / 2)}</span><span>{dash?.days ?? 30}</span></div>
           </div>
           {(dash?.topPlaces.length ?? 0) > 0 && <div><div className="fy-section"><span>Top places</span></div><div className="fy-list" data-testid="top-places">

@@ -104,6 +104,18 @@ button.fy-row, .fy-row.tap { cursor: pointer; } button.fy-row:hover, .fy-row.tap
 .fy-sheet { background: var(--surface); width: 100%; max-width: 520px; max-height: 94vh; overflow: auto; border-radius: 24px 24px 0 0; padding: 8px 16px calc(16px + env(safe-area-inset-bottom)); box-shadow: var(--shadow-lg); animation: fy-up .22s cubic-bezier(.2,.8,.2,1); }
 @media (min-width: 760px) { .fy-sheet-bg { align-items: center; } .fy-sheet { border-radius: 24px; } }
 .fy-grab { width: 38px; height: 5px; border-radius: 9px; background: var(--border-strong); margin: 0 auto 8px; }
+.fy-sheet-foot { display: flex; flex-direction: column; gap: 8px; margin-top: 14px; }
+/* FINNY-164: on a laptop a sheet is a centred dialog: no grabber, its title row and its buttons stay put, the middle scrolls. */
+@media (min-width: 760px) {
+  .fy-sheet { max-width: 560px; max-height: min(780px, calc(100vh - 48px)); padding: 0 20px; }
+  .fy-sheet > .fy-grab { display: none; }
+  .fy-sheet > .fy-sheet-h { position: sticky; top: 0; z-index: 3; background: var(--surface); margin: 0 -20px 14px; padding: 8px 20px; border-bottom: 1px solid var(--border); }
+  .fy-sheet .fy-sheet-foot { position: sticky; bottom: 0; z-index: 3; background: var(--surface); flex-direction: row-reverse; margin: 14px -20px 0; padding: 12px 20px 16px; border-top: 1px solid var(--border); }
+  .fy-sheet .fy-sheet-foot .fy-btn.primary { flex: 1; width: auto; }
+  .fy-sheet .fy-sheet-foot .fy-btn.danger { flex: none; width: auto; padding-inline: 20px; }
+  .fy-sheet > :last-child:not(.fy-sheet-foot):not(form) { margin-bottom: 20px; }
+  .fy-sheet > form:last-child > :last-child:not(.fy-sheet-foot) { margin-bottom: 20px; }
+}
 .fy-sheet-h { display: grid; grid-template-columns: 80px 1fr 80px; align-items: center; margin-bottom: 12px; }
 .fy-sheet-h b { text-align: center; font-size: 16px; font-weight: 800; }
 .fy-sheet-h .x { justify-self: start; border: 0; background: none; color: var(--primary-text); font-weight: 700; font-size: 15px; cursor: pointer; min-height: 44px; padding: 0; }
@@ -142,9 +154,10 @@ button.fy-row, .fy-row.tap { cursor: pointer; } button.fy-row:hover, .fy-row.tap
 .fy-legend .r i { width: 10px; height: 10px; border-radius: 4px; flex: none; } .fy-legend .r span { flex: 1; color: var(--text-2); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .fy-legend .r b { font-weight: 700; font-variant-numeric: tabular-nums; }
 .fy-bars { display: flex; align-items: flex-end; gap: 3px; height: 72px; }
-.fy-bars button { flex: 1; border: 0; padding: 0; background: none; height: 100%; display: flex; align-items: flex-end; cursor: pointer; }
-.fy-bars button i { display: block; width: 100%; border-radius: 4px; background: var(--primary-soft); min-height: 3px; }
-.fy-bars button.on i, .fy-bars button:hover i { background: var(--primary-2); }
+.fy-bars > span { flex: 1; height: 100%; display: flex; align-items: flex-end; }
+.fy-bars > span i { display: block; width: 100%; border-radius: 4px; background: color-mix(in srgb, var(--primary) 42%, var(--surface)); min-height: 3px; } /* FINNY-162: visible in both themes */
+.fy-bars > span.on i { background: var(--primary); }
+.fy-bars:focus-visible { outline: 2px solid var(--primary); outline-offset: 4px; border-radius: 6px; }
 .fy-bars-axis { display: flex; justify-content: space-between; font-size: 11px; color: var(--text-3); font-weight: 600; margin-top: 4px; }
 .fy-grid2 { display: grid; gap: 12px; }
 @media (min-width: 900px) { .fy-grid2 { grid-template-columns: 1fr 1fr; } .fy-home { display: grid; grid-template-columns: 1fr 380px; gap: 20px; align-items: start; } .fy-home .side { position: sticky; top: 76px; } }
@@ -221,7 +234,7 @@ button.fy-row, .fy-row.tap { cursor: pointer; } button.fy-row:hover, .fy-row.tap
 .fy-hero .extra b { color: var(--text); font-variant-numeric: tabular-nums; }
 /* 2. the whole chart is the tap area */
 .fy-bars { touch-action: pan-y; cursor: pointer; position: relative; }
-.fy-bars button { pointer-events: none; } .fy-bars button i.z { visibility: hidden; }
+.fy-bars > span { pointer-events: none; } .fy-bars > span i.z { visibility: hidden; }
 .fy-bars-pick { font-size: 13px; font-weight: 700; color: var(--text-2); margin: -2px 0 8px; min-height: 18px; }
 /* 7. "Rp" and the amount together */
 .fy-amount { gap: 4px; } .fy-amount input { width: auto; min-width: 1.2ch; max-width: 100%; text-align: left; }
@@ -251,7 +264,9 @@ button.fy-row, .fy-row.tap { cursor: pointer; } button.fy-row:hover, .fy-row.tap
 .fy-bline > span:first-child { overflow: hidden; text-overflow: ellipsis; }
 .fy-bline .num { font-size: 14px; flex: none; font-variant-numeric: tabular-nums; }
 .fy-bline .of { color: var(--text-3); font-weight: 600; }
-.fy-linkish { border: 0; background: none; padding: 0; font: inherit; color: inherit; cursor: pointer; text-align: left; }
+.fy-linkish { border: 0; background: none; font: inherit; color: inherit; cursor: pointer; text-align: left; }
+/* FINNY-162: only a bare text link loses its padding; a row, card or button that's also a link keeps its own (Recurring, Sign out, the match check). */
+.fy-linkish:not(.fy-row):not(.fy-card):not(.fy-btn) { padding: 0; }
 .fy-linkish b { text-decoration: underline; text-decoration-color: color-mix(in srgb, var(--primary) 45%, transparent); text-underline-offset: 3px; }
 /* FINNY-80/81: reports */
 .fy-report { display: grid; gap: 12px; grid-template-columns: minmax(0, 1fr); }
