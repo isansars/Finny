@@ -27,6 +27,12 @@ function Frame({ children }: { children: React.ReactNode }) {
   const on = (h: string) => (h === "/" ? path === "/" || path.startsWith("/reports") || path.startsWith("/review") : path.startsWith(h) || settings(h));
   const onWide = (h: string) => (h === "/" ? path === "/" || path.startsWith("/review") : h === "/assets" ? path.startsWith("/assets") || path.startsWith("/debts") : path.startsWith(h) || settings(h));
   const tab = (n: (typeof NAV)[number]) => <Link key={n.href} href={n.href} className={on(n.href) ? "on" : ""} aria-current={on(n.href) ? "page" : undefined}><n.Icon size={22} strokeWidth={on(n.href) ? 2.3 : 1.9} />{n.label}</Link>;
+  // FINNY-164: on Home, a laptop already shows the add form beside the month; the bar's Add goes to it instead of opening a copy.
+  const addWide = () => {
+    const field = path === "/" ? document.querySelector<HTMLElement>("aside.side form input:not([type=hidden])") : null;
+    if (field && field.getClientRects().length) { field.closest("aside")?.scrollIntoView({ block: "nearest" }); field.focus(); }
+    else openAdd();
+  };
   return (
     <>
       <a className="fy-skip" href="#main">Skip to content</a>
@@ -34,7 +40,7 @@ function Frame({ children }: { children: React.ReactNode }) {
         <Link href="/" className="brand" aria-label="Finny, home"><Lockup size={30} /></Link>
         <nav aria-label="Main" className="links">{NAV_WIDE.map((n) => <Link key={n.href} href={n.href} className={`nav ${onWide(n.href) ? "on" : ""}`} aria-current={onWide(n.href) ? "page" : undefined}><n.Icon size={18} />{n.label}</Link>)}</nav>
         <span className="grow" />
-        <button className="fy-btn primary small" aria-label="Add a transaction" onClick={() => openAdd()}><Plus size={17} />Add</button>
+        <button className="fy-btn primary small" aria-label="Add a transaction" onClick={addWide}><Plus size={17} />Add</button>
       </div></header>
       <main className="fy-wrap" id="main" tabIndex={-1}>{children}</main>
       <nav className="fy-tabbar" aria-label="Main">
