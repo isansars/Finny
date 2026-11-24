@@ -102,7 +102,7 @@ export function detect(lines: Line[]): Bank | "unknown" {
   const all = squash(lines.map((l) => l.text).join(" "));
   if (all.includes("REKENINGKARTUKREDIT") && all.includes("NOMORCUSTOMER")) return "bca-card";
   if (all.includes("KROMBANK") && head.includes("E-STATEMENT")) return "krom";
-  if (all.includes("BRIKARTUKREDIT") || (all.includes("KARTUKREDIT") && all.includes("BRIMO"))) return "bri-card";
+  if (all.includes("BRIKARTUKREDIT") || (all.includes("KARTUKREDITBRI") && all.includes("TAGIHANBULAN")) || (all.includes("KARTUKREDIT") && all.includes("BRIMO"))) return "bri-card";
   if (head.includes("NO.REKENING") && head.includes("MUTASI") && head.includes("SALDO") && (all.includes("BCA") || head.includes("KETERANGAN"))) return "bca";
   if (all.includes("MANDIRI") && (all.includes("SALDOAWAL") || all.includes("RINCIANTRANSAKSI"))) return "mandiri";
   return "unknown";
@@ -265,6 +265,13 @@ function readBri(lines: Line[]): Statement {
     // join the rest and parse from the right: amount, rate, foreign amount, currency
     const rest = c.slice(2).join("  ");
     const m = rest.match(/^(.*?)\s+([A-Z]{3})\s+([\d.,]+)\s+([\d.,]+)\s+([\d.]+)(CR)?$/);
+    // The month's interest and charges come as one line with no currency (seen on the Tokopedia co-branded card, May 2026).
+    const fee = m ? null : rest.match(/^(TOTAL INTEREST.*?)\s+([\d.]+)(CR)?$/i);
+    if (fee) {
+      const sen = senCommaDecimal(fee[2]) ?? 0;
+      if (sen) st.lines.push({ on: iso(Number(d1[3]), Number(d1[2]), Number(d1[1])), description: "Interest and service charge", amountSen: fee[3] ? sen : -sen });
+      continue;
+    }
     if (!m) { st.warnings.push(`A BRI line on ${d1[1]}-${d1[2]} couldn't be read`); continue; }
     const key = l.page + ":" + l.y;
     if (seen.has(key)) continue; seen.add(key);
@@ -286,6 +293,7 @@ function readBri(lines: Line[]): Statement {
   if (sum) {
     const a = iso(Number(sum[3]), Number(sum[2]), Number(sum[1])), b = iso(Number(sum[6]), Number(sum[5]), Number(sum[4]));
     st.periodTo = a < b ? a : b;
+    st.dueOn = a < b ? b : a; // FINNY-198: the later date is when it's due
     const [y, m, d] = st.periodTo.split("-").map(Number);
     st.periodFrom = new Date(Date.UTC(y, m - 2, d + 1)).toISOString().slice(0, 10);
   } else if (st.lines.length) {

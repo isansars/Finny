@@ -100,3 +100,32 @@ test("a picture-only PDF and an unknown layout are refused with a reason", async
   assert.ok(!other.ok && other.reason === "unknown");
   assert.match(!other.ok ? other.message : "", /BCA, BCA credit card, Mandiri, Krom and BRI/);
 });
+
+// FINNY-198: the BRI × Tokopedia co-branded card names itself only "Kartu Kredit BRI"; its month's interest comes as
+// one line with no currency. A made-up bill, laid out like the real one (cells far apart on each printed line).
+test("BRI co-branded card: recognised, the interest line read, the due date, and it adds up", () => {
+  const rows: [number, string][][] = [
+    [[20, "5221-84XX-XXXX-7788"], [200, "15-05-2026"], [320, "02-06-2026"], [450, "1.234.500"], [560, "61.725"]],
+    [[20, "Yth. Bapak/Ibu"], [300, "Kartu Kredit co-branding BRI efektif per tgl 1"]],
+    [[300, "Pembayaran atas tagihan Kartu Kredit BRI Anda, agar tetap dibayarkan ke masing-masing kartu"]],
+    [[300, "Tagihan Bulan Lalu"], [450, "500.000"]],
+    [[20, "14-04-2026"], [120, "16-04-2026"], [220, "Retail IDN Jakarta PT Tokopedia"], [400, "IDR"], [440, "0.00"], [480, "0.00"], [560, "250.000"]],
+    [[20, "28-04-2026"], [120, "29-04-2026"], [220, "Retail IDN JAKARTA SELAT GOJEK RECURRING IDR"], [440, "0.00"], [480, "0.00"], [560, "54.500"]],
+    [[20, "01-05-2026"], [120, "01-05-2026"], [220, "PAYMENT_KKCB_TKP000000000000_0000000"], [400, "IDR"], [440, "0.00"], [480, "0.00"], [560, "500.000CR"]],
+    [[20, "06-05-2026"], [120, "07-05-2026"], [220, "Retail SGP Singapore NETFLIX.COM"], [400, "IDR"], [440, "0.00"], [480, "0.00"], [560, "186.000"]],
+    [[20, "15-05-2026"], [120, "15-05-2026"], [220, "BEA MATERAI LUNAS"], [400, "IDR"], [440, "0.00"], [480, "0.00"], [560, "10.000"]],
+    [[20, "15-05-2026"], [120, "15-05-2026"], [220, "TOTAL INTEREST & SERVICE CHARGE"], [560, "734.000"]],
+    [[300, "Tagihan Bulan ini"], [450, "1.234.500"]],
+  ];
+  const items = rows.flatMap((r, i) => r.map(([x, s]) => ({ s, x, y: 40 + i * 14, w: s.length * 4, h: 8 })));
+  const r = readStatement([{ w: 600, h: 800, items }]);
+  assert.ok(r.ok, JSON.stringify(r));
+  const s = r.statement;
+  assert.equal(s.bank, "bri-card"); assert.equal(s.accountDigits, "7788");
+  assert.deepEqual([s.periodFrom, s.periodTo, s.dueOn], ["2026-04-16", "2026-05-15", "2026-06-02"]);
+  assert.deepEqual(s.warnings, []);
+  const fee = s.lines.find((l) => l.description === "Interest and service charge");
+  assert.equal(fee?.amountSen, -734_000_00);
+  assert.equal(s.lines.find((l) => /Gojek/.test(l.description))?.amountSen, -54_500_00, "IDR printed inside the description");
+  assert.equal(s.openingSen! - s.lines.reduce((n, l) => n + l.amountSen, 0), s.closingSen, "last month's bill − payments + charges = this bill");
+});
