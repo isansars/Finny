@@ -12,6 +12,7 @@ import { Mark } from "./Logo";
 import { BudgetCard } from "./Budget";
 import { BillsCard } from "./Debts";
 import { PastReviews, ReviewNudge } from "./Review";
+import { DueToday } from "./Recurring";
 import { dayLabel, monthLabel, shiftMonth, todayIn } from "@/lib/dates";
 
 type Dash = { month: string; days: number; totals: { incomeSen: number; spendSen: number; savedSen: number; investedSen: number };
@@ -90,6 +91,7 @@ export function Home() {
           </div>
         </div>
 
+        {month === today.slice(0, 7) && <DueToday />}
         <ReviewNudge />
         <div className="fy-hero">
           <div className="lbl" style={{ display: "flex", justifyContent: "space-between" }}><span>Net across accounts</span><a className="fy-more" style={{ padding: 0, fontSize: 13 }} href="/reports?view=balance">Reports ›</a></div>

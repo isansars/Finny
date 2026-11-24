@@ -1,4 +1,5 @@
 import { ChartColumn, Download, FileSpreadsheet, FileText, LogOut, Shapes, UserRound, ChevronRight } from "lucide-react";
+import { RecurringRow } from "@/components/Recurring";
 import { requireMe } from "@/lib/session";
 import { signOut } from "@/auth";
 import { DeleteEverything } from "@/components/DeleteEverything";
@@ -21,6 +22,7 @@ export default async function Page() {
       <div className="fy-list">
         <a className="fy-row" href="/reports" aria-label="Reports"><span className="fy-tile" data-color="sky" style={{ width: 32, height: 32, borderRadius: 10 }}><ChartColumn size={18} /></span>
           <div className="main"><div className="t">Reports</div><div className="s">Cashflow, balance sheet and net worth, spending pace</div></div><ChevronRight className="chev" size={18} /></a>
+        <RecurringRow />
         <a className="fy-row" href="/categories" aria-label="Categories"><span className="fy-tile" data-color="lavender" style={{ width: 32, height: 32, borderRadius: 10 }}><Shapes size={18} /></span>
           <div className="main"><div className="t">Categories</div><div className="s">Your groups and categories: icons, colours, merge, switch off</div></div><ChevronRight className="chev" size={18} /></a>
         <a className="fy-row" href="/import" aria-label="Import a workbook"><span className="fy-tile" data-color="mint" style={{ width: 32, height: 32, borderRadius: 10 }}><FileSpreadsheet size={18} /></span>

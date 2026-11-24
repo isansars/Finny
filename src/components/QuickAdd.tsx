@@ -13,7 +13,7 @@ import { flattenTree } from "@/lib/category-rule";
 type Kind = "spend" | "income" | "transfer";
 const TOP = 9;
 
-function CategoryPicker({ cats, value, onPick, suggested }: { cats: Category[]; value: string; onPick: (id: string) => void; suggested: string | null }) {
+export function CategoryPicker({ cats, value, onPick, suggested }: { cats: Category[]; value: string; onPick: (id: string) => void; suggested: string | null }) {
   const [all, setAll] = useState(false);
   const [q, setQ] = useState("");
   // Every category can be picked (a parent too, e.g. Beli Kopi with Kopi Susu inside): most used first, then the tree order.
@@ -38,7 +38,7 @@ function CategoryPicker({ cats, value, onPick, suggested }: { cats: Category[]; 
   );
 }
 
-function AccountChips({ label, accounts, value, onPick }: { label: string; accounts: { id: string; name: string; type: string }[]; value: string; onPick: (id: string) => void }) {
+export function AccountChips({ label, accounts, value, onPick }: { label: string; accounts: { id: string; name: string; type: string }[]; value: string; onPick: (id: string) => void }) {
   return (
     <div className="fy-chips wrap" role="radiogroup" aria-label={label} style={{ marginBottom: 4 }}>
       {accounts.map((a) => (
@@ -168,6 +168,8 @@ export function QuickAddForm({ existing, onDone, inline }: { existing?: Txn | nu
       </div>) : <button type="button" className="fy-more" onClick={() => setMore(true)}><ChevronDown size={16} />Paid to, note</button>}
       {kind === "transfer" && <p className="fy-note" style={{ margin: "8px 0 0" }}>A transfer moves money between your own accounts. It isn&apos;t spending or income.</p>}
       <button className="fy-btn primary block" style={{ marginTop: 14 }} disabled={busy}>{busy ? "Saving…" : isEdit ? "Save changes" : "Save"}</button>
+      {isEdit && existing && <a className="fy-btn block" style={{ marginTop: 8 }} data-testid="make-recurring"
+        href={`/settings/recurring?new=1&${new URLSearchParams({ name: existing.description || "", kind: existing.kind, amount: String(existing.amountSen), account: existing.accountId, to: existing.toAccountId ?? "", category: existing.categoryId ?? "", on: existing.on })}`}>Make it recurring</a>}
       {isEdit && <button type="button" className="fy-btn danger block" style={{ marginTop: 8 }} onClick={remove} disabled={busy}>Delete</button>}
     </form>
   );

@@ -315,3 +315,11 @@ button.fy-row, .fy-row.tap { cursor: pointer; } button.fy-row:hover, .fy-row.tap
 }
 /* FINNY-135: single-column pages stay readable on a wide screen. */
 .fy-narrow { max-width: 720px; margin: 0 auto; }
+/* Sprint 14: recurring transactions */
+.fy-rc-due { padding: 12px 0 4px; margin-bottom: 12px; border: 2px solid var(--primary-2); }
+.fy-rc-head { display: flex; justify-content: space-between; align-items: center; padding: 0 16px 6px; }
+.fy-rc-head b { display: flex; gap: 6px; align-items: center; }
+.fy-rc-acts { display: flex; gap: 6px; justify-content: flex-end; margin-top: 6px; }
+.fy-rc-acts .fy-chip { min-height: 36px; padding: 0 12px; }
+.fy-rc-spot { margin-top: 16px; border: 2px dashed var(--primary-2); }
+.fy-switch[data-on="true"] { background: linear-gradient(135deg, var(--primary-2), var(--primary)); } .fy-switch[data-on="true"] i { left: 21px; }

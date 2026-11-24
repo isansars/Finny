@@ -2,7 +2,7 @@
 import {
   Coffee, Cigarette, Cookie, Utensils, Fuel, Car, Bus, Plane, Clapperboard, Music, Zap, Droplet, Wifi, Smartphone, ShoppingCart, House, Laptop, Shirt,
   HeartPulse, GraduationCap, Baby, PawPrint, Gift, HandHeart, Percent, HandCoins, Landmark, Wallet, ShieldCheck, PiggyBank, Gem, TrendingUp, ChartPie,
-  Bitcoin, Briefcase, Users, Sparkles, Shapes, Receipt, Banknote, CreditCard, type LucideIcon,
+  Bitcoin, Briefcase, Users, Sparkles, Shapes, Receipt, Banknote, CreditCard, Repeat, ArrowLeftRight, type LucideIcon,
 } from "lucide-react";
 import { lookOf } from "@/lib/category-look";
 
@@ -11,7 +11,7 @@ export const ICONS: Record<string, LucideIcon> = {
   zap: Zap, droplet: Droplet, wifi: Wifi, smartphone: Smartphone, "shopping-cart": ShoppingCart, home: House, laptop: Laptop, shirt: Shirt, "heart-pulse": HeartPulse,
   "graduation-cap": GraduationCap, baby: Baby, "paw-print": PawPrint, gift: Gift, "hand-heart": HandHeart, percent: Percent, "hand-coins": HandCoins, landmark: Landmark,
   wallet: Wallet, "shield-check": ShieldCheck, "piggy-bank": PiggyBank, gem: Gem, "trending-up": TrendingUp, "pie-chart": ChartPie, bitcoin: Bitcoin, briefcase: Briefcase,
-  users: Users, sparkles: Sparkles, shapes: Shapes, receipt: Receipt, banknote: Banknote, "credit-card": CreditCard,
+  users: Users, sparkles: Sparkles, shapes: Shapes, receipt: Receipt, banknote: Banknote, "credit-card": CreditCard, repeat: Repeat, "arrow-left-right": ArrowLeftRight,
 };
 export const ICON_KEYS = Object.keys(ICONS);
 
