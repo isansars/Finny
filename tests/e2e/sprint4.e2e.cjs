@@ -21,7 +21,7 @@ module.exports = async ({ base, shots }) => {
   const lines = () => page.getByTestId("stmt-line");
   const statuses = async () => (await lines().evaluateAll((els) => els.map((e) => e.getAttribute("data-status")))).sort().join(",");
   const line = (text) => lines().filter({ hasText: text }).first();
-  const choose = async (name) => { const input = page.getByLabel("Choose a PDF statement"); await page.waitForFunction(() => { const i = document.querySelector('input[type="file"]'); return i && !i.disabled; }); await input.setInputFiles(pdf(name)); };
+  const choose = async (name) => { const input = page.locator("#main").getByLabel("Choose a PDF statement"); await page.waitForFunction(() => { const i = document.querySelector('input[type="file"]'); return i && !i.disabled; }); await input.setInputFiles(pdf(name)); };
   const waitCheck = async () => { await page.getByTestId("balance").waitFor({ timeout: 20000 }); };
   // Every request body the page sends, to prove the PDF never leaves the device.
   const bodies = []; page.on("request", (r) => { const d = r.postDataBuffer(); if (d) bodies.push(d); });

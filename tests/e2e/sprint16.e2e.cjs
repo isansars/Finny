@@ -19,7 +19,7 @@ module.exports = async ({ base, shots }) => {
   const noSideScroll = async (l) => ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), `${l} scrolls sideways`);
   const lines = () => page.getByTestId("stmt-line");
   const line = (text) => lines().filter({ hasText: text }).first();
-  const choose = async () => { await page.waitForFunction(() => { const i = document.querySelector('input[type="file"]'); return i && !i.disabled; }); await page.getByLabel("Choose a PDF statement").setInputFiles(path.join(FIX, "bca-card.pdf")); };
+  const choose = async () => { await page.waitForFunction(() => { const i = document.querySelector('input[type="file"]'); return i && !i.disabled; }); await page.locator("#main").getByLabel("Choose a PDF statement").setInputFiles(path.join(FIX, "bca-card.pdf")); };
   const txns = async () => (await json("transactions?limit=500")).body.items;
 
   await page.goto(base + "/login"); await page.getByLabel("Email").fill("owner@finny.test"); await page.getByRole("button", { name: "Dev sign-in" }).click(); await page.waitForURL(base + "/");
@@ -41,7 +41,7 @@ module.exports = async ({ base, shots }) => {
 
   await s.check("FINNY-154.1 BCA credit card is in the list (5 statements)", async () => {
     await page.goto(base + "/import/statements");
-    await page.getByText("Monthly bill · every BCA card on it").waitFor();
+    await page.locator("#main").getByText("Monthly bill · every BCA card on it").waitFor();
     const t = (await page.locator("main").innerText()).replace(/\s+/g, " ");
     for (const w of ["BCA credit card", "Monthly bill · every BCA card on it", "5 statements", "BRI credit card"]) ok(t.includes(w), `no "${w}"`);
     await noSideScroll("Start"); await shot(page, shots, "s16-01-start-375");
@@ -97,7 +97,7 @@ module.exports = async ({ base, shots }) => {
   await s.check("accessibility; desktop", async () => {
     const scan = async (l) => { await page.waitForTimeout(400); const v = (await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa"]).analyze()).violations.filter((x) => ["serious", "critical"].includes(x.impact)); ok(!v.length, `${l}: ${v.map((x) => `${x.id} (${x.nodes.length}) ${x.nodes[0]?.target.join(" ")}`).join(", ")}`); };
     await scan("bill read again");
-    await page.goto(base + "/import/statements"); await page.getByText("Monthly bill · every BCA card on it").waitFor(); await scan("start");
+    await page.goto(base + "/import/statements"); await page.locator("#main").getByText("Monthly bill · every BCA card on it").waitFor(); await scan("start");
     await page.setViewportSize({ width: 1280, height: 860 });
     await choose(); await page.getByTestId("balance").waitFor({ timeout: 20000 });
     await noSideScroll("desktop"); await shot(page, shots, "s16-04-bill-desktop");
