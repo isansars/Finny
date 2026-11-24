@@ -1,7 +1,7 @@
 {
   "type": "board",
   "title": "Finny · Roadmap",
-  "subtitle": "Replace the two workbooks: record every day, read the bank each month, then plan, report and grow. Current as of Sprint 17 planning, 24 Nov 2026.",
+  "subtitle": "Replace the two workbooks: record every day, read the bank each month, then plan, report and grow. Current as of the v0.17.0 release, 24 Nov 2026.",
   "footer": "🐰 Poppy · Finny · Product · 24 Nov 2026 · planned on the FINNY board",
   "badge": "💸 The owner's own product · FINNY board · isansars/Finny",
   "width": 1700,
@@ -13,6 +13,11 @@
       "sub": "latest three releases",
       "items": [
         [
+          "Finny on the web: the 15 findings of the web audit fixed",
+          "live",
+          "v0.17.0 · FINNY-160"
+        ],
+        [
           "BCA credit card statements: every card on the bill, checked against Finny",
           "live",
           "v0.16.0 · FINNY-154"
@@ -21,30 +26,25 @@
           "Finny on your home screen: opens offline, quick add waits and is sent once",
           "live",
           "v0.15.0 · FINNY-146"
-        ],
-        [
-          "Recurring transactions: due on Home, one tap to add or skip",
-          "live",
-          "v0.14.0 · FINNY-138"
         ]
       ]
     },
     {
-      "name": "Now · Sprint 17",
+      "name": "Now · the owner's month",
       "icon": "🏃",
       "tone": "orange",
-      "sub": "24 Nov – 7 Dec · v0.17.0",
+      "sub": "Finny only, phone and laptop",
       "focus": true,
       "items": [
         [
-          "Finny on the web: the 15 findings of the web audit",
-          "dev",
-          "FINNY-160"
-        ],
-        [
-          "Alongside: the owner's month in Finny only",
+          "A whole month in Finny only, closed with the review",
           "planned",
           "the owner: the done-when check"
+        ],
+        [
+          "Checked against the workbook (match check)",
+          "planned",
+          "the owner, at the month end"
         ]
       ]
     },
