@@ -24,7 +24,7 @@ export async function requireMe(from = "/"): Promise<Me> {
   return me;
 }
 
-export class HttpError extends Error { constructor(public status: number, message: string) { super(message); } }
+export class HttpError extends Error { constructor(public status: number, message: string, public extra?: Record<string, unknown>) { super(message); } }
 
 /** For API routes: runs `fn` with the signed-in owner; 401 without a session, the HttpError's status for refusals. */
 export async function withMe(fn: (me: Me) => Promise<unknown>): Promise<NextResponse> {
@@ -34,7 +34,7 @@ export async function withMe(fn: (me: Me) => Promise<unknown>): Promise<NextResp
     const out = await fn(me);
     return out instanceof NextResponse ? out : NextResponse.json(out ?? { ok: true });
   } catch (e) {
-    if (e instanceof HttpError) return NextResponse.json({ error: e.message }, { status: e.status });
+    if (e instanceof HttpError) return NextResponse.json({ error: e.message, ...e.extra }, { status: e.status });
     console.error("[api]", e);
     return NextResponse.json({ error: "Something went wrong." }, { status: 500 });
   }

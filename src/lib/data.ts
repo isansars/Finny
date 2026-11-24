@@ -6,6 +6,7 @@ import { HttpError } from "@/lib/session";
 import { addFlow, balanceOf, cardView, type Flows } from "@/lib/balance-rule";
 import { placeProblem, mergeProblem, type Cat } from "@/lib/category-rule";
 import { txnProblem } from "@/lib/txn-rule";
+import { changedSince, expectFrom } from "@/lib/expect-rule";
 import { suggestCategory } from "@/lib/suggest-rule";
 import { parseRupiah } from "@/lib/money";
 import { monthRange, todayIn } from "@/lib/dates";
@@ -216,7 +217,18 @@ export async function createTransaction(userId: string, body: Record<string, unk
     throw e;
   }
 }
+/** FINNY-193: a change or delete made offline says how the phone last saw the row; refuse if it has changed since. */
+export async function checkSeen(userId: string, id: string, body: Record<string, unknown> | null) {
+  const seen = expectFrom(body); if (!seen) return;
+  const [now] = await db.select({ t: transactions, entity: entities.name }).from(transactions).leftJoin(entities, eq(entities.id, transactions.entityId))
+    .where(and(eq(transactions.id, id), eq(transactions.userId, userId)));
+  if (!now) throw new HttpError(404, "This transaction was deleted somewhere else.", { gone: true });
+  const current = { ...now.t, entity: now.entity };
+  const fields = changedSince(seen, current);
+  if (fields.length) throw new HttpError(409, "This transaction was changed somewhere else.", { current, fields });
+}
 export async function updateTransaction(userId: string, id: string, body: Record<string, unknown>) {
+  await checkSeen(userId, id, body);
   const [existing] = await db.select().from(transactions).where(and(eq(transactions.id, id), eq(transactions.userId, userId)));
   if (!existing) bad("Transaction not found.");
   const f = txnFields(body, existing);
