@@ -223,7 +223,10 @@ export async function updateTransaction(userId: string, id: string, body: Record
   const { accs, cats } = await context(userId);
   const p = txnProblem(f, accs, cats, true); if (p) bad(p);
   const eId = body.entity !== undefined ? await entityId(userId, str(body.entity, 80)) : existing.entityId;
-  const [row] = await db.update(transactions).set({ ...(f as Partial<typeof transactions.$inferInsert>), entityId: eId }).where(and(eq(transactions.id, id), eq(transactions.userId, userId))).returning();
+  // FINNY-171: a changed amount, day or account may be a new mistake, so a "looks fine" mark goes; the edit dialog can set it.
+  const moved = f.amountSen !== existing.amountSen || f.on !== existing.on || f.accountId !== existing.accountId;
+  const looksOk = typeof body.looksOk === "boolean" ? body.looksOk : moved ? false : existing.looksOk;
+  const [row] = await db.update(transactions).set({ ...(f as Partial<typeof transactions.$inferInsert>), entityId: eId, looksOk }).where(and(eq(transactions.id, id), eq(transactions.userId, userId))).returning();
   return row;
 }
 export async function deleteTransaction(userId: string, id: string) {

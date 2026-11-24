@@ -3,7 +3,7 @@
 //  - pages and GET /api answers: network first; the last good answer is kept and served when there's no connection,
 //    an API answer with the header x-finny-offline: <when it was fetched>.
 // Nothing else is ever kept (no POST, PATCH, DELETE, sign-in, export). "clear" (sent on sign out) empties every cache.
-const VERSION = "finny-sw-1";
+const VERSION = "finny-sw-2";
 const STATIC = `${VERSION}-static`, PAGES = `${VERSION}-pages`, DATA = `${VERSION}-data`;
 
 self.addEventListener("install", () => self.skipWaiting());
@@ -23,7 +23,7 @@ const OFFLINE_PAGE = `<!doctype html><html lang="en"><meta charset="utf-8"><meta
 <p><a href="/" style="color:#be185d;font-weight:700">Go to Home</a></p></div></body></html>`;
 
 const isStatic = (u) => u.pathname.startsWith("/_next/static/") || u.pathname.startsWith("/icons/") || u.pathname === "/manifest.webmanifest" || u.pathname === "/apple-icon.png" || u.pathname === "/icon.svg";
-const skip = (u) => u.pathname.startsWith("/api/auth") || u.pathname === "/api/export" || u.pathname.startsWith("/api/qa") || u.pathname === "/sw.js";
+const skip = (u) => u.pathname.startsWith("/api/auth") || u.pathname === "/api/export" || u.pathname === "/api/transactions/csv" || u.pathname.startsWith("/api/qa") || u.pathname === "/sw.js";
 
 self.addEventListener("fetch", (e) => {
   const req = e.request, u = new URL(req.url);
