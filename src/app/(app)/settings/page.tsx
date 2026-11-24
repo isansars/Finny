@@ -1,5 +1,6 @@
-import { ChartColumn, Download, FileSpreadsheet, FileText, LogOut, Shapes, UserRound, ChevronRight } from "lucide-react";
+import { ChartColumn, Download, FileSpreadsheet, FileText, Shapes, UserRound, ChevronRight } from "lucide-react";
 import { RecurringRow } from "@/components/Recurring";
+import { PhoneRow, SignOutButton } from "@/components/Phone";
 import { requireMe } from "@/lib/session";
 import { signOut } from "@/auth";
 import { DeleteEverything } from "@/components/DeleteEverything";
@@ -13,16 +14,14 @@ export default async function Page() {
       <div className="fy-list">
         <div className="fy-row"><span className="fy-tile" data-color="lavender" style={{ width: 32, height: 32, borderRadius: 10 }}><UserRound size={18} /></span>
           <div className="main"><div className="t">Signed in</div><div className="s" data-testid="me">{me.email}</div></div></div>
-        <form action={async () => { "use server"; await signOut({ redirectTo: "/login" }); }} style={{ margin: 0 }}>
-          <button className="fy-row" style={{ cursor: "pointer", borderTop: "1px solid var(--sep)" }}><span className="fy-tile" data-color="slate" style={{ width: 32, height: 32, borderRadius: 10 }}><LogOut size={18} /></span>
-            <div className="main"><div className="t">Sign out</div></div><ChevronRight className="chev" size={18} /></button>
-        </form>
+        <SignOutButton action={async () => { "use server"; await signOut({ redirectTo: "/login" }); }} />
       </div>
       <div className="fy-section"><span>Your data</span></div>
       <div className="fy-list">
         <a className="fy-row" href="/reports" aria-label="Reports"><span className="fy-tile" data-color="sky" style={{ width: 32, height: 32, borderRadius: 10 }}><ChartColumn size={18} /></span>
           <div className="main"><div className="t">Reports</div><div className="s">Cashflow, balance sheet and net worth, spending pace</div></div><ChevronRight className="chev" size={18} /></a>
         <RecurringRow />
+        <PhoneRow />
         <a className="fy-row" href="/categories" aria-label="Categories"><span className="fy-tile" data-color="lavender" style={{ width: 32, height: 32, borderRadius: 10 }}><Shapes size={18} /></span>
           <div className="main"><div className="t">Categories</div><div className="s">Your groups and categories: icons, colours, merge, switch off</div></div><ChevronRight className="chev" size={18} /></a>
         <a className="fy-row" href="/import" aria-label="Import a workbook"><span className="fy-tile" data-color="mint" style={{ width: 32, height: 32, borderRadius: 10 }}><FileSpreadsheet size={18} /></span>

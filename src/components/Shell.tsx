@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { ChartPie, House, Landmark, Plus, Settings } from "lucide-react";
 import { Lockup } from "./Logo";
 import { FinnyProvider, useFinny } from "./store";
+import { PhoneSync } from "./Phone";
 import { QuickAddForm } from "./QuickAdd";
 import { Sheet } from "./ui";
 
@@ -45,5 +46,5 @@ function Frame({ children }: { children: React.ReactNode }) {
 }
 
 export function Shell({ children }: { children: React.ReactNode }) {
-  return <FinnyProvider><Frame>{children}</Frame></FinnyProvider>;
+  return <FinnyProvider><PhoneSync /><Frame>{children}</Frame></FinnyProvider>;
 }
