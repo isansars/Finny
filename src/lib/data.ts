@@ -192,13 +192,29 @@ function txnFields(body: Record<string, unknown>, existing?: typeof transactions
     note: body.note !== undefined ? str(body.note, 1000) || null : existing?.note ?? null,
   };
 }
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+async function byClientRef(userId: string, ref: string) {
+  const [row] = await db.select().from(transactions).where(and(eq(transactions.userId, userId), eq(transactions.clientRef, ref)));
+  return row ?? null;
+}
+/** FINNY-149: an entry the phone kept offline carries a clientRef; sending it again returns the same row, never a second. */
 export async function createTransaction(userId: string, body: Record<string, unknown>) {
+  const clientRef = body.clientRef == null || body.clientRef === "" ? null : String(body.clientRef);
+  if (clientRef !== null && !UUID.test(clientRef)) bad("clientRef must be a uuid.");
+  if (clientRef) { const seen = await byClientRef(userId, clientRef); if (seen) return seen; }
   const f = txnFields(body);
   const { accs, cats } = await context(userId);
   const p = txnProblem(f, accs, cats); if (p) bad(p);
   const eId = await entityId(userId, str(body.entity, 80));
-  const [row] = await db.insert(transactions).values({ ...(f as typeof transactions.$inferInsert), userId, entityId: eId }).returning();
-  return row;
+  try {
+    const [row] = await db.insert(transactions).values({ ...(f as typeof transactions.$inferInsert), userId, entityId: eId, clientRef }).returning();
+    return row;
+  } catch (e) {
+    // Two sends at the same moment: the unique index lets one in; the other returns that row.
+    const code = (e as { code?: string; cause?: { code?: string } }).code ?? (e as { cause?: { code?: string } }).cause?.code;
+    if (clientRef && code === "23505") { const seen = await byClientRef(userId, clientRef); if (seen) return seen; }
+    throw e;
+  }
 }
 export async function updateTransaction(userId: string, id: string, body: Record<string, unknown>) {
   const [existing] = await db.select().from(transactions).where(and(eq(transactions.id, id), eq(transactions.userId, userId)));
