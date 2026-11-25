@@ -117,6 +117,13 @@ console.log("✓ a transaction can be marked as looking fine; existing rows aren
 await pg.exec(`insert into deleted_transactions (id, user_id, undo_id, "on", kind, amount_sen, account_id, created_at) values ('6f1c0b2e-2222-4a2b-9c3d-000000000001', 'u1', '6f1c0b2e-2222-4a2b-9c3d-0000000000aa', '2026-11-24', 'spend', 100, '6f1c0b2e-2222-4a2b-9c3d-00000000dead', now())`);
 await refused("a trash row for nobody", pg.exec(`insert into deleted_transactions (id, user_id, undo_id, "on", kind, amount_sen, account_id, created_at) values ('6f1c0b2e-2222-4a2b-9c3d-000000000002', 'nobody', '6f1c0b2e-2222-4a2b-9c3d-0000000000aa', '2026-11-24', 'spend', 100, '6f1c0b2e-2222-4a2b-9c3d-00000000dead', now())`));
 console.log("✓ the trash keeps a deleted transaction even when its account is gone");
+// FINNY-209: a statement keeps its own balances (a card bill negative); workbook batches and older statements have none.
+await pg.exec(`insert into import_batches (user_id, source, kind, bank, file_hash, period_from, period_to, opening_sen, closing_sen) values ('u1', 'statement', 'statement', 'mandiri-card', 'h2', '2026-09-18', '2026-10-17', -21500000, -318000000)`);
+const bal = (await pg.query<{ o: string; c: string }>("select opening_sen::text as o, closing_sen::text as c from import_batches where file_hash = 'h2'")).rows[0];
+assert.deepEqual(bal, { o: "-21500000", c: "-318000000" }, "a statement's balances are kept exactly");
+assert.equal((await pg.query("select count(*)::int as n from import_batches where closing_sen is null")).rows[0].n, 3, "older batches keep no balances");
+await pg.exec(`insert into money_accounts (user_id, name, type, opening_on, opening_sen) values ('u1', 'Rina (owes me)', 'owed', '2026-11-01', 250000000)`);
+console.log("✓ a statement's balances are kept; an owed-to-me account fits the table");
 await pg.exec("delete from month_reviews;");
 await pg.exec("delete from emergency_sources; delete from emergency_funds;");
 await pg.exec("delete from account_values; delete from things;");

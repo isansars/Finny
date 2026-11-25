@@ -39,7 +39,7 @@ export const verificationTokens = pgTable("verification_tokens", {
 
 // ---- Finny (FINNY-26, 🦦 Mira): accounts, categories, entities, transactions. Every row belongs to one user.
 
-export const ACCOUNT_TYPES = ["cash", "bank", "ewallet", "card", "loan", "investment"] as const;
+export const ACCOUNT_TYPES = ["cash", "bank", "ewallet", "card", "loan", "investment", "owed"] as const;
 export const CATEGORY_KINDS = ["income", "expense", "saving", "investment"] as const;
 export const TXN_KINDS = ["spend", "income", "transfer"] as const;
 
@@ -61,6 +61,10 @@ export const importBatches = pgTable("import_batches", {
   periodFrom: date("period_from", { mode: "string" }),
   periodTo: date("period_to", { mode: "string" }),
   fileHash: text("file_hash"),
+  // FINNY-209: the statement's own balances, kept as checkpoints for "Check with statements" (a card bill: the new bill,
+  // negative). Null for workbook batches and for statements saved before v0.23.0 until they are uploaded again.
+  openingSen: bigint("opening_sen", { mode: "number" }),
+  closingSen: bigint("closing_sen", { mode: "number" }),
 }, (t) => [index("import_batches_user").on(t.userId), uniqueIndex("import_batches_file").on(t.userId, t.fileHash).where(sql`${t.fileHash} is not null`)]);
 
 // FINNY-185: deleted transactions, kept for a day so a delete can be undone exactly (same id, every column). No foreign keys
