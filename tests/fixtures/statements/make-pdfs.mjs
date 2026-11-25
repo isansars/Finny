@@ -1,6 +1,7 @@
 // Draws made-up e-statements in the layouts Finny reads (FINNY-74), so tests never need the owner's real files.
 // Every name and amount here is invented; each statement adds up (opening + lines = closing).
-//   node tests/fixtures/statements/make-pdfs.mjs [dir]  →  bca.pdf, mandiri.pdf, krom.pdf, bri-card.pdf (locked), bca-card.pdf, picture.pdf, bca-long.pdf (10 pages, for timing)
+//   node tests/fixtures/statements/make-pdfs.mjs [dir]  →  bca.pdf, mandiri.pdf, krom.pdf, bri-card.pdf (locked), bca-card.pdf, picture.pdf, bca-long.pdf (10 pages, for timing),
+//   and (FINNY-211) mandiri-card.pdf, mandiri-livin.pdf, krom-pockets.pdf
 // The BRI file is then locked with the test password "finny-test" (pypdf; see lockPdf below).
 import { chromium } from "playwright";
 import { mkdirSync, writeFileSync } from "node:fs";
@@ -72,12 +73,53 @@ export const BCA_CARD = {
     ]],
   ],
 };
+/** FINNY-211: a Mandiri credit card bill (one card), a Mandiri Livin' account statement, and a Krom month with a Booster pocket
+ *  and a time deposit. All invented. */
+export const MANDIRI_CARD = {
+  card: "4259 45** **** 7731", statementDate: "17-Oct-26", dueDate: "06-Nov-26", previous: 2_150_000_00, minimum: 50_000_00, limit: 20_000_000_00,
+  lines: [ // [date, posting, description, sen, credit?, foreign?]
+    ["02-Oct-26", "02-Oct-26", "PAYMENT THANK YOU - Livin", 2_150_000_00, true],
+    ["04-Oct-26", "05-Oct-26", "SPBU PERTAMINA BANDUNG", 300_000_00, false],
+    ["05-Oct-26", "05-Oct-26", "BUNGA CICILAN", 0, false],
+    ["09-Oct-26", "11-Oct-26", "STREAMING PLUS SINGAPORE SG", 216_000_00, false, "(USD 12.00 x 18,000.00)"],
+    ["12-Oct-26", "12-Oct-26", "TOKO ELEKTRONIK JAKARTA 003/012", 450_000_00, false],
+    ["15-Oct-26", "15-Oct-26", "E-BILLING STATEMENT CHRGE", 5_000_00, false],
+  ],
+};
+export const MANDIRI_LIVIN = {
+  account: "1300011112222", from: "01 Nov 2026", to: "24 Nov 2026", opening: 33_013_00,
+  lines: [ // [date, time, remarks above, remarks on the row, remarks below, signed sen]
+    ["03 Nov 2026", "22:51:41", "Transfer BI Fast", "Dari KROM BANK INDONESIA", "FINNY TESTER 770000000001", 3_600_000_00],
+    ["03 Nov 2026", "22:52:06", "", "Pembayaran kartu kredit", "4259450000007731", -3_563_226_00],
+    ["04 Nov 2026", "06:03:51", "", "Biaya administrasi kartu debit", "", -9_000_00],
+    ["18 Nov 2026", "23:59:00", "", "Biaya administrasi rekening", "", -6_000_00],
+  ],
+};
+export const KROM_POCKETS = {
+  account: "100012345678", mainOpening: 1_000_000_00, pocketOpening: 1_000_00,
+  main: [ // [day, detail, type, signed sen] — the pocket moves and a time deposit are on the main account
+    ["03", "Kedai Kopi Senja", "Pembayaran QRIS", -28_000_00],
+    ["05", "Booster", "Pemindahan Saldo", -500_000_00],
+    ["08", "Pembuatan Deposito", "Pemindahan Saldo", -200_000_00],
+    ["20", "Booster", "Pemindahan Saldo", 300_000_00],
+  ],
+  pocket: [ // the Booster section
+    ["05", "Tabungan Utama", "Pemindahan Saldo", 500_000_00],
+    ["15", "Bunga", "Bunga", 2_500_00],
+    ["15", "Pajak", "Pajak", -500_00],
+    ["20", "Pencairan Dana Ke Tabungan Utama", "Pemindahan Saldo", -300_000_00],
+  ],
+};
 export const totals = {
   bca: BCA.opening + BCA.lines.reduce((n, l) => n + l[3], 0),
   mandiri: MANDIRI.opening + MANDIRI.lines.reduce((n, l) => n + l[2], 0),
   krom: KROM.opening + KROM.lines.reduce((n, l) => n + l[6], 0),
   bri: BRI.previous + BRI.lines.reduce((n, l) => n + (l[7] ? -l[6] : l[6]), 0),
   bcaCard: BCA_CARD.previous + BCA_CARD.cards.flatMap((c) => c[3]).reduce((n, l) => n + (l[4] ? -l[3] : l[3]), 0),
+  mandiriCard: MANDIRI_CARD.previous + MANDIRI_CARD.lines.reduce((n, l) => n + (l[4] ? -l[3] : l[3]), 0),
+  mandiriLivin: MANDIRI_LIVIN.opening + MANDIRI_LIVIN.lines.reduce((n, l) => n + l[5], 0),
+  kromMain: KROM_POCKETS.mainOpening + KROM_POCKETS.main.reduce((n, l) => n + l[3], 0),
+  kromPocket: KROM_POCKETS.pocketOpening + KROM_POCKETS.pocket.reduce((n, l) => n + l[3], 0),
 };
 
 // ---------------------------------------------------------------- drawing
@@ -202,6 +244,67 @@ function bcaCardHtml() {
     right(40, 268, idr0(B.limit)), right(185, 268, idr0(B.limit - totals.bcaCard)), [105, 282, "1 / 1"]);
   return page(c);
 }
+function mandiriCardHtml() {
+  const M = MANDIRI_CARD;
+  const c = [[10, 12, "Lembar Tagihan Kartu Kredit / Credit Card Statement", "b"], [10, 22, OWNER], [150, 22, "Hubungi Kami / Contact Us"],
+    [14, 50, "Tanggal Cetak Tagihan"], [58, 50, "Tanggal Jatuh Tempo"], [14, 54, "Statement Date"], [58, 54, "Payment Due Date"], [14, 60, M.statementDate], [58, 60, M.dueDate],
+    [14, 74, "Tipe Kartu"], [46, 74, "Nomor Kartu"], [83, 74, "Nama Produk"], [146, 74, "Total Tagihan"], [180, 74, "Pembayaran Minimum"],
+    [14, 78, "Card Type"], [46, 78, "Card Number"], [83, 78, "Product Name"], [146, 78, "Total Balance (IDR)"], [180, 78, "Minimum Payment (IDR)"],
+    [14, 85, "Basic"], [46, 85, M.card], [83, 85, "MANDIRI KARTU KREDIT"], right(172, 85, dot(totals.mandiriCard)), right(205, 85, dot(M.minimum)),
+    [14, 100, "Tanggal Transaksi Tanggal Pembukuan"], [83, 100, "Keterangan"], [190, 100, "Jumlah"],
+    [14, 104, "Transaction Date"], [46, 104, "Posting Date"], [83, 104, "Description"], [190, 104, "Amount (IDR)"],
+    [14, 110, OWNER], [46, 110, M.card], [83, 116, "Tagihan Bulan Lalu"], right(205, 116, dot(M.previous))];
+  let y = 124;
+  for (const [d, p, desc, sen, cr, fx] of M.lines) {
+    c.push([14, y, d], [46, y, p], [83, y, desc], right(205, y, dot(sen))); if (cr) c.push([214 - 12, y, "CR"]);
+    if (fx) { y += 5; c.push([83, y, fx]); }
+    y += 6;
+  }
+  c.push([83, y, "SUB-TOTAL"], right(205, y, dot(totals.mandiriCard)), [180, 282, "Page 1 of 1"]);
+  return page(c);
+}
+function mandiriLivinHtml() {
+  const M = MANDIRI_LIVIN;
+  const out = M.lines.filter((l) => l[5] < 0).reduce((n, l) => n - l[5], 0), inn = M.lines.filter((l) => l[5] > 0).reduce((n, l) => n + l[5], 0);
+  const c = [[6, 15, "e-Statement", "b"], [100, 20, "Menara Mandiri 1 Jalan Jenderal Sudirman Kav. 54-55, Jakarta 12190, Indonesia"],
+    [6, 36, "Nama/Name"], [38, 36, ":"], [42, 36, OWNER], [82, 36, "Periode/Period"], [114, 36, ":"], [119, 36, `${M.from} - ${M.to}`], [188, 36, "1 dari 1"],
+    [6, 58, "Tabungan NOW IDR", "b"], [105, 61, "Saldo Awal/Initial Balance"], [157, 61, ":"], right(200, 61, idr(M.opening)),
+    [6, 69, "Nomor Rekening/Account Number :"], [56, 69, M.account], [105, 69, "Dana Masuk/Incoming Transactions"], [157, 69, ":"], right(200, 69, "+ " + idr(inn)),
+    [105, 77, "Dana Keluar/Outgoing Transactions"], [157, 77, ":"], right(200, 77, "- " + idr(out)),
+    [105, 85, "Saldo Akhir/Closing Balance"], [157, 85, ":"], right(200, 85, idr(totals.mandiriLivin)),
+    [7, 106, "No"], [18, 106, "Tanggal"], [44, 106, "Keterangan"], [134, 106, "Nominal (IDR)"], [186, 106, "Saldo (IDR)"],
+    [7, 110, "No"], [18, 110, "Date"], [44, 110, "Remarks"], [136, 110, "Amount (IDR)"], [184, 110, "Balance (IDR)"]];
+  let y = 122, bal = M.opening;
+  M.lines.forEach(([d, t, above, row, below, sen], i) => {
+    bal += sen;
+    if (above) c.push([44, y - 3.5, above]);
+    c.push([18, y - 1.6, d], [7, y, String(i + 1)], [44, y, row], right(160, y, (sen < 0 ? "-" : "+") + idr(Math.abs(sen))), right(200, y, idr(bal)), [18, y + 1.8, `${t} WIB`]);
+    if (below) c.push([44, y + 3.6, below]);
+    y += 16;
+  });
+  c.push([82, y, "ini adalah batas akhir transaksi anda"], [11, 205, "Disclaimer", "b"], [11, 212, "1. e-Statement ini merupakan dokumen elektronik dari Bank Mandiri."]);
+  return page(c);
+}
+function kromPocketsHtml() {
+  const K = KROM_POCKETS;
+  const head = (n) => [[10, 8, "E-Statement Oktober 2026"], [150, 8, `Halaman ${n} dari 2 / Page ${n} of 2`]];
+  const foot = [[10, 284, "PT Krom Bank Indonesia Tbk berizin dan diawasi oleh OJK dan BI serta merupakan peserta penjaminan LPS."]];
+  const io = (xs) => [xs.filter((l) => l[3] > 0).reduce((n, l) => n + l[3], 0), xs.filter((l) => l[3] < 0).reduce((n, l) => n - l[3], 0)];
+  const section = (c, y, name, opening, closing, rows) => {
+    const [inn, out] = io(rows);
+    c.push([10, y, name, "b"], [10, y + 5, `No. Rek. /Acc. No. ${K.account}`],
+      [10, y + 11, `Saldo Sebelumnya / Previous Balance   Rp${idr(opening)}`], [110, y + 11, `Total Pemasukan / Total Incoming   +Rp${idr(inn)}`],
+      [10, y + 16, `Saldo Akhir / Ending Balance   Rp${idr(closing)}`], [110, y + 16, `Total Pengeluaran / Total Outgoing   -Rp${idr(out)}`],
+      [10, y + 25, "Tanggal & Waktu"], [50, y + 25, "Detail Transaksi"], [120, y + 25, "Tipe Transaksi"], [180, y + 25, "Jumlah"]);
+    let yy = y + 33;
+    for (const [d, detail, typ, amt] of rows) { c.push([10, yy, `${d} October 2026`], [50, yy, detail], [120, yy, typ], right(200, yy, (amt < 0 ? "-Rp" : "+Rp") + idr(Math.abs(amt))), [10, yy + 4.5, "10.00 WIB"], [50, yy + 4.5, "REF000"], [120, yy + 4.5, "Movement"]); yy += 11; }
+  };
+  const p1 = [...head(1), [10, 20, "Ringkasan Kantong /Pocket Summary", "b"], [10, 27, "Booster"], right(80, 27, "Rp" + idr(K.pocketOpening)), right(200, 27, "Rp" + idr(totals.kromPocket)), ...foot];
+  const p2 = [...head(2), [10, 14, "Rincian Transaksi /Transaction History", "b"], ...foot];
+  section(p2, 22, "Tabungan Utama", K.mainOpening, totals.kromMain, K.main);
+  section(p2, 150, "Booster", K.pocketOpening, totals.kromPocket, K.pocket);
+  return page(p1) + page(p2);
+}
 const pictureHtml = () => `<div class="pg"><canvas id="c" width="700" height="900" style="position:absolute;left:10mm;top:10mm;width:180mm"></canvas></div>
 <script>const x=document.getElementById('c').getContext('2d');x.fillStyle='#1d4ed8';x.fillRect(0,0,700,60);for(let i=0;i<30;i++){x.fillStyle=i%2?'#ddd':'#eee';x.fillRect(0,80+i*26,700,22)}</script>`;
 
@@ -215,7 +318,8 @@ export async function makeStatementPdfs(dir) {
   const browser = await chromium.launch();
   const pg = await browser.newPage();
   const out = {};
-  for (const [name, html] of [["bca", bcaHtml()], ["mandiri", mandiriHtml()], ["krom", kromHtml()], ["bri-card", briHtml()], ["bca-card", bcaCardHtml()], ["picture", pictureHtml()], ["bca-long", bcaLongHtml()]]) {
+  for (const [name, html] of [["bca", bcaHtml()], ["mandiri", mandiriHtml()], ["krom", kromHtml()], ["bri-card", briHtml()], ["bca-card", bcaCardHtml()], ["picture", pictureHtml()], ["bca-long", bcaLongHtml()],
+    ["mandiri-card", mandiriCardHtml()], ["mandiri-livin", mandiriLivinHtml()], ["krom-pockets", kromPocketsHtml()]]) {
     await pg.setContent(`<!doctype html><html><head><meta charset="utf-8"><style>${css}</style></head><body>${html}</body></html>`);
     await pg.waitForTimeout(50);
     const file = path.join(dir, `${name}.pdf`);

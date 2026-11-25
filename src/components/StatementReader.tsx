@@ -22,8 +22,9 @@ type Step = "start" | "reading" | "password" | "check";
 const BANK_LOOK: Record<Bank, { color: string; card?: boolean; sub: string }> = {
   bca: { color: "sky", sub: "Tahapan savings · monthly mutasi" },
   "bca-card": { color: "pink", card: true, sub: "Monthly bill · every BCA card on it" },
-  mandiri: { color: "peach", sub: "Consolidated statement · savings" },
-  krom: { color: "mint", sub: "Monthly statement · main account" },
+  mandiri: { color: "peach", sub: "Consolidated or Livin' statement · savings" },
+  "mandiri-card": { color: "rose", card: true, sub: "Lembar Tagihan · every Mandiri card on it" },
+  krom: { color: "mint", sub: "Monthly statement · main account and pockets" },
   "bri-card": { color: "lavender", card: true, sub: "Billing statement · locked PDF" },
 };
 const PILL: Record<Status | "skip", { label: string; color: string }> = {

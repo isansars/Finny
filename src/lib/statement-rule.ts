@@ -6,7 +6,7 @@ export type PageText = { w: number; h: number; items: TextItem[] };
 /** A printed line: its cells left to right (a cell is text separated from the next by a clear gap). */
 export type Line = { page: number; y: number; cells: { s: string; x: number }[]; text: string };
 
-export type Bank = "bca" | "mandiri" | "krom" | "bri-card" | "bca-card";
+export type Bank = "bca" | "mandiri" | "krom" | "bri-card" | "bca-card" | "mandiri-card";
 export type StatementLine = {
   on: string; // YYYY-MM-DD
   description: string;
@@ -36,7 +36,7 @@ export type Statement = {
 };
 export type ReadResult = { ok: true; statement: Statement } | { ok: false; reason: "no-text" | "unknown" | "empty"; message: string };
 
-export const BANK_NAMES: Record<Bank, string> = { bca: "BCA", "bca-card": "BCA credit card", mandiri: "Mandiri", krom: "Krom", "bri-card": "BRI credit card" };
+export const BANK_NAMES: Record<Bank, string> = { bca: "BCA", "bca-card": "BCA credit card", mandiri: "Mandiri", krom: "Krom", "bri-card": "BRI credit card", "mandiri-card": "Mandiri credit card" };
 
 // ---------------------------------------------------------------- lines
 
@@ -101,6 +101,9 @@ export function detect(lines: Line[]): Bank | "unknown" {
   const head = squash(lines.slice(0, 80).map((l) => l.text).join(" "));
   const all = squash(lines.map((l) => l.text).join(" "));
   if (all.includes("REKENINGKARTUKREDIT") && all.includes("NOMORCUSTOMER")) return "bca-card";
+  // FINNY-211: Mandiri's card bill, and its Livin' account statement (whose lines can say "KROM BANK", so it comes before Krom).
+  if (squash(lines[0]?.text ?? "").startsWith("LEMBARTAGIHANKARTUKREDIT") && all.includes("MANDIRI") && !all.includes("RINCIANTRANSAKSI")) return "mandiri-card";
+  if (head.includes("MANDIRI") && head.includes("SALDOAWAL/INITIALBALANCE")) return "mandiri";
   if (all.includes("KROMBANK") && head.includes("E-STATEMENT")) return "krom";
   if (all.includes("BRIKARTUKREDIT") || (all.includes("KARTUKREDITBRI") && all.includes("TAGIHANBULAN")) || (all.includes("KARTUKREDIT") && all.includes("BRIMO"))) return "bri-card";
   if (head.includes("NO.REKENING") && head.includes("MUTASI") && head.includes("SALDO") && (all.includes("BCA") || head.includes("KETERANGAN"))) return "bca";
@@ -113,7 +116,7 @@ export function readStatement(pages: PageText[]): ReadResult {
   if (chars < 40) return { ok: false, reason: "no-text", message: "This PDF is a picture, so there's no text to read. Use the original PDF from your bank's email, not a printed or scanned copy." };
   const lines = toLines(pages);
   const bank = detect(lines);
-  if (bank === "unknown") return { ok: false, reason: "unknown", message: "Finny doesn't know this statement's layout yet. It reads BCA, BCA credit card, Mandiri, Krom and BRI credit card e-statements." };
+  if (bank === "unknown") return { ok: false, reason: "unknown", message: "Finny doesn't know this statement's layout yet. It reads BCA, BCA credit card, Mandiri, Mandiri credit card, Krom and BRI credit card e-statements." };
   const st = READERS[bank](lines);
   if (!st.lines.length) return { ok: false, reason: "empty", message: `This looks like a ${BANK_NAMES[bank]} statement, but Finny found no transactions in it.` };
   return { ok: true, statement: st };
@@ -121,7 +124,10 @@ export function readStatement(pages: PageText[]): ReadResult {
 
 // ---------------------------------------------------------------- readers
 
-const READERS: Record<Bank, (lines: Line[]) => Statement> = { bca: readBca, mandiri: readMandiri, krom: readKrom, "bri-card": readBri, "bca-card": readBcaCard };
+const READERS: Record<Bank, (lines: Line[]) => Statement> = {
+  bca: readBca, mandiri: (l) => (squash(l.slice(0, 80).map((x) => x.text).join(" ")).includes("SALDOAWAL/INITIALBALANCE") ? readMandiriLivin(l) : readMandiri(l)),
+  krom: readKrom, "bri-card": readBri, "bca-card": readBcaCard, "mandiri-card": readMandiriCard,
+};
 
 function blank(bank: Bank): Statement { return { bank, accountDigits: "", periodFrom: "", periodTo: "", lines: [], warnings: [] }; }
 
@@ -220,21 +226,28 @@ function readMandiri(lines: Line[]): Statement {
   return st;
 }
 
-/** Krom: "DD Month YYYY  detail  type  ±RpX.XXX,XX", then "HH.MM WIB  ref  type (English)". Only the main account (Tabungan Utama). */
+/** Krom: "DD Month YYYY  detail  type  ±RpX.XXX,XX", then "HH.MM WIB  ref  type (English)". In Finny, Krom is the main account
+ *  (Tabungan Utama) and its pockets (e.g. Booster) together (FINNY-211): moves between them ("Pemindahan Saldo") are left out
+ *  (a time deposit's are kept: deposits are not part of Krom in Finny),
+ *  a pocket's interest and tax are kept, and the balances add the pockets in. Each section starts with its name and then
+ *  "No. Rek." or "Saldo Sebelumnya". Time deposits (Deposito) are not read. */
 function readKrom(lines: Line[]): Statement {
   const st = blank("krom");
   const all = lines.map((l) => l.text).join("\n");
   const per = all.match(/E-Statement\s+([A-Za-z]+)\s+(\d{4})/);
   if (per) { const y = Number(per[2]), m = monthNumber(per[1]); st.periodFrom = iso(y, m, 1); st.periodTo = iso(y, m, lastDay(y, m)); }
   const acc = all.match(/Acc\.\s*No\.\s*(\d{6,})/i) ?? all.match(/\b(\d{12})\b/); st.accountDigits = acc ? acc[1].slice(-4) : "";
-  const prev = all.match(/Saldo Sebelumnya\s*\/\s*Previous Balance\s+Rp([\d.,]+)/); if (prev) st.openingSen = senCommaDecimal(prev[1]) ?? undefined;
-  const end = all.match(/Saldo Akhir\s*\/\s*Ending Balance\s+Rp([\d.,]+)/); if (end) st.closingSen = senCommaDecimal(end[1]) ?? undefined;
+  const sum = (re: RegExp) => { const xs = [...all.matchAll(re)].map((m) => senCommaDecimal(m[1].replace(/\s/g, ""))); return xs.length && xs.every((x) => x !== null) ? xs.reduce((a, b) => a! + b!, 0)! : undefined; };
+  st.openingSen = sum(/Saldo Sebelumnya\s*\/\s*Previous Balance\s+Rp\s?([\d.,]+)/g);
+  st.closingSen = sum(/Saldo Akhir\s*\/\s*Ending Balance\s+Rp\s?([\d.,]+)/g);
   let section = "";
   let cur: StatementLine | null = null;
-  for (const l of lines) {
-    const t = l.text.trim();
-    if (/^(Tabungan Utama|Kantong|Deposito)/i.test(t) && l.cells.length === 1) { section = t.toLowerCase(); cur = null; continue; }
-    if (section && !section.startsWith("tabungan utama")) continue;
+  lines.forEach((l, i) => {
+    const t = l.text.trim(), next = lines[i + 1]?.text ?? "";
+    if (l.cells.length === 1 && /^(No\. Rek\.|Saldo Sebelumnya)/i.test(next) && !/^(\d|No\. Rek\.|Saldo)/i.test(t)) { section = t.toLowerCase(); cur = null; return; }
+    if (/^(Tabungan Utama|Kantong|Deposito)/i.test(t) && l.cells.length === 1 && !section) { section = t.toLowerCase(); cur = null; return; }
+    if (!section || section.startsWith("deposito")) return;
+    const main = section.startsWith("tabungan utama");
     const d = l.cells[0]?.s.match(/^(\d{1,2})\s+([A-Za-z]+)\s+(\d{4})$/);
     const amt = t.match(/([+-])\s*Rp\s?([\d.]+,\d{2})$/);
     if (d && amt && monthNumber(d[2])) {
@@ -242,13 +255,16 @@ function readKrom(lines: Line[]): Statement {
       const type = mid.length > 1 ? mid[mid.length - 1] : "";
       const detail = (mid.length > 1 ? mid.slice(0, -1) : mid).join(" ");
       const sen = senCommaDecimal(amt[2]) ?? 0;
-      cur = { on: iso(Number(d[3]), monthNumber(d[2]), Number(d[1])), description: tidy(detail), type, amountSen: amt[1] === "-" ? -sen : sen, cashback: /^cashback/i.test(detail) };
+      cur = null;
+      if (/^Pemindahan Saldo$/i.test(type) && !/deposit/i.test(detail)) return; // between the main account and a pocket: within Krom (a time deposit is not)
+      const pocket = main ? "" : `${section.replace(/\b\w/g, (c) => c.toUpperCase())}: `; // "Booster: Bunga"
+      cur = { on: iso(Number(d[3]), monthNumber(d[2]), Number(d[1])), description: tidy(pocket + detail), type, amountSen: amt[1] === "-" ? -sen : sen, cashback: main && /^cashback/i.test(detail) };
       st.lines.push(cur);
-      continue;
+      return;
     }
     const tm = l.cells[0]?.s.match(/^(\d{2})[.:](\d{2})\s*WIB$/);
     if (cur && tm) { cur.time = `${tm[1]}:${tm[2]}`; cur.ref = l.cells[1]?.s; cur = null; }
-  }
+  });
   return st;
 }
 
@@ -344,6 +360,93 @@ function readBcaCard(lines: Line[]): Statement {
     cur = { on: iso(m > month ? year - 1 : year, m, Number(d1[1])), description: tidy(desc), amountSen: cr ? sen : -sen, card: label(), instalment: inst ? `${Number(inst[1])} of ${Number(inst[2])}` : undefined };
     st.lines.push(cur);
   });
+  return st;
+}
+
+/** FINNY-211, Mandiri's Livin' e-Statement: "Periode/Period : 01 Nov 2026 - 24 Nov 2026", "Saldo Awal/Initial Balance : 33.013,00".
+ *  Each transaction is a numbered row ("3  Biaya administrasi  -9.000,00  60.787,00") with its date, time and the rest of its
+ *  remarks on the printed lines just above and below; a printed line belongs to the numbered row nearest to it. */
+function readMandiriLivin(lines: Line[]): Statement {
+  const st = blank("mandiri");
+  const all = lines.map((l) => l.text).join("\n");
+  const day = (s: string) => { const m = s.match(/^(\d{1,2})\s+([A-Za-z]{3,})\s+(\d{4})$/); return m && monthNumber(m[2]) ? iso(Number(m[3]), monthNumber(m[2]), Number(m[1])) : ""; };
+  const per = all.match(/Periode\/Period\s+:\s+(\d{1,2} [A-Za-z]+ \d{4})\s*-\s*(\d{1,2} [A-Za-z]+ \d{4})/);
+  if (per) { st.periodFrom = day(per[1]); st.periodTo = day(per[2]); }
+  const acc = all.match(/Account Number\s*:\s+(\d{6,})/); st.accountDigits = acc ? acc[1].slice(-4) : "";
+  const bal = (label: string) => { const m = all.match(new RegExp(label + "\\s+:\\s+([\\d.]+,\\d{2})")); return m ? senCommaDecimal(m[1]) ?? undefined : undefined; };
+  st.openingSen = bal("Saldo Awal/Initial Balance"); st.closingSen = bal("Saldo Akhir/Closing Balance");
+  const AMT = /^[+-]\s?[\d.]+,\d{2}$/;
+  // The table on each page: after its header ("Remarks"), before the end note or the disclaimer.
+  const body: Line[] = []; let on = false;
+  for (const l of lines) {
+    if (/Remarks/.test(l.text) && /Date/.test(l.text)) { on = true; continue; }
+    if (/batas akhir transaksi|^Disclaimer/i.test(l.text)) { on = false; continue; }
+    if (on && !/^(Hal|Page|\d+ (dari|of) \d+)/i.test(l.text)) body.push(l);
+  }
+  const rows = body.filter((l) => /^\d+$/.test(l.cells[0]?.s ?? "") && l.cells.some((c) => AMT.test(c.s)));
+  type Row = { l: Line; on: string; time: string; text: string[]; amt: number; balance?: number };
+  const out: Row[] = rows.map((l) => { const money = l.cells.filter((c) => AMT.test(c.s) || /^[\d.]+,\d{2}$/.test(c.s)); const a = money[0].s.replace(/\s/g, "");
+    return { l, on: "", time: "", text: [], amt: (a.startsWith("-") ? -1 : 1) * (senCommaDecimal(a.slice(1)) ?? 0), balance: money[1] ? senCommaDecimal(money[1].s) ?? undefined : undefined }; });
+  for (const l of body) {
+    if (!out.length) break;
+    const near = out.filter((r) => r.l.page === l.page).sort((a, b) => Math.abs(a.l.y - l.y) - Math.abs(b.l.y - l.y))[0];
+    if (!near) continue;
+    for (const c of l === near.l ? l.cells.slice(1) : l.cells) {
+      if (AMT.test(c.s) || /^[\d.]+,\d{2}$/.test(c.s)) continue;
+      if (day(c.s)) near.on = day(c.s);
+      else if (/WIB$/.test(c.s)) near.time = c.s.replace(/\s*WIB$/, "").slice(0, 5);
+      else near.text.push(c.s);
+    }
+  }
+  for (const r of out) {
+    const words = r.text.join(" ").split(" ");
+    const ref = words.filter((w) => /^\d{10,}$/.test(w)).join(" ");
+    st.lines.push({ on: r.on || st.periodTo, description: tidy(words.filter((w) => !/^\d{10,}$/.test(w)).join(" ")), amountSen: r.amt, balanceSen: r.balance, time: r.time || undefined, ref: ref || undefined });
+  }
+  if (!st.lines.length && rows.length === 0 && body.length) st.warnings.push("The table couldn't be read");
+  return st;
+}
+
+/** FINNY-211, Mandiri credit card bill ("Lembar Tagihan Kartu Kredit"): the statement and due dates ("17-Jan-26  06-Feb-26"), the
+ *  summary row per card ("Basic  4259 45** **** 4748  MANDIRI KARTU KREDIT  231,717.00  50,000.00"), "Tagihan Bulan Lalu" (the
+ *  previous bill), a holder line with each card's number, then rows "DD-Mon-YY  DD-Mon-YY  description  amount [CR]" and, under a
+ *  foreign charge, "(USD 22.20 x 18,039.28)". A charge is negative, a payment (CR) positive; lines of Rp 0 are left out. */
+function readMandiriCard(lines: Line[]): Statement {
+  const st = blank("mandiri-card");
+  const DMY = /^(\d{2})-([A-Za-z]{3})-(\d{2})$/;
+  const date = (s: string) => { const m = s.match(DMY); return m && monthNumber(m[2]) ? iso(2000 + Number(m[3]), monthNumber(m[2]), Number(m[1])) : ""; };
+  const dates = lines.findIndex((l) => /Statement Date/.test(l.text) && /Due Date/.test(l.text));
+  const dl = dates >= 0 ? lines.slice(dates + 1, dates + 3).find((l) => l.cells.length >= 2 && date(l.cells[0].s)) : undefined;
+  if (dl) { st.periodTo = date(dl.cells[0].s); st.dueOn = date(dl.cells[1].s) || undefined; const [y, m, d] = st.periodTo.split("-").map(Number); st.periodFrom = new Date(Date.UTC(y, m - 2, d + 1)).toISOString().slice(0, 10); }
+  const sums = lines.filter((l) => /^\d{4} \d{2}\*\* \*{4} \d{4}$/.test(l.cells[1]?.s ?? "") && l.cells.length >= 5);
+  if (sums.length) {
+    st.accountDigits = sums[0].cells[1].s.slice(-4);
+    const nums = sums.map((l) => l.cells.slice(-2).map((c) => senDotDecimal(c.s)));
+    if (nums.every((n) => n[0] !== null)) st.closingSen = nums.reduce((a, n) => a + n[0]!, 0);
+    if (nums.every((n) => n[1] !== null)) st.minimumSen = nums.reduce((a, n) => a + n[1]!, 0);
+  }
+  let digits = "", cur: StatementLine | null = null, opening = 0, sawOpening = false;
+  for (const l of lines) {
+    const c = l.cells.map((x) => x.s);
+    const holder = c.length === 2 && /^\d{4} \d{2}\*\* \*{4} (\d{4})$/.exec(c[1]);
+    if (holder) { digits = holder[1]; cur = null; continue; }
+    const prev = l.text.match(/Tagihan Bulan Lalu\s+([\d,]+\.\d{2})/); if (prev) { opening += senDotDecimal(prev[1]) ?? 0; sawOpening = true; cur = null; continue; }
+    const fx = l.text.match(/^\(([A-Z]{3})\s+([\d.,]+)\s+x\s+([\d.,]+)\)$/i);
+    if (fx && cur) { cur.currency = fx[1]; cur.foreignAmount = fx[2]; cur.rate = fx[3]; cur = null; continue; }
+    const on = date(c[0] ?? "");
+    if (!on || !date(c[1] ?? "")) { cur = null; continue; }
+    const rest = c.slice(2); const cr = rest[rest.length - 1] === "CR"; if (cr) rest.pop();
+    if (!rest.length) { cur = null; continue; } // the statement and due dates
+    const amt = rest.length > 1 ? senDotDecimal(rest.pop()!) : null;
+    if (amt === null) { st.warnings.push(`A Mandiri card line on ${c[0]} couldn't be read`); cur = null; continue; }
+    if (amt === 0) { cur = null; continue; }
+    const desc = rest.join(" ");
+    const inst = desc.match(/\b(\d{3})\/(\d{3})\s*$/);
+    cur = { on, description: tidy(inst ? desc.slice(0, inst.index).trim() : desc), amountSen: cr ? amt : -amt, card: digits ? `·· ${digits}` : undefined,
+      instalment: inst ? `${Number(inst[1])} of ${Number(inst[2])}` : undefined };
+    st.lines.push(cur);
+  }
+  if (sawOpening) st.openingSen = opening;
   return st;
 }
 

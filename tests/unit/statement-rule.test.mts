@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 import { readStatement, senDotDecimal, senCommaDecimal, monthNumber, tidy, type Statement } from "../../src/lib/statement-rule.ts";
 import { pdfPages } from "./statement-pdf.mts";
 // @ts-expect-error a plain .mjs fixture
-import { totals, PASSWORD, BCA, MANDIRI, KROM, BRI, BCA_CARD } from "../fixtures/statements/make-pdfs.mjs";
+import { totals, PASSWORD, BCA, MANDIRI, KROM, BRI, BCA_CARD, MANDIRI_CARD, MANDIRI_LIVIN, KROM_POCKETS } from "../fixtures/statements/make-pdfs.mjs";
 
 const dir = "tests/fixtures/statements/";
 async function read(name: string, password?: string): Promise<Statement> {
@@ -98,7 +98,7 @@ test("a picture-only PDF and an unknown layout are refused with a reason", async
   assert.ok(!pic.ok && pic.reason === "no-text");
   const other = readStatement([{ w: 600, h: 800, items: [{ s: "Some other bank statement with plenty of words on it", x: 10, y: 10, w: 300, h: 9 }] }]);
   assert.ok(!other.ok && other.reason === "unknown");
-  assert.match(!other.ok ? other.message : "", /BCA, BCA credit card, Mandiri, Krom and BRI/);
+  assert.match(!other.ok ? other.message : "", /BCA, BCA credit card, Mandiri, Mandiri credit card, Krom and BRI/);
 });
 
 // FINNY-198: the BRI × Tokopedia co-branded card names itself only "Kartu Kredit BRI"; its month's interest comes as
@@ -128,4 +128,39 @@ test("BRI co-branded card: recognised, the interest line read, the due date, and
   assert.equal(fee?.amountSen, -734_000_00);
   assert.equal(s.lines.find((l) => /Gojek/.test(l.description))?.amountSen, -54_500_00, "IDR printed inside the description");
   assert.equal(s.openingSen! - s.lines.reduce((n, l) => n + l.amountSen, 0), s.closingSen, "last month's bill − payments + charges = this bill");
+});
+
+// FINNY-211: Mandiri's credit card bill, its Livin' account statement (taken for Krom before), and Krom's pockets.
+test("Mandiri card bill: the bill, the due date, the minimum, payments CR, foreign, instalments, Rp 0 lines left out", async () => {
+  const s = await read("mandiri-card");
+  assert.equal(s.bank, "mandiri-card"); assert.equal(s.accountDigits, "7731");
+  assert.deepEqual([s.periodFrom, s.periodTo, s.dueOn], ["2026-09-18", "2026-10-17", "2026-11-06"]);
+  assert.equal(s.openingSen, MANDIRI_CARD.previous); assert.equal(s.closingSen, totals.mandiriCard); assert.equal(s.minimumSen, MANDIRI_CARD.minimum);
+  assert.equal(s.openingSen! - s.lines.reduce((n, l) => n + l.amountSen, 0), totals.mandiriCard, "previous bill − (payments − charges) = this bill");
+  assert.equal(s.lines.length, 5, "the Rp 0 line is left out");
+  assert.equal(s.lines[0].amountSen, 2_150_000_00, "a payment is money into the card");
+  assert.equal(s.lines[1].amountSen, -300_000_00); assert.equal(s.lines[1].card, "·· 7731");
+  const fx = s.lines.find((l) => l.currency)!;
+  assert.deepEqual([fx.currency, fx.foreignAmount, fx.rate, fx.amountSen], ["USD", "12.00", "18,000.00", -216_000_00]);
+  assert.equal(s.lines.find((l) => l.instalment)?.instalment, "3 of 12");
+  assert.deepEqual(s.warnings, []);
+});
+
+test("Mandiri Livin' statement: read as Mandiri (not Krom), each row with its date, time and every remark", async () => {
+  const s = await read("mandiri-livin");
+  assert.equal(s.bank, "mandiri"); assert.equal(s.accountDigits, "2222");
+  assert.deepEqual([s.periodFrom, s.periodTo], ["2026-11-01", "2026-11-24"]);
+  assert.equal(s.openingSen, MANDIRI_LIVIN.opening); assert.equal(s.closingSen, totals.mandiriLivin); assert.equal(adds(s), totals.mandiriLivin);
+  assert.deepEqual(s.lines.map((l) => [l.on, l.amountSen]), MANDIRI_LIVIN.lines.map((l) => [`2026-11-${l[0].slice(0, 2)}`, l[5]]));
+  assert.match(s.lines[0].description, /Transfer BI Fast Dari KROM BANK INDONESIA Finny Tester/i);
+  assert.equal(s.lines[0].ref, "770000000001"); assert.equal(s.lines[0].time, "22:51");
+  assert.match(s.lines[1].description, /Pembayaran kartu kredit/i); assert.equal(s.lines[1].ref, "4259450000007731");
+});
+
+test("Krom with a pocket: moves to and from it are left out, its interest and tax kept, a time deposit kept, balances include it", async () => {
+  const s = await read("krom-pockets");
+  assert.equal(s.bank, "krom");
+  assert.equal(s.openingSen, KROM_POCKETS.mainOpening + KROM_POCKETS.pocketOpening);
+  assert.equal(s.closingSen, totals.kromMain + totals.kromPocket); assert.equal(adds(s), s.closingSen);
+  assert.deepEqual(s.lines.map((l) => [l.description, l.amountSen]), [["Kedai Kopi Senja", -28_000_00], ["Pembuatan Deposito", -200_000_00], ["Booster: Bunga", 2_500_00], ["Booster: Pajak", -500_00]]);
 });
