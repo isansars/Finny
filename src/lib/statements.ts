@@ -6,6 +6,7 @@ import { db } from "@/db";
 import { importBatches, moneyAccounts, transactions } from "@/db/schema";
 import { HttpError } from "@/lib/session";
 import { addImportRows } from "@/lib/imports";
+import { asBalance } from "@/lib/checkpoint-rule";
 
 const bad = (m: string, status = 400): never => { throw new HttpError(status, m); };
 const isDay = (v: unknown): v is string => typeof v === "string" && /^\d{4}-\d{2}-\d{2}$/.test(v);
@@ -32,8 +33,9 @@ export async function statementContext(userId: string, ownerName: string | null,
     .where(and(eq(transactions.userId, userId), gte(transactions.on, shift(from!, -7)), lte(transactions.on, shift(to!, 7))));
   const history = await db.select({ description: transactions.description, categoryId: transactions.categoryId, on: transactions.on }).from(transactions)
     .where(eq(transactions.userId, userId)).orderBy(desc(transactions.on)).limit(3000);
-  const [already] = hash ? await db.select({ id: importBatches.id, createdAt: importBatches.createdAt }).from(importBatches).where(and(eq(importBatches.userId, userId), eq(importBatches.fileHash, hash))) : [];
-  return { balanceEndSen, existing, history, ownerName, alreadyRead: already ?? null };
+  const [already] = hash ? await db.select({ id: importBatches.id, createdAt: importBatches.createdAt, closingSen: importBatches.closingSen }).from(importBatches).where(and(eq(importBatches.userId, userId), eq(importBatches.fileHash, hash))) : [];
+  // FINNY-212: a statement saved before v0.23.0 has no dates for "Check with statements" yet (hasDates false).
+  return { balanceEndSen, existing, history, ownerName, alreadyRead: already ? { id: already.id, createdAt: already.createdAt, hasDates: already.closingSen !== null } : null };
 }
 
 type InLine = { on: string; kind: string; sen: number; accountId: string; toAccountId?: string | null; categoryId?: string | null; description?: string; note?: string | null };
@@ -47,6 +49,7 @@ export async function saveStatement(userId: string, body: Record<string, unknown
   const periodFrom = isDay(body.periodFrom) ? body.periodFrom : bad("The statement's period is missing.");
   const periodTo = isDay(body.periodTo) ? body.periodTo : bad("The statement's period is missing.");
   const fileHash = typeof body.fileHash === "string" && /^[0-9a-f]{64}$/.test(body.fileHash) ? body.fileHash : bad("The file's fingerprint is missing.");
+  const { openingSen, closingSen } = figures(acc.type, body);
   const lines = (Array.isArray(body.lines) ? body.lines : []) as InLine[];
   if (!lines.length) bad("Choose at least one line to save.");
   if (lines.length > 2000) bad("That's more lines than a month's statement holds.");
@@ -56,7 +59,7 @@ export async function saveStatement(userId: string, body: Record<string, unknown
   const source = `${body.bankName ? String(body.bankName).slice(0, 40) : bank} · ${periodFrom} to ${periodTo}`;
   let batch;
   try {
-    [batch] = await db.insert(importBatches).values({ userId, source, kind: "statement", accountId: acc.id, bank, periodFrom, periodTo, fileHash }).returning();
+    [batch] = await db.insert(importBatches).values({ userId, source, kind: "statement", accountId: acc.id, bank, periodFrom, periodTo, fileHash, openingSen, closingSen }).returning();
   } catch (e) {
     if ((e as { code?: string; cause?: { code?: string } }).code === "23505" || (e as { cause?: { code?: string } }).cause?.code === "23505") bad("This statement was saved before. Undo it first to read it again.", 409);
     throw e;
@@ -76,4 +79,22 @@ export async function saveStatement(userId: string, body: Record<string, unknown
     await db.delete(importBatches).where(eq(importBatches.id, batch.id));
     throw e;
   }
+}
+
+/** FINNY-212: the statement's own balances (as the bank prints them), kept as Finny balances for the account (a card bill negative). */
+function figures(type: string, body: Record<string, unknown>) {
+  const one = (v: unknown) => (v === undefined || v === null ? null : Number.isSafeInteger(v) && Math.abs(v as number) < 1e15 ? asBalance(type, v as number) : bad("A statement balance must be a whole number of sen."));
+  return { openingSen: one(body.openingSen), closingSen: one(body.closingSen) };
+}
+
+/** FINNY-212: a statement saved before v0.23.0, uploaded again: add its dates for "Check with statements" without saving its lines again. */
+export async function addStatementDates(userId: string, body: Record<string, unknown>) {
+  const fileHash = typeof body.fileHash === "string" && /^[0-9a-f]{64}$/.test(body.fileHash) ? body.fileHash : bad("The file's fingerprint is missing.");
+  const [b] = await db.select().from(importBatches).where(and(eq(importBatches.userId, userId), eq(importBatches.fileHash, fileHash)));
+  if (!b || !b.accountId) bad("This statement hasn't been saved.", 404);
+  const acc = await ownAccount(userId, b!.accountId!);
+  const f = figures(acc.type, body);
+  if (f.closingSen === null) bad("This statement has no closing balance to add.");
+  const [done] = await db.update(importBatches).set(f).where(eq(importBatches.id, b!.id)).returning();
+  return { batch: done };
 }
