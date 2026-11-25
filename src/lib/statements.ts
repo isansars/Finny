@@ -68,7 +68,7 @@ export async function saveStatement(userId: string, body: Record<string, unknown
     let added = 0, skipped = 0;
     for (let i = 0; i < lines.length; i += 500) {
       const chunk = lines.slice(i, i + 500).map((l) => ({ ...l, description: [l.description, l.note].filter(Boolean).join(" · ") }));
-      const r = await addImportRows(userId, batch.id, { rows: chunk });
+      const r = await addImportRows(userId, batch.id, { rows: chunk }, { matched: true }); // the browser matched them one for one
       added += r.added; skipped += r.skipped;
     }
     const [done] = await db.update(importBatches).set({ finishedAt: new Date() }).where(eq(importBatches.id, batch.id)).returning();

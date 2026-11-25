@@ -59,8 +59,9 @@ export async function startImport(userId: string, body: Record<string, unknown>)
 
 type InRow = { on: string; kind: string; sen: number; accountId: string; toAccountId?: string | null; categoryId?: string | null; description?: string; entity?: string | null };
 
-/** Adds up to 500 rows to a batch; a row already in Finny (same account, day, amount, description) is skipped. */
-export async function addImportRows(userId: string, batchId: string, body: Record<string, unknown>) {
+/** Adds up to 500 rows to a batch; a row already in Finny (same account, day, amount, description) is skipped, unless the
+ *  rows were already matched one for one against Finny (a bank statement, FINNY-210: two alike on one day are two). */
+export async function addImportRows(userId: string, batchId: string, body: Record<string, unknown>, opts: { matched?: boolean } = {}) {
   const [batch] = await db.select().from(importBatches).where(and(eq(importBatches.id, batchId), eq(importBatches.userId, userId)));
   if (!batch) bad("Import not found.");
   if (batch.finishedAt) bad("This import is already finished.");
@@ -88,7 +89,7 @@ export async function addImportRows(userId: string, batchId: string, body: Recor
   const key = (a: string, on: string, sen: number, d: string) => `${a}|${on}|${sen}|${d.trim().toLowerCase()}`;
   const left = new Map<string, number>();
   for (const h of have) { const k = key(h.accountId, h.on, h.amountSen, h.description); left.set(k, (left.get(k) ?? 0) + 1); }
-  const fresh = rows.filter((r) => { const k = key(r.accountId, r.on, r.sen, s(r.description, 300)); const n = left.get(k) ?? 0; if (n > 0) { left.set(k, n - 1); return false; } return true; });
+  const fresh = opts.matched ? rows : rows.filter((r) => { const k = key(r.accountId, r.on, r.sen, s(r.description, 300)); const n = left.get(k) ?? 0; if (n > 0) { left.set(k, n - 1); return false; } return true; });
   // People and places.
   const names = [...new Set(fresh.map((r) => s(r.entity, 80)).filter(Boolean))];
   const ents = new Map<string, string>();
