@@ -3,7 +3,7 @@
 //  - pages and GET /api answers: network first; the last good answer is kept and served when there's no connection,
 //    an API answer with the header x-finny-offline: <when it was fetched>.
 // Nothing else is ever kept (no POST, PATCH, DELETE, sign-in, export). "clear" (sent on sign out) empties every cache.
-const VERSION = "finny-sw-2";
+const VERSION = "finny-sw-3"; // 3: pages kept per address with their filters (FINNY-205)
 const STATIC = `${VERSION}-static`, PAGES = `${VERSION}-pages`, DATA = `${VERSION}-data`;
 
 self.addEventListener("install", () => self.skipWaiting());
@@ -41,16 +41,34 @@ async function cacheFirst(req) {
   return res;
 }
 
+// FINNY-205: a page is kept under its whole address, filters included, so a filtered view is only ever served for that same
+// filter (a copy made for another filter made React re-draw with error #418). A filter never opened online gets a plain page
+// saying the view needs a connection, with a link to the same page without its filters when that one is kept.
+const MAX_PAGES = 60;
+const filterPage = (bare) => `<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Finny · offline</title>
+<body style="font-family:system-ui,sans-serif;background:#fdf8fb;color:#2b1a38;display:grid;place-items:center;min-height:100vh;margin:0;padding:24px;text-align:center">
+<div><div style="font-size:40px">📶</div><h1 style="font-size:20px">This view needs a connection</h1><p style="color:#6f5f82">Finny hasn't kept this filter yet; it opens once you're back online.</p>
+<p><a href="${bare}" style="color:#be185d;font-weight:700">Show the kept list without the filter</a></p></div></body></html>`;
+
 async function page(req) {
-  const key = new URL(req.url); key.search = ""; // one copy per page
+  const u = new URL(req.url), bare = new URL(req.url); bare.search = "";
   try {
     const res = await fetch(req);
     // Only a real page: not a redirect to sign in, not an error.
-    if (res.ok && !res.redirected) (await caches.open(PAGES)).put(key.href, res.clone());
+    if (res.ok && !res.redirected) {
+      const c = await caches.open(PAGES);
+      await c.delete(u.href); await c.put(u.href, res.clone()); // re-added, so the newest is last
+      const keys = await c.keys();
+      for (const k of keys.slice(0, Math.max(0, keys.length - MAX_PAGES))) await c.delete(k);
+    }
     return res;
   } catch {
-    const kept = (await caches.open(PAGES)).match(key.href);
-    return (await kept) ?? new Response(OFFLINE_PAGE, { status: 503, headers: { "content-type": "text/html; charset=utf-8" } });
+    const c = await caches.open(PAGES);
+    const kept = await c.match(u.href);
+    if (kept) return kept;
+    const html = { status: 503, headers: { "content-type": "text/html; charset=utf-8" } };
+    if (u.search && await c.match(bare.href)) return new Response(filterPage(bare.pathname), html);
+    return new Response(OFFLINE_PAGE, html);
   }
 }
 
