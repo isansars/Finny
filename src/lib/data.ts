@@ -32,9 +32,15 @@ export async function listAccounts(userId: string) {
     .from(transactions).where(eq(transactions.userId, userId)).groupBy(transactions.kind, transactions.accountId, transactions.toAccountId);
   const flows = new Map<string, Flows>();
   for (const s of sums) addFlow(flows, { kind: s.kind, accountId: s.accountId, toAccountId: s.toAccountId, amountSen: Number(s.total) });
+  // FINNY-214: for money owed to the owner, what was lent (the opening amount and every move to it) and what came back.
+  const owedFlows = (id: string, openingSen: number) => sums.reduce((o, s) => {
+    if (s.kind === "transfer" && s.toAccountId === id) o.lentSen += Number(s.total);
+    else if (s.accountId === id) o.paidSen += Number(s.total);
+    return o;
+  }, { lentSen: Math.max(0, openingSen), paidSen: 0 });
   return rows.map((a) => {
     const balanceSen = balanceOf(a.openingSen, flows.get(a.id));
-    return { ...a, balanceSen, ...(a.type === "card" || a.type === "loan" ? { card: cardView(balanceSen, a.limitSen) } : {}) };
+    return { ...a, balanceSen, ...(a.type === "card" || a.type === "loan" ? { card: cardView(balanceSen, a.limitSen) } : {}), ...(a.type === "owed" ? { owed: owedFlows(a.id, a.openingSen) } : {}) };
   });
 }
 

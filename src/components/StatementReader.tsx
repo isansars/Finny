@@ -4,7 +4,7 @@
 // uploaded; only the confirmed lines are sent.
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { ArrowLeftRight, CalendarDays, Check, ChevronLeft, CircleAlert, CreditCard, Eye, EyeOff, FileText, Landmark, LoaderCircle, Lock, ShieldCheck, Smartphone, Undo2, Upload } from "lucide-react";
+import { ArrowLeftRight, CalendarDays, Check, ChevronLeft, CircleAlert, CreditCard, Eye, EyeOff, FileCheck, FileText, HandCoins, Landmark, LoaderCircle, Lock, ShieldCheck, Smartphone, Undo2, Upload } from "lucide-react";
 import { api, remember, useFinny, type Account, type Category } from "./store";
 import { CatTile } from "./icons";
 import { CategoryOptions, Money, Sheet } from "./ui";
@@ -15,7 +15,7 @@ import { balanceCheck, foldCashback, matchStatement, type Checked, type Existing
 import { readPdfText, fingerprint, PdfLocked } from "@/lib/pdf-text";
 
 type Batch = { id: string; source: string; kind: string; bank: string | null; accountId: string | null; periodFrom: string | null; periodTo: string | null; createdAt: string; txns: number };
-type Context = { balanceEndSen: number; existing: Existing[]; history: { description: string; categoryId: string | null; on: string }[]; ownerName: string | null; alreadyRead: { id: string; createdAt: string } | null };
+type Context = { balanceEndSen: number; existing: Existing[]; history: { description: string; categoryId: string | null; on: string }[]; ownerName: string | null; alreadyRead: { id: string; createdAt: string; hasDates?: boolean } | null };
 type Choice = { status: Status | "skip"; categoryId: string | null; otherAccountId: string | null; note: string };
 type Step = "start" | "reading" | "password" | "check";
 
@@ -133,11 +133,23 @@ export function StatementReader() {
         if (c.status === "xfer") return l.amountSen < 0 ? { ...base, kind: "transfer", accountId: account.id, toAccountId: c.otherAccountId } : { ...base, kind: "transfer", accountId: c.otherAccountId, toAccountId: account.id };
         return { ...base, kind: l.amountSen < 0 ? "spend" : "income", accountId: account.id, categoryId: c.categoryId };
       });
-      const r = await api<{ added: number; skipped: number }>("statements", { method: "POST", json: { accountId: account.id, bank: st.bank, bankName: BANK_NAMES[st.bank], periodFrom: st.periodFrom, periodTo: st.periodTo, fileHash: file.hash, lines: out } });
+      const r = await api<{ added: number; skipped: number }>("statements", { method: "POST", json: { accountId: account.id, bank: st.bank, bankName: BANK_NAMES[st.bank], periodFrom: st.periodFrom, periodTo: st.periodTo, fileHash: file.hash, openingSen: st.openingSen ?? null, closingSen: st.closingSen ?? null, lines: out } });
       remember.set(`stmt.${st.bank}.${st.accountDigits}`, account.id);
       setMsg(`Saved ${r.added} line${r.added === 1 ? "" : "s"} from ${BANK_NAMES[st.bank]} · ${monthYear(st.periodTo)}.${r.skipped ? ` ${r.skipped} were already in.` : ""}`);
       setSt(null); setFile(null); setCtx(null); setStep("start"); await reload(); loadBatches();
       scrollTo({ top: 0 });
+    } catch (e) { setErr((e as Error).message); }
+    finally { setSaving(false); }
+  }
+
+  // FINNY-214: a statement saved before v0.23.0 has no dates for "Check with statements": add them without saving its lines again.
+  async function addDates() {
+    if (!st || !file) return;
+    setSaving(true); setErr("");
+    try {
+      await api("statements/dates", { method: "POST", json: { fileHash: file.hash, openingSen: st.openingSen ?? null, closingSen: st.closingSen ?? null } });
+      setMsg(`Added ${BANK_NAMES[st.bank]} · ${monthYear(st.periodTo)}'s dates to Check with statements.`);
+      setSt(null); setFile(null); setCtx(null); setStep("start"); loadBatches(); scrollTo({ top: 0 });
     } catch (e) { setErr((e as Error).message); }
     finally { setSaving(false); }
   }
@@ -236,7 +248,12 @@ export function StatementReader() {
         </select>
       </label>
       {!accountId && <div className="fy-note">Pick the account this statement belongs to. Finny remembers it for next month.</div>}
-      {ctx?.alreadyRead && <div className="fy-err" role="alert">You saved this statement on {shortDate(ctx.alreadyRead.createdAt.slice(0, 10))}. Undo it under Read before to read it again.</div>}
+      {ctx?.alreadyRead && (ctx.alreadyRead.hasDates === false && st.closingSen !== undefined
+        ? <div className="fy-card fy-pad" data-testid="add-dates" style={{ marginBottom: 10 }}><div style={{ fontWeight: 700, marginBottom: 8 }}>You saved this statement on {shortDate(ctx.alreadyRead.createdAt.slice(0, 10))}, before Finny kept its balances.</div>
+            <button className="fy-btn primary block" disabled={saving} onClick={addDates}>Add its dates to Check with statements</button>
+            <div className="fy-note" style={{ marginTop: 8 }}>Its lines aren&apos;t saved again.</div></div>
+        : <div className="fy-err" role="alert">You saved this statement on {shortDate(ctx.alreadyRead.createdAt.slice(0, 10))}. Undo it under Read before to read it again.</div>)}
+      {card && <div className="fy-note fy-iconnote" data-testid="bill-name" style={{ marginBottom: 10 }}><FileCheck size={16} /><span>{BANK_NAMES[st.bank]} bill{st.accountDigits ? ` · card ending ${st.accountDigits}` : ""} · {dayMonth(st.periodTo)}</span></div>}
       {bal && (bal.gapSen === 0
         ? <div className="fy-ok" data-testid="balance"><Check size={16} /> {card ? `Bill ${formatRupiah(bal.statementSen)} matches Finny` : `Ending balance ${formatRupiah(bal.statementSen)} matches Finny on ${shortDate(st.periodTo)}`}</div>
         : <div className="fy-card fy-pad fy-gap" data-testid="balance"><div className="h"><CircleAlert size={18} /> {formatRupiah(Math.abs(bal.gapSen))} apart</div>
@@ -254,12 +271,14 @@ export function StatementReader() {
               {shown.filter((r) => r.line.on === d).map((r) => {
                 const c = pick(r), cat = categories.find((x) => x.id === c.categoryId), other = accounts.find((a) => a.id === c.otherAccountId);
                 const faded = c.status === "in" || c.status === "skip";
-                const sub = c.status === "xfer" ? (other ? (r.line.amountSen < 0 ? `To ${other.name}` : `From ${other.name}`) : "Between your accounts: pick the other one")
-                  : c.status === "new" ? `${r.line.type ? `${r.line.type} · ` : ""}${cat ? cat.name + (choices[r.i] ? "" : r.hint ? " (suggested)" : "") : "Pick a category"}`
+                const alike = r.hint.match(/one of \d+ alike on this day[^·]*/)?.[0];
+                const sub = c.status === "xfer" ? (other ? (other.type === "owed" ? `${r.line.amountSen < 0 ? "To" : "From"} ${other.name} · owes you ${formatRupiah(Math.abs(r.line.amountSen))} ${r.line.amountSen < 0 ? "more" : "less"}` : r.line.amountSen < 0 ? `To ${other.name}` : `From ${other.name}`) : "Between your accounts: pick the other one")
+                  : c.status === "new" ? `${r.line.type ? `${r.line.type} · ` : ""}${cat ? cat.name + (choices[r.i] ? "" : r.hint && !r.hint.startsWith("one of") ? " (suggested)" : "") : "Pick a category"}${alike ? ` · ${alike}` : ""}`
                   : c.status === "skip" ? "Won't be saved" : r.hint;
                 return (
                   <button className={`fy-row${faded ? " fy-faded" : ""}`} key={r.i} onClick={() => setOpen(r.i)} data-testid="stmt-line" data-status={c.status}>
-                    {c.status === "xfer" ? <span className="fy-tile" data-color="lavender" style={{ width: 32, height: 32, borderRadius: 10 }}><ArrowLeftRight size={18} /></span>
+                    {c.status === "xfer" && other?.type === "owed" ? <span className="fy-tile" data-color="mint" style={{ width: 32, height: 32, borderRadius: 10 }}><HandCoins size={18} /></span>
+                      : c.status === "xfer" ? <span className="fy-tile" data-color="lavender" style={{ width: 32, height: 32, borderRadius: 10 }}><ArrowLeftRight size={18} /></span>
                       : c.status === "check" ? <span className="fy-tile" data-color="lemon" style={{ width: 32, height: 32, borderRadius: 10 }}><CircleAlert size={18} /></span>
                       : cat ? <CatTile c={cat} /> : <span className="fy-tile" data-color="slate" style={{ width: 32, height: 32, borderRadius: 10 }}><FileText size={18} /></span>}
                     <div className="main"><div className="t">{r.line.description || r.line.type || "Line"}</div><div className="s">{r.line.card ? `${r.line.card} · ` : ""}{r.line.instalment ? `${r.line.instalment} · ` : ""}{r.line.currency ? `${r.line.currency} ${r.line.foreignAmount} · ` : ""}{sub}</div></div>

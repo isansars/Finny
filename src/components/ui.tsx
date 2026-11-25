@@ -68,10 +68,10 @@ export function CategoryOptions({ cats, kinds, includeOff, exclude }: { cats: Ca
   })}</>;
 }
 
-export const TYPE_LABEL: Record<string, string> = { cash: "Cash", bank: "Bank", ewallet: "E-wallet", card: "Credit card", loan: "Loan / paylater", investment: "Investment" };
+export const TYPE_LABEL: Record<string, string> = { cash: "Cash", bank: "Bank", ewallet: "E-wallet", card: "Credit card", loan: "Loan / paylater", investment: "Investment", owed: "Owed to me" };
 export const TYPE_LOOK: Record<string, { icon: string; color: string }> = {
   cash: { icon: "banknote", color: "mint" }, bank: { icon: "landmark", color: "sky" }, ewallet: { icon: "smartphone", color: "lavender" },
-  card: { icon: "credit-card", color: "peach" }, loan: { icon: "hand-coins", color: "rose" }, investment: { icon: "trending-up", color: "lemon" },
+  card: { icon: "credit-card", color: "peach" }, loan: { icon: "hand-coins", color: "rose" }, investment: { icon: "trending-up", color: "lemon" }, owed: { icon: "hand-coins", color: "mint" },
 };
 
 /** A date that reads "23 Nov 2026" (not the browser's 11/23/2026); tapping it opens the phone's own date picker. */

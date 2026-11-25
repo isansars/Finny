@@ -10,7 +10,7 @@ import { formatCompact, formatRupiah, parseRupiah } from "@/lib/money";
 import { todayIn } from "@/lib/dates";
 
 const GROUPS: { title: string; types: string[] }[] = [
-  { title: "Cash & bank", types: ["cash", "bank"] }, { title: "E-wallets", types: ["ewallet"] },
+  { title: "Cash & bank", types: ["cash", "bank"] }, { title: "E-wallets", types: ["ewallet"] }, { title: "Owed to you", types: ["owed"] },
   { title: "Credit cards", types: ["card"] }, { title: "Loans & paylater", types: ["loan"] }, { title: "Investments", types: ["investment"] },
 ];
 
@@ -19,6 +19,8 @@ function AccountForm({ a, onDone }: { a: Account | null; onDone: () => void }) {
   const [name, setName] = useState(a?.name ?? "");
   const [type, setType] = useState(a?.type ?? "bank");
   const owes = type === "card" || type === "loan";
+  const lent = type === "owed"; // FINNY-214: money someone owes the owner
+  const openLabel = owes ? "Owed on the opening date" : lent ? "They owe you now" : "Opening balance";
   const [opening, setOpening] = useState(a ? formatRupiah(owes ? -a.openingSen : a.openingSen, { prefix: false }) : "");
   const [openingOn, setOpeningOn] = useState(a?.openingOn ?? todayIn());
   const [limit, setLimit] = useState(a?.limitSen != null ? formatRupiah(a.limitSen, { prefix: false }) : "");
@@ -40,14 +42,15 @@ function AccountForm({ a, onDone }: { a: Account | null; onDone: () => void }) {
   return (
     <form onSubmit={save} aria-label={a ? "Edit account" : "Add an account"}>
       {err && <div className="fy-err" role="alert">{err}</div>}
-      <label className="fy-field"><span className="fy-label">Name</span><input className="fy-input" value={name} onChange={(e) => setName(e.target.value)} placeholder="BCA" maxLength={80} required autoFocus /></label>
+      <label className="fy-field"><span className="fy-label">{lent ? "Who owes you" : "Name"}</span><input className="fy-input" value={name} onChange={(e) => setName(e.target.value)} placeholder={lent ? "Rina" : "BCA"} maxLength={80} required autoFocus /></label>
       <label className="fy-field"><span className="fy-label">Type</span>
         <select className="fy-input" value={type} onChange={(e) => setType(e.target.value)}>{Object.entries(TYPE_LABEL).map(([k, v]) => <option key={k} value={k}>{v}</option>)}</select>
       </label>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-        <label className="fy-field"><span className="fy-label">{owes ? "Owed on the opening date" : "Opening balance"}</span><AmountInput label={owes ? "Owed on the opening date" : "Opening balance"} value={opening} onChange={setOpening} /></label>
+        <label className="fy-field"><span className="fy-label">{openLabel}</span><AmountInput label={openLabel} value={opening} onChange={setOpening} /></label>
         <div className="fy-field"><span className="fy-label">Opening date</span><DateField label="Opening date" value={openingOn} onChange={setOpeningOn} /></div>
       </div>
+      {lent && <div className="fy-note" data-testid="owed-note" style={{ lineHeight: 1.45, marginBottom: 12 }}>Lending is a transfer <b>to</b> {name.trim() || "them"}; a repayment is a transfer <b>from</b> {name.trim() || "them"}. Neither is spending or income, and what {name.trim() || "they"} {name.trim() ? "owes" : "owe"} counts in your net worth.</div>}
       {owes && (
         <div style={{ display: "grid", gridTemplateColumns: type === "card" ? "1fr 1fr" : "1fr", gap: 10 }}>
           <label className="fy-field"><span className="fy-label">{type === "card" ? "Credit limit" : "Loan amount (optional)"}</span><AmountInput label="Limit" value={limit} onChange={setLimit} /></label>
@@ -77,7 +80,8 @@ export function Accounts() {
   }
   const row = (a: Account) => {
     const look = TYPE_LOOK[a.type] ?? { icon: "wallet", color: "slate" };
-    const sub = a.card ? (a.card.limit != null ? `Rp ${formatCompact(a.card.available ?? 0)} left of ${formatCompact(a.card.limit)}` : TYPE_LABEL[a.type]) : TYPE_LABEL[a.type];
+    const sub = a.card ? (a.card.limit != null ? `Rp ${formatCompact(a.card.available ?? 0)} left of ${formatCompact(a.card.limit)}` : TYPE_LABEL[a.type])
+      : a.owed ? `Lent ${formatRupiah(a.owed.lentSen)} · paid back ${formatRupiah(a.owed.paidSen)}` : TYPE_LABEL[a.type];
     const inner = (<>
       <Tile icon={look.icon} color={look.color} />
       <div className="main"><div className="t">{a.name}</div><div className="s">{sub}</div>
