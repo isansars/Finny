@@ -39,11 +39,11 @@ module.exports = async ({ base, shots }) => {
   // Already in Finny: the book typed on the card. The 500.000 payment isn't typed anywhere yet, so it's a transfer from BCA.
   await add({ kind: "spend", amount: "148.400", accountId: A["BCA Card"].id, categoryId: C["Belanja Online"].id, description: "Toko Buku Online", on: "2026-12-28" });
 
-  await s.check("FINNY-154.1 BCA credit card is in the list (5 statements)", async () => {
+  await s.check("FINNY-154.1 BCA credit card is in the list (6 statements)", async () => {
     await page.goto(base + "/import/statements");
     await page.locator("#main").getByText("Monthly bill · every BCA card on it").waitFor();
     const t = (await page.locator("main").innerText()).replace(/\s+/g, " ");
-    for (const w of ["BCA credit card", "Monthly bill · every BCA card on it", "5 statements", "BRI credit card"]) ok(t.includes(w), `no "${w}"`);
+    for (const w of ["BCA credit card", "Monthly bill · every BCA card on it", "6 statements", "BRI credit card"]) ok(t.includes(w), `no "${w}"`);
     await noSideScroll("Start"); await shot(page, shots, "s16-01-start-375");
   });
 

@@ -87,12 +87,15 @@ export const MANDIRI_CARD = {
   ],
 };
 export const MANDIRI_LIVIN = {
-  account: "1300011112222", from: "01 Nov 2026", to: "24 Nov 2026", opening: 33_013_00,
+  account: "1300011112222", from: "01 Nov 2026", to: "24 Nov 2026", opening: 1_033_013_00,
   lines: [ // [date, time, remarks above, remarks on the row, remarks below, signed sen]
     ["03 Nov 2026", "22:51:41", "Transfer BI Fast", "Dari KROM BANK INDONESIA", "FINNY TESTER 770000000001", 3_600_000_00],
     ["03 Nov 2026", "22:52:06", "", "Pembayaran kartu kredit", "4259450000007731", -3_563_226_00],
     ["04 Nov 2026", "06:03:51", "", "Biaya administrasi kartu debit", "", -9_000_00],
     ["18 Nov 2026", "23:59:00", "", "Biaya administrasi rekening", "", -6_000_00],
+    ["19 Nov 2026", "09:12:40", "Transfer BI Fast", "Ke BCA RINA WIJAYA", "770000000002", -500_000_00], // a person who owes the owner (FINNY-210)
+    ["20 Nov 2026", "10:01:00", "", "Tarik Tunai ATM", "", -100_000_00], // two alike on one day
+    ["20 Nov 2026", "10:01:00", "", "Tarik Tunai ATM", "", -100_000_00],
   ],
 };
 export const KROM_POCKETS = {
@@ -282,7 +285,7 @@ function mandiriLivinHtml() {
     if (below) c.push([44, y + 3.6, below]);
     y += 16;
   });
-  c.push([82, y, "ini adalah batas akhir transaksi anda"], [11, 205, "Disclaimer", "b"], [11, 212, "1. e-Statement ini merupakan dokumen elektronik dari Bank Mandiri."]);
+  c.push([82, y, "ini adalah batas akhir transaksi anda"], [11, y + 14, "Disclaimer", "b"], [11, y + 21, "1. e-Statement ini merupakan dokumen elektronik dari Bank Mandiri."]);
   return page(c);
 }
 function kromPocketsHtml() {
