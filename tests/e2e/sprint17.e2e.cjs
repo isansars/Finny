@@ -162,7 +162,7 @@ module.exports = async ({ base, shots }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
   });
 
-  await s.check("11–14 · New account / New category, hover, the empty Budget centred, five statements named", async () => {
+  await s.check("11–14 · New account / New category, hover, the empty Budget centred, six statements named", async () => {
     await go("/accounts"); ok(await page.getByRole("button", { name: "New account" }).isVisible(), "New account");
     const row = page.locator("a.fy-row, button.fy-row").first(); const bg0 = await row.evaluate((e) => getComputedStyle(e).backgroundColor);
     await row.hover(); await page.waitForTimeout(200); ok(bg0 !== (await row.evaluate((e) => getComputedStyle(e).backgroundColor)), "no hover");
@@ -173,7 +173,7 @@ module.exports = async ({ base, shots }) => {
       const c = await empty.evaluate((e) => { const r = e.getBoundingClientRect(), bt = e.querySelector(".fy-btn").getBoundingClientRect(); return Math.abs((bt.left + bt.right) / 2 - (r.left + r.right) / 2); });
       ok(c <= 2, `buttons ${Math.round(c)} px off centre`); await shot(page, shots, "s17-10-budget-empty-1440");
     }
-    await go("/settings"); ok((await page.locator("main").innerText()).includes("BCA, BCA credit card, Mandiri, Krom, BRI card"), "statements line");
+    await go("/settings"); ok((await page.locator("main").innerText()).includes("BCA, Mandiri, Krom, and BCA, Mandiri and BRI cards"), "statements line");
   });
 
   await s.check("every page: axe (WCAG 2.2 AA) and no sideways scroll at 1024, 1440, 1920", async () => {
