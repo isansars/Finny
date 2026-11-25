@@ -1,7 +1,7 @@
 {
   "type": "board",
   "title": "Finny · Roadmap",
-  "subtitle": "Replace the two workbooks: record every day, read the bank each month, then plan, report and grow. Current as of Sprint 23 planning, 25 Nov 2026.",
+  "subtitle": "Replace the two workbooks: record every day, read the bank each month, then plan, report and grow. Current as of v0.23.0, 25 Nov 2026.",
   "footer": "🐰 Poppy · Finny · Product · 25 Nov 2026 · planned on the FINNY board",
   "badge": "💸 The owner's own product · FINNY board · isansars/Finny",
   "width": 1700,
@@ -13,6 +13,11 @@
       "sub": "latest three releases",
       "items": [
         [
+          "Balances you can trust: owed-to-me accounts, matched transfers and card payments, the Mandiri card bill, check with statements, possible doubles",
+          "live",
+          "v0.23.0 · FINNY-207"
+        ],
+        [
           "Jump to any month: tap the month name on Home, Budget and Reports",
           "live",
           "v0.22.1 · FINNY-206"
@@ -21,30 +26,25 @@
           "Several at once, offline: delete, category and looks fine without a signal",
           "live",
           "v0.22.0 · FINNY-199"
-        ],
-        [
-          "Fix and delete offline: changes wait on the phone, nothing overwritten without asking",
-          "live",
-          "v0.21.0 · FINNY-191"
         ]
       ]
     },
     {
-      "name": "Now · Sprint 23",
+      "name": "Now",
       "icon": "🏃",
       "tone": "orange",
-      "sub": "25 Nov – 8 Dec · v0.23.0",
+      "sub": "Your data, then a month in Finny only",
       "focus": true,
       "items": [
         [
-          "Balances you can trust: owed-to-me accounts, matched transfers and card payments, Mandiri card bill, check with statements, possible doubles",
-          "dev",
-          "FINNY-207"
-        ],
-        [
-          "Before it: import the audited, clean workbook",
+          "Import the audited, clean workbook; then Check with statements on each account",
           "planned",
           "the owner: Delete everything, then Import"
+        ],
+        [
+          "A month in Finny only, checked against the workbook",
+          "planned",
+          "the owner: the done-when check"
         ]
       ]
     },
@@ -55,9 +55,9 @@
       "sub": "",
       "items": [
         [
-          "A month in Finny only, checked against the workbook",
+          "What the month turns up",
           "planned",
-          "the owner: the done-when check"
+          "Poppy, after the owner's month"
         ]
       ]
     },
