@@ -58,6 +58,7 @@ function AccountForm({ a, onDone }: { a: Account | null; onDone: () => void }) {
         </div>
       )}
       <div className="fy-sheet-foot"><button className="fy-btn primary block" disabled={busy}>{a ? "Save changes" : "Add account"}</button></div>
+      {a && <Link className="fy-btn block" style={{ marginTop: 8 }} href={`/accounts/${a.id}/check`}>Check with statements</Link>}
       {a && <button type="button" className="fy-btn block" style={{ marginTop: 8 }} disabled={busy} onClick={() => archive(!a.archived)}>{a.archived ? "Reopen account" : "Close account (keeps its history)"}</button>}
     </form>
   );
