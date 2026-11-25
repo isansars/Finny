@@ -56,3 +56,15 @@ test("net worth with everything, by group", () => {
   assert.equal(w.oweSen, 1_000_000_00);
   assert.equal(w.netSen, bankBal + 5_058_000_00 + w.groups.fixed.sen + 1_000_000_00 - 1_000_000_00);
 });
+
+test("FINNY-213: money owed to the owner is its own group, counted in net worth; lending and repayments move it", () => {
+  const rina: HAcc = { id: "rina", name: "Rina (owes me)", type: "owed", openingSen: 2_000_000_00, openingOn: "2026-10-01" };
+  const t = [
+    { on: "2026-10-05", kind: "transfer" as const, amountSen: 1_000_000_00, accountId: "bank", toAccountId: "rina", categoryId: null },
+    { on: "2026-11-05", kind: "transfer" as const, amountSen: 500_000_00, accountId: "rina", toAccountId: "bank", categoryId: null },
+  ];
+  const w = wealthAt([bank, rina], [...txns, ...t] as never, [], [], "2026-11-23");
+  assert.equal(w.groups.owed.sen, 2_500_000_00); assert.equal(w.groups.owed.count, 1); assert.equal(w.groups.other.sen, 0);
+  const without = wealthAt([bank], txns, [], [], "2026-11-23");
+  assert.equal(w.netSen - without.netSen, 2_500_000_00 - 1_000_000_00 + 500_000_00, "net worth: what Rina owes, less the bank's side of the moves");
+});

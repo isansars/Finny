@@ -13,14 +13,14 @@ import { thingAt, type Thing } from "@/lib/asset-rule";
 
 type Holding = { id: string; name: string; kind: string; investedSen: number; valueSen: number; plSen: number; plPct: number; valuedOn: string | null; interestSen: number; accruedSen: number; rateBp: number | null; maturityOn: string | null; fixed: boolean };
 type G = { sen: number; costSen: number; count: number };
-type Overview = { today: string; groups: Record<"cash" | "investments" | "fixed" | "things" | "business" | "other", G>; haveSen: number; oweSen: number; netSen: number; changeSen: number;
+type Overview = { today: string; groups: Record<"cash" | "investments" | "fixed" | "things" | "business" | "owed" | "other", G>; haveSen: number; oweSen: number; netSen: number; changeSen: number;
   holdings: Holding[]; things: (Thing & { worthSen: number; myCostSen: number })[]; lastValued: string | null };
 
 const plain = (sen: number) => formatRupiah(sen, { prefix: false });
 const signed = (sen: number) => `${sen >= 0 ? "+" : "−"}Rp ${plain(Math.abs(sen))}`;
 const pct = (n: number) => `${n >= 0 ? "+" : "−"}${Math.abs(n).toLocaleString("id-ID")}%`;
-const COLORS: Record<string, string> = { cash: "#38bdf8", investments: "#f472b6", fixed: "#a78bfa", things: "#fbbf24", business: "#34d399", other: "#94a3b8" };
-const LABEL: Record<string, string> = { cash: "Cash & bank", investments: "Investments", fixed: "Fixed income", things: "Property & vehicles", business: "Business", other: "Other" };
+const COLORS: Record<string, string> = { cash: "#38bdf8", investments: "#f472b6", fixed: "#a78bfa", things: "#fbbf24", business: "#34d399", owed: "#2dd4bf", other: "#94a3b8" };
+const LABEL: Record<string, string> = { cash: "Cash & bank", investments: "Investments", fixed: "Fixed income", things: "Property & vehicles", business: "Business", owed: "Owed to you", other: "Other" };
 const KIND_LABEL: Record<string, string> = { stock: "Stock", fund: "Mutual fund", crypto: "Crypto", gold: "Gold", bond: "Bond", deposit: "Deposit", p2p: "P2P lending", other: "Investment" };
 const THING_LABEL: Record<string, string> = { property: "Property", vehicle: "Vehicle", equipment: "Equipment", personal: "Personal", business: "Business", other: "Other" };
 const THING_ICON: Record<string, React.ReactNode> = { property: <House size={18} />, vehicle: <Bike size={18} />, equipment: <Laptop size={18} />, personal: <Gem size={18} />, business: <Briefcase size={18} />, other: <Package size={18} /> };

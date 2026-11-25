@@ -16,6 +16,7 @@ test("finds the account sheets, the owner, and the template's example sheet", ()
   assert.equal(defaultChoices(b).include["Kas Tunai"], false);
 });
 test("account types from names; CLOSED becomes an archived account", () => {
+  assert.equal(guessType("Piutang Rina"), "owed"); assert.equal(guessType("Rina (owes me)"), "owed");
   assert.equal(guessType("BRI - Tokopedia Card"), "card"); assert.equal(guessType("KK Bank-0005"), "card"); assert.equal(guessType("ShopeePinjam"), "loan");
   assert.equal(guessType("GoPay"), "ewallet"); assert.equal(guessType("Kas Tunai"), "cash"); assert.equal(guessType("Krom"), "bank");
   assert.equal(displayName("CLOSED BRI - OVO U Card"), "BRI - OVO U Card");

@@ -3,7 +3,7 @@
 // place). Nothing is guessed silently: what doesn't fit goes to `unplaced`. Tests: tests/unit/import-rule.test.mts.
 export type Cell = string | number | boolean | Date | null | undefined;
 export type Sheet = { sheet: string; data: Cell[][] };
-export type AccountType = "cash" | "bank" | "ewallet" | "card" | "loan" | "investment";
+export type AccountType = "cash" | "bank" | "ewallet" | "card" | "loan" | "investment" | "owed";
 
 const BOOKS_HEADER = ["Tanggal", "Keterangan", "Entitas Pengirim", "Entitas Penerima", "Akun Terkait", "Jenis Transaksi", "Jumlah Transaksi", "Saldo"];
 const norm = (s: unknown) => String(s ?? "").trim();
@@ -24,6 +24,7 @@ const dayDiff = (a: string, b: string) => Math.abs(Date.parse(a) - Date.parse(b)
 
 export function guessType(name: string): AccountType {
   const n = ` ${lower(name)} `;
+  if (/piutang|owes me|\(owes/.test(n)) return "owed"; // FINNY-213: money someone owes the owner
   if (/\b(cc|card|kartu kredit|kk)\b/.test(n)) return "card";
   if (/pinjam|paylater|pinjaman|kredivo|akulaku|cicilan|loan/.test(n)) return "loan";
   if (/gopay|\bovo\b|shopeepay|\bdana\b|linkaja|e-?money|flazz|jenius pay/.test(n)) return "ewallet";

@@ -76,10 +76,10 @@ export function balanceAt(acc: HAcc, txns: RTxn[], on: string): number {
   return b;
 }
 
-export type Group = "cash" | "investments" | "fixed" | "things" | "business" | "other";
+export type Group = "cash" | "investments" | "fixed" | "things" | "business" | "owed" | "other";
 /** Net worth on a day with everything, by group (debts as what's owed). */
 export function wealthAt(accounts: HAcc[], txns: RTxn[], vals: Val[], ts: Thing[], on: string) {
-  const groups: Record<Group, { sen: number; costSen: number; count: number }> = { cash: { sen: 0, costSen: 0, count: 0 }, investments: { sen: 0, costSen: 0, count: 0 }, fixed: { sen: 0, costSen: 0, count: 0 }, things: { sen: 0, costSen: 0, count: 0 }, business: { sen: 0, costSen: 0, count: 0 }, other: { sen: 0, costSen: 0, count: 0 } };
+  const groups: Record<Group, { sen: number; costSen: number; count: number }> = { cash: { sen: 0, costSen: 0, count: 0 }, investments: { sen: 0, costSen: 0, count: 0 }, fixed: { sen: 0, costSen: 0, count: 0 }, things: { sen: 0, costSen: 0, count: 0 }, business: { sen: 0, costSen: 0, count: 0 }, owed: { sen: 0, costSen: 0, count: 0 }, other: { sen: 0, costSen: 0, count: 0 } };
   let oweSen = 0;
   for (const a of accounts) {
     if (a.openingOn > on && !txns.some((t) => t.on <= on && (t.accountId === a.id || t.toAccountId === a.id))) continue;
@@ -89,7 +89,7 @@ export function wealthAt(accounts: HAcc[], txns: RTxn[], vals: Val[], ts: Thing[
       if (h.valueSen || h.investedSen) { g.sen += h.valueSen; g.costSen += h.investedSen; g.count++; }
       continue;
     }
-    const b = balanceAt(a, txns, on); const g = CASH.has(a.type) ? groups.cash : groups.other;
+    const b = balanceAt(a, txns, on); const g = CASH.has(a.type) ? groups.cash : a.type === "owed" ? groups.owed : groups.other; // FINNY-213
     g.sen += b; g.costSen += b; if (!a.archived || b) g.count++;
   }
   for (const t of ts) {
