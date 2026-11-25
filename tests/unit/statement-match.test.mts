@@ -92,3 +92,47 @@ test("balance check: savings and a card's bill, after saving New and Transfer li
   assert.deepEqual(balanceCheck(st(card.map((c) => c.line), 1_075_000_00), "card", -800_000_00, card), { statementSen: 1_075_000_00, finnySen: 1_075_000_00, gapSen: 0 });
   assert.equal(balanceCheck(st([]), "bank", 0, []), null);
 });
+
+// FINNY-210: matching against other accounts, card payments with a fee, people who owe the owner, look-alikes.
+const withRina: Acc[] = [...accounts, { id: "rina", name: "Rina (owes me)", type: "owed" }];
+const runWith = (accs: Acc[], lines: StatementLine[], existing: Existing[], accountId = "bca") =>
+  matchStatement({ statement: st(lines), lines, accountId, accounts: accs, categories, existing, history, ownerName: "Finny Tester" });
+
+test("a transfer the other bank booked up to 3 days off is Already in, naming the account and the days", () => {
+  const r = run([L("2026-10-08", "TRF KE KROM", -1_000_000_00)], [E("t", "2026-10-11", "transfer", 1_000_000_00, "bca", "krom")]);
+  assert.equal(r[0].status, "in"); assert.equal(r[0].matchId, "t"); assert.equal(r[0].otherAccountId, "krom");
+  assert.match(r[0].hint, /to Krom, 11 Oct \(3 days later\)/);
+  const four = run([L("2026-10-07", "TRF KE KROM", -1_000_000_00)], [E("t", "2026-10-11", "transfer", 1_000_000_00, "bca", "krom")]);
+  assert.notEqual(four[0].status, "in", "4 days off is not matched");
+  const spend = run([L("2026-10-08", "Tokopedia", -50_000_00)], [E("s", "2026-10-11", "spend", 50_000_00, "bca")]);
+  assert.notEqual(spend[0].status, "in", "spending keeps ±2 days");
+});
+
+test("a card bill's payment matches the bank's transfer into the card up to Rp 10.000 apart, naming the gap", () => {
+  const r = run([L("2026-10-03", "PEMBAYARAN - TERIMA KASIH", 2_150_000_00)], [E("p", "2026-10-02", "transfer", 2_152_500_00, "mandiri", "card")], "card");
+  assert.equal(r[0].status, "in"); assert.equal(r[0].otherAccountId, "mandiri");
+  assert.match(r[0].hint, /from Mandiri, 2 Oct \(1 day earlier\) · Rp 2\.500 apart/);
+  const far = run([L("2026-10-03", "PEMBAYARAN - TERIMA KASIH", 2_150_000_00)], [E("p", "2026-10-02", "transfer", 2_161_000_00, "mandiri", "card")], "card");
+  assert.notEqual(far[0].status, "in", "Rp 11.000 apart is too far");
+  const bank = run([L("2026-10-02", "PEMBAYARAN KARTU KREDIT", -2_152_500_00)], [E("p", "2026-10-03", "transfer", 2_150_000_00, "bca", "card")]);
+  assert.equal(bank[0].status, "in", "the bank's side matches the card's figure too");
+  const notCard = run([L("2026-10-02", "TRF KE KROM", -1_002_500_00)], [E("t", "2026-10-02", "transfer", 1_000_000_00, "bca", "krom")]);
+  assert.notEqual(notCard[0].status, "in", "between two banks the amount must be exact");
+});
+
+test("a person with an Owed to me account is a transfer to or from them, ahead of a bank named in the line", () => {
+  const r = runWith(withRina, [L("2026-10-10", "BI-FAST DB KROM RINA", -500_000_00), L("2026-10-12", "TRF DARI RINA", 200_000_00)], []);
+  assert.deepEqual(r.map((x) => [x.status, x.kind, x.otherAccountId]), [["xfer", "transfer", "rina"], ["xfer", "transfer", "rina"]]);
+  assert.match(r[0].hint, /To Rina \(owes me\) · owes you Rp 500\.000 more/);
+  assert.match(r[1].hint, /From Rina \(owes me\) · owes you Rp 200\.000 less/);
+  const plain = runWith(withRina, [L("2026-10-10", "BI-FAST DB KROM", -500_000_00)], []);
+  assert.equal(plain[0].otherAccountId, "krom", "without the person's name it is still the owner's own move");
+});
+
+test("two alike on one day both stay; with one already in Finny, one is Already in and one New, each saying so", () => {
+  const two = run([L("2026-10-10", "INDOMARET 0412", -25_000_00), L("2026-10-10", "INDOMARET 0412", -25_000_00)], []);
+  assert.deepEqual(two.map((x) => x.status), ["new", "new"]);
+  for (const x of two) assert.match(x.hint, /one of 2 alike on this day/);
+  const one = run([L("2026-10-10", "INDOMARET 0412", -25_000_00), L("2026-10-10", "INDOMARET 0412", -25_000_00)], [E("i", "2026-10-10", "spend", 25_000_00, "bca")]);
+  assert.deepEqual(one.map((x) => x.status).sort(), ["in", "new"]);
+});
