@@ -1,7 +1,7 @@
 {
   "type": "board",
   "title": "Finny · Roadmap",
-  "subtitle": "Replace the two workbooks: record every day, read the bank each month, then plan, report and grow. Current as of v0.22.1, 25 Nov 2026.",
+  "subtitle": "Replace the two workbooks: record every day, read the bank each month, then plan, report and grow. Current as of Sprint 23 planning, 25 Nov 2026.",
   "footer": "🐰 Poppy · Finny · Product · 25 Nov 2026 · planned on the FINNY board",
   "badge": "💸 The owner's own product · FINNY board · isansars/Finny",
   "width": 1700,
@@ -30,21 +30,21 @@
       ]
     },
     {
-      "name": "Now",
+      "name": "Now · Sprint 23",
       "icon": "🏃",
       "tone": "orange",
-      "sub": "Your data, cleaned (25 Nov)",
+      "sub": "25 Nov – 8 Dec · v0.23.0",
       "focus": true,
       "items": [
         [
-          "Import the audited, clean workbook (every bank balance matches its statements)",
-          "planned",
-          "the owner: Delete everything, then Import"
+          "Balances you can trust: owed-to-me accounts, matched transfers and card payments, Mandiri card bill, check with statements, possible doubles",
+          "dev",
+          "FINNY-207"
         ],
         [
-          "Sprint 23 · Balances you can trust: owes-me accounts, card bills and transfers matched, the Mandiri card bill read",
+          "Before it: import the audited, clean workbook",
           "planned",
-          "approved; Mochi's design first"
+          "the owner: Delete everything, then Import"
         ]
       ]
     },
